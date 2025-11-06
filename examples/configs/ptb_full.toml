@@ -1,7 +1,7 @@
 [run]
 mode = "list"                      # fast | list
 source_type = "dt"                 # cf252 | dt | proton_center | phits
-workers = "auto"
+workers = 0 # "auto"
 chunk_cones = "auto"
 jit = false
 progress = true
@@ -10,6 +10,16 @@ progress = true
 input = "PLACEHOLDER/path/to/input.root"
 output = "PLACEHOLDER/path/to/output.h5"
 detector_map = "PLACEHOLDER/path/to/detectors_mnovo.json"
+source = "root"  # "synth" | "root" | "phits"
+
+[io.adapter]
+type = "root"        # or "phits"
+style = "Joey"       # for ROOT from DDAQ-Tools
+unit_pos_is_mm = true
+time_units = "ns"    # or "ps"
+require_gamma_triples = false
+default_material = "M600"
+# fieldmap = { x1="x1_custom", Elong1="ElongFirst", ... }
 
 [plane]
 origin = [0.0, 0.0, -200.0]
@@ -49,3 +59,7 @@ sigma_doi_cm = 0.35
 sigma_transverse_cm = 0.346
 sigma_time_ns = 0.5
 use_lut_bands = false
+
+[vis]
+export_png_on_write = true           # default true
+summed_dataset = "/images/summed"     # override if needed

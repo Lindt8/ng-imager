@@ -9,23 +9,6 @@ M_N_MEV = 939.565          # neutron
 M_P_MEV = 938.272          # proton
 M_C12_MEV = 12*931.494 - 6*0.511  # carbon-12 (nuclear mass approx)
 
-@dataclass
-class Hit:
-    det_id: int
-    r: np.ndarray      # (3,)
-    t_ns: float
-    L: float           # light
-
-@dataclass
-class NeutronEvent:
-    h1: Hit; h2: Hit
-
-@dataclass
-class Cone:
-    apex: np.ndarray   # O (3,)
-    dir:  np.ndarray   # Dhat (3,), unit
-    theta: float       # radians
-    sigma_theta: float | None = None
 
 @dataclass(frozen=True)
 class Nucleus:

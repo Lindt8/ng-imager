@@ -10,6 +10,16 @@ progress = true
 input = "PLACEHOLDER/path/to/input.root"
 output = "PLACEHOLDER/path/to/output.h5"
 detector_map = "PLACEHOLDER/path/to/detectors_mnovo.json"  # det->material, pose, etc.
+source = "root"  # "synth" | "root" | "phits"
+
+[io.adapter]
+type = "root"        # or "phits"
+style = "Joey"       # for ROOT from DDAQ-Tools
+unit_pos_is_mm = true
+time_units = "ns"    # or "ps"
+require_gamma_triples = false
+default_material = "M600"
+# fieldmap = { x1="x1_custom", ... }  # optional
 
 [plane]
 origin = [0.0, 0.0, -200.0]
@@ -53,3 +63,7 @@ sigma_doi_cm = 0.35                # placeholder (constant)
 sigma_transverse_cm = 0.346        # +/-0.6 cm uniform -> ~0.346 Gaussian
 sigma_time_ns = 0.5                # placeholder (constant)
 use_lut_bands = false
+
+[vis]
+export_png_on_write = true           # default true
+summed_dataset = "/images/summed"     # override if needed

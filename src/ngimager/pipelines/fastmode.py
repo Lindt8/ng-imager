@@ -4,12 +4,16 @@ import numpy as np
 from ..config.load import load_config
 from ..geometry.plane import Plane
 from ..io.lm_store import write_init, write_summed
+from ..io.lut import build_lut_registry
+from ..sim.synth import synth_neutron_events_point_source
 from ..imaging.sbp import reconstruct_sbp, Cone
-from ..physics.hits import fake_hits
-from ..physics.events import NeutronEvent
+#from ..physics.hits import fake_hits
 from ..physics.energy_strategies import make_energy_strategy
 from ..io.lut import build_lut_registry
 from ..physics.cones import build_cone_from_neutron
+from ngimager.io.adapters import make_adapter
+from ngimager.physics.events import NeutronEvent, GammaEvent
+from ngimager.vis.hdf import save_summed_png
 import multiprocessing as mp
 try:
     mp.set_start_method("spawn", force=False)
@@ -24,6 +28,21 @@ def _demo_cones() -> list[Cone]:
     theta = np.deg2rad(20.0)
     return [Cone(O, D, theta)]
 
+def iter_source_events(cfg, path):
+    if cfg.io.source == "synth":
+        # existing synthetic generator
+        yield from synth_neutron_events_point_source(
+            n_events=cfg.synth.n_events,
+            source_xyz_cm=np.array(cfg.synth.source_xyz_cm, dtype=float),
+            detector_xyz_cm=np.array(cfg.synth.detector_xyz_cm, dtype=float),
+            lut=lut_registry[cfg.energy.lut_name],
+            material=cfg.detectors.material
+        )
+    else:
+        # real data path (ROOT/PHITS)
+        adapter = make_adapter(cfg.io.adapter)  # e.g., {type="root", style="Joey", default_material="M600"}
+        yield from adapter.iter_events(cfg.io.input)
+
 def main(cfg_path: str):
     cfg = load_config(cfg_path)
     pl = Plane.from_cfg(
@@ -36,12 +55,36 @@ def main(cfg_path: str):
     h5 = write_init(cfg.io.output, cfg_path, cfg, pl)
 
     # --- build demo events -------------------------------------------------------
-    # cones = _demo_cones()
-    hits = fake_hits(2)
-    nevt = NeutronEvent(hits[0], hits[1])
+    # # cones = _demo_cones()
+    # hits = fake_hits(2)
+    # nevt = NeutronEvent(hits[0], hits[1])
+    # lut_reg = build_lut_registry(cfg.energy.lut_paths, cfg_path)
+    # E_model = make_energy_strategy(cfg.energy, lut_reg)
+    # cones = [build_cone_from_neutron(nevt, E_model)]
+
+    # Build LUT registry (for Edep1 via ELUT) and energy model (currently unused here but kept for future)
     lut_reg = build_lut_registry(cfg.energy.lut_paths, cfg_path)
-    E_model = make_energy_strategy(cfg.energy, lut_reg)
-    cones = [build_cone_from_neutron(nevt, E_model)]
+
+    # Choose material/species; here we use M600/proton built-in by default
+    lut_M600_p = lut_reg["M600"]["proton"]
+
+    # Synthesize a batch of neutron events from a point source
+    source = np.array([0.0, 0.0, -500.0])  # matches default prior in configs
+    En0 = 14.1  # MeV (change if you want)
+    #events = synth_neutron_events_point_source(
+    #    n_events=3000,  # adjust to taste
+    #    source_xyz_cm=source,
+    #    En0_MeV=En0,
+    #    lut=lut_M600_p,
+    #    plane=pl,
+    #    material="M600",
+    #    s12_cm=10.0,
+    #)
+    events = list(iter_source_events(cfg, cfg.io.input))  # or stream in chunks
+
+    # Convert to cones (H scattering by default)
+    cones = [build_cone_from_neutron(ev, energy_model=make_energy_strategy(cfg.energy, lut_reg), scatter_nucleus="H")
+             for ev in events]
 
     res = reconstruct_sbp(
         cones,
@@ -55,6 +98,13 @@ def main(cfg_path: str):
     write_summed(h5, "n", res.summed)
     h5.close()
     print(f"Wrote {cfg.io.output}")
+
+    if getattr(cfg, "vis", None) and getattr(cfg.vis, "export_png_on_write", True):
+        try:
+            out_png = save_summed_png(cfg.io.output, dataset=getattr(cfg.vis, "summed_dataset", "/images/summed"))
+            print(f"[viz] wrote {out_png}")
+        except Exception as e:
+            print(f"[viz] failed to export PNG: {e}")
 
 if __name__ == "__main__":
     import sys

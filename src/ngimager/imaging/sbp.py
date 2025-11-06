@@ -81,8 +81,19 @@ def _ellipse_poly(uv0, a, b, R, n=360):
     return pts
 
 def _pixels_from_poly(pts_uv: np.ndarray, plane: Plane) -> np.ndarray:
-    u_idx = np.clip(((pts_uv[:,0] - plane.u_min) / plane.du).astype(np.int64), 0, plane.nu-1)
-    v_idx = np.clip(((pts_uv[:,1] - plane.v_min) / plane.dv).astype(np.int64), 0, plane.nv-1)
+    #u_idx = np.clip(((pts_uv[:,0] - plane.u_min) / plane.du).astype(np.int64), 0, plane.nu-1)
+    #v_idx = np.clip(((pts_uv[:,1] - plane.v_min) / plane.dv).astype(np.int64), 0, plane.nv-1)
+    #flat = (v_idx * plane.nu + u_idx).astype(np.uint32)
+    #return np.unique(flat)
+    u = pts_uv[:, 0];
+    v = pts_uv[:, 1]
+    in_u = (u >= plane.u_min) & (u <= plane.u_max)
+    in_v = (v >= plane.v_min) & (v <= plane.v_max)
+    keep = in_u & in_v
+    if not np.any(keep):
+        return np.empty(0, dtype=np.uint32)
+    u_idx = ((u[keep] - plane.u_min) / plane.du).astype(np.int64)
+    v_idx = ((v[keep] - plane.v_min) / plane.dv).astype(np.int64)
     flat = (v_idx * plane.nu + u_idx).astype(np.uint32)
     return np.unique(flat)
 
@@ -91,10 +102,60 @@ def _cone_to_indices(c: Cone, plane: Plane, n_poly: int = 360) -> np.ndarray:
     Q = _conic_Q(M, c.apex, plane)
     el = _ellipse_from_Q(Q)
     if el is None:
-        return np.empty(0, dtype=np.uint32)
+        #return np.empty(0, dtype=np.uint32)
+        # Fallback: general ray sampling around the cone axis
+        return _ray_sample_indices(c.apex, c.dir, c.theta, plane, n_phi=720)
     uv0, a, b, R = el
     pts = _ellipse_poly(uv0, a, b, R, n=n_poly)
     return _pixels_from_poly(pts, plane)
+
+
+def _ray_sample_indices(apex: np.ndarray, Dhat: np.ndarray, theta: float, plane: Plane, n_phi: int = 720) -> np.ndarray:
+    # Build orthonormal basis around Dhat
+    t = np.array([1.0, 0.0, 0.0])
+    if abs(Dhat @ t) > 0.9:
+        t = np.array([0.0, 1.0, 0.0])
+    e1 = np.cross(Dhat, t); e1 /= np.linalg.norm(e1)
+    e2 = np.cross(Dhat, e1)
+
+    # Ray directions on the cone surface: r_dir = cosθ Dhat + sinθ (cosφ e1 + sinφ e2)
+    ct, st = np.cos(theta), np.sin(theta)
+    phis = np.linspace(0.0, 2.0*np.pi, n_phi, endpoint=False)
+    r_dirs = (ct * Dhat[None, :]) + st * (np.cos(phis)[:, None] * e1[None, :] + np.sin(phis)[:, None] * e2[None, :])
+
+    # Intersect ray with plane: apex + s * r_dir hits plane when (P0 - apex)·n = s (r_dir·n)
+    n = plane.n
+    denom = r_dirs @ n
+    good = np.abs(denom) > 1e-12
+    if not np.any(good):
+        return np.empty(0, dtype=np.uint32)
+
+    s = ((plane.P0 - apex) @ n) / denom[good]
+
+    # Only keep intersections IN FRONT of the apex
+    in_front = s > 0
+    if not np.any(in_front):
+        return np.empty(0, dtype=np.uint32)
+
+    X = apex[None, :] + s[in_front, None] * r_dirs[good][in_front]
+
+    # Map to (u,v) in plane basis
+    du = X - plane.P0
+    u = du @ plane.eu
+    v = du @ plane.ev
+
+    # Reject out-of-bounds instead of clipping to edges
+    in_u = (u >= plane.u_min) & (u <= plane.u_max)
+    in_v = (v >= plane.v_min) & (v <= plane.v_max)
+    keep = in_u & in_v
+    if not np.any(keep):
+        return np.empty(0, dtype=np.uint32)
+
+    u_idx = ((u[keep] - plane.u_min) / plane.du).astype(np.int64)
+    v_idx = ((v[keep] - plane.v_min) / plane.dv).astype(np.int64)
+    flat = (v_idx * plane.nu + u_idx).astype(np.uint32)
+    return np.unique(flat)
+
 
 # ----------------- worker & reducer -----------------
 
@@ -118,6 +179,7 @@ def _auto_chunk_size(n_cones: int, nu: int, nv: int, workers: int) -> int:
     base = max(1000, min(10000, int(target_pixels / max(1, 200))))
     # distribute across workers
     return max(1000, min(20000, int(max(base, n_cones // max(1, workers)))))
+
 
 # ----------------- public API -----------------
 
@@ -152,13 +214,16 @@ def reconstruct_sbp(
 
     # Single-process path (also good for debugging)
     if workers == 0 or N < 1500:
+        hit_count = 0
         lm = [] if list_mode else None
         for c in (tqdm(cones_list, desc="SBP", unit="cone") if progress and tqdm else cones_list):
             idx = _cone_to_indices(c, plane, n_poly=n_poly)
             if idx.size:
+                hit_count += 1
                 np.add.at(img.ravel(), idx, 1)
                 if lm is not None:
                     lm.append(idx)
+        print(f"SBP: {hit_count}/{N} cones intersected the plane")
         return ReconResult(img, lm)
 
     # Multi-process path

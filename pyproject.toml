@@ -31,6 +31,9 @@ docs = [
   "mkdocstrings-python>=1.10",
 ]
 
+[project.scripts]
+novo-viz = "ngimager.cli.viz:app"
+
 [tool.hatch.build]
 include = [
   "src/ngimager/data/lut/**/*.npz",
