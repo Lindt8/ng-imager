@@ -1,0 +1,52 @@
+# The below lines are executed as code in the expNOVO_imager.py script
+# To disable this file without deleting it, uncomment the "ignore_settings_file = True" line below
+#   Any lines above it will still be executed. Individual lines can be commented out too.
+# global ignore_settings_file          ; ignore_settings_file           = True
+
+global skip_gamma_events             ; skip_gamma_events              = False  # if True, events with gamma timing are skipped
+global start_det_to_hit1_max_gtime_ns; start_det_to_hit1_max_gtime_ns = 20.0  # if abs(tstart-thit1)<this, assume incident par is gamma
+global start_det_to_hit1_max_ntime_ns; start_det_to_hit1_max_ntime_ns = 300.0 # if abs(tstart-thit1)<this, assume incident par is ultra slow neutron and skip it
+global min_allowed_tof12_ns          ; min_allowed_tof12_ns           = 0.5 # reject events with shorter tof values (only if skip_gamma_events = True)
+global min_allowed_gamma_tof12_ns    ; min_allowed_gamma_tof12_ns     = 0.05 # reject events with shorter tof values (only if skip_gamma_events = False)
+global max_allowed_tof12_ns          ; max_allowed_tof12_ns           = 25.0 # reject events with longer tof values
+global max_allowed_calc_E0           ; max_allowed_calc_E0            = 25.0 # reject events whose neutron ToF energy > this (in MeV)
+global source_monoEn_MeV             ; source_monoEn_MeV              = 14.8 # reject events whose neutron ToF energy > this (in MeV)
+global max_n_entries_to_process      ; max_n_entries_to_process       = None # limit the number of events converted from ROOT to NumPy, None = no limit
+
+# fastmode_filters
+global fast_n_min_elong1; fast_n_min_elong1 = 3.0 #0.5 # MeVee
+global fast_n_min_elong2; fast_n_min_elong2 = 1.0 #0.5 # MeVee
+global fast_g_min_elong ; fast_g_min_elong  = 0.5 # MeVee
+
+# normal mode filters
+global n_min_elong1; n_min_elong1 = 0.3 # MeVee
+global n_min_elong2; n_min_elong2 = 0.3 # MeVee
+global g_min_elong ; g_min_elong  = 0.1 # MeVee
+
+# experiment settings 
+global source_type              ; source_type               = 'DT' # choose between 'Cf252', 'nELBE', and 'DT' ; this controls how En0 is determined
+global source_coordinates       ; source_coordinates        = [0, 0, -109.6]  # cm, value for nELBE source 
+# global source_coordinates       ; source_coordinates        = [0, 0, 110.2]  # cm, value for Cf252 source in nELBE cave, placed downstream from array 
+global NOVO_face_x_coord        ; NOVO_face_x_coord         = 0  # cm; is actually on the axis specified below
+global axis_normal_to_array_face; axis_normal_to_array_face = 'z' # select 'x', 'y', or 'z'
+
+# standard imaging settings
+im_half_dim = 100  # cm
+pixel_vwidth = 0.5 # cm
+pixel_hwidth = pixel_vwidth  # cm
+max_En0MeV_allowed = 25  # MeV
+make_neutron_cones = True
+make_gamma_cones = True
+image_neutron_events = make_neutron_cones
+image_gamma_events = make_gamma_cones
+
+# fastmode imaging settings
+global fast_max_num_imaged_cones; fast_max_num_imaged_cones = 20000
+fast_im_half_dim = 100  # cm
+fast_pixel_vwidth = 2  # cm
+fast_pixel_hwidth = fast_pixel_vwidth  # cm
+fast_make_neutron_cones = True
+fast_make_gamma_cones = True
+fast_image_neutron_events = make_neutron_cones
+fast_image_gamma_events = make_gamma_cones
+

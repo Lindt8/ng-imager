@@ -10,6 +10,12 @@ from ..physics.events import NeutronEvent
 from ..physics.energy_strategies import make_energy_strategy
 from ..io.lut import build_lut_registry
 from ..physics.cones import build_cone_from_neutron
+import multiprocessing as mp
+try:
+    mp.set_start_method("spawn", force=False)
+except RuntimeError:
+    pass
+
 
 def _demo_cones() -> list[Cone]:
     # Temporary demo: one cone facing +z with a modest theta
@@ -37,7 +43,15 @@ def main(cfg_path: str):
     E_model = make_energy_strategy(cfg.energy, lut_reg)
     cones = [build_cone_from_neutron(nevt, E_model)]
 
-    res = reconstruct_sbp(cones, pl, list_mode=False, uncertainty_mode="off")
+    res = reconstruct_sbp(
+        cones,
+        pl,
+        list_mode=False,
+        uncertainty_mode="off",
+        workers=cfg.run.workers,
+        chunk_cones=cfg.run.chunk_cones,
+        progress=cfg.run.progress,
+    )
     write_summed(h5, "n", res.summed)
     h5.close()
     print(f"Wrote {cfg.io.output}")
