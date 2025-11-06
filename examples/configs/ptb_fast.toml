@@ -1,0 +1,55 @@
+[run]
+mode = "fast"                      # fast | list
+source_type = "dt"                 # cf252 | dt | proton_center | phits
+workers = "auto"                   # int | "auto"
+chunk_cones = "auto"               # int | "auto"
+jit = false                        # set true if numba installed
+progress = true
+
+[io]
+input = "PLACEHOLDER/path/to/input.root"
+output = "PLACEHOLDER/path/to/output.h5"
+detector_map = "PLACEHOLDER/path/to/detectors_mnovo.json"  # det->material, pose, etc.
+
+[plane]
+origin = [0.0, 0.0, -200.0]
+normal = [0.0, 0.0, 1.0]
+# optional basis; omit to auto-derive
+# eu = [1.0, 0.0, 0.0]
+# ev = [0.0, 1.0, 0.0]
+u_min = -100.0
+u_max = 100.0
+du = 0.5
+v_min = -80.0
+v_max = 80.0
+dv = 0.5
+
+[filters]
+min_light = 50.0
+max_light = 1.0e5
+tof_window_ns = [0.0, 30.0]
+bars_include = []                  # optional list of det ids
+materials_include = []             # e.g. ["M600","OGS"]
+
+[energy]
+strategy = "ELUT"                  # ELUT | ToF | FixedEn
+fixed_En_MeV = 14.1
+lut_paths.M600.proton = "data/lut/M600/lut_M600_proton_Birks.npz"
+lut_paths.M600.carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
+lut_paths.OGS.proton  = "data/lut/OGS/lut_OGS_proton_Birks.npz"
+lut_paths.OGS.carbon  = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
+
+[prior]
+type = "point"                     # point | line
+point = [0.0, 0.0, -500.0]
+line.p0 = [0.0, 0.0, -500.0]
+line.p1 = [0.0, 0.0, -300.0]
+strength = 1.0                     # 0..1 weight exponent (optional)
+
+[uncertainty]
+enabled = false
+smearing = "thicken"               # thicken | weighted
+sigma_doi_cm = 0.35                # placeholder (constant)
+sigma_transverse_cm = 0.346        # +/-0.6 cm uniform -> ~0.346 Gaussian
+sigma_time_ns = 0.5                # placeholder (constant)
+use_lut_bands = false

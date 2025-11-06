@@ -1,0 +1,19 @@
+site_name: ng-imager
+theme:
+  name: material
+nav:
+  - Home: index.md
+  - User Guide:
+      - Quickstart: user/quickstart.md
+      - Config: user/config.md
+      - HDF5 Format: user/hdf5.md
+  - Developer:
+      - Architecture: dev/architecture.md
+      - API: api/index.md
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: true
