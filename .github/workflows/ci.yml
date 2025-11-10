@@ -1,15 +1,31 @@
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
-      matrix: { python-version: ["3.9","3.10","3.11","3.12"] }
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
-        with: { python-version: ${{ matrix.python-version }} }
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - run: python -m pip install -U pip
-      - run: pip install .[docs]
+
+      # Install package with docs extra
+      - run: pip install ".[docs]"
+
       - run: python -m pip install pytest
-      - run: pytest -q || true  # until tests land
+
+      # Temporary: don't fail CI on tests until they are stable/complete
+      - run: pytest -q || true
