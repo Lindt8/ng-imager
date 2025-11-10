@@ -11,3 +11,4 @@ Event-cone imaging (neutrons & gamma rays) with two operating modes:
 pip install -e .[docs]   # dev install with docs extras
 # or
 pip install -e .         # core only
+```

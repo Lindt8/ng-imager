@@ -3,6 +3,7 @@
 This section will provide a hands-on introduction to using **ng-imager**.
 
 It should eventually cover:
+
 - Installation instructions
 - A minimal working example (MWE)
 - The core workflow from data to generated image

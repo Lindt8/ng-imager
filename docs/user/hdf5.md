@@ -3,6 +3,7 @@
 This section will document how **ng-imager** stores and reads data in HDF5 format.
 
 Expected topics:
+
 - Dataset and group hierarchy
 - Metadata structure
 - Coordinate conventions
