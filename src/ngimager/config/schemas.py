@@ -1,6 +1,6 @@
 from __future__ import annotations
 from pydantic import BaseModel, Field, field_validator
-from typing import Literal, Optional, Dict, List, Union
+from typing import Literal, Optional, Dict, List, Union, Any
 
 class RunCfg(BaseModel):
     mode: Literal["fast","list"] = "fast"
@@ -9,11 +9,35 @@ class RunCfg(BaseModel):
     chunk_cones: Union[int, Literal["auto"]] = "auto"
     jit: bool = False
     progress: bool = True
+    diagnostics: bool = False
+    max_cones: Optional[int] = None
 
 class IOCfg(BaseModel):
     input: str
     output: str
     detector_map: str
+    # Optional adapter configuration passed directly to ngimager.io.adapters.make_adapter(...)
+    # This mirrors the [io.adapter] table in TOML, e.g.:
+    # [io.adapter]
+    # type = "root"
+    # style = "Joey"
+    # unit_pos_is_mm = true
+    # time_units = "ns"
+    # default_material = "M600"
+    adapter: Dict[str, Any] = Field(default_factory=dict)
+
+class SynthCfg(BaseModel):
+    """
+    Settings for synthetic (point-source) event generation.
+
+    Defaults are chosen so that proton_center tests work even without a [synth]
+    table in the TOML.
+    """
+    n_events: int = 10_000
+    # You can expand this later if you want, but they’re not required yet:
+    # source_xyz_cm: list[float] = [0.0, 0.0, 0.0]
+    # detector_xyz_cm: list[float] = [0.0, 0.0, 0.0]
+
 
 class PlaneCfg(BaseModel):
     origin: List[float]
@@ -56,4 +80,5 @@ class Config(BaseModel):
     filters: FiltersCfg
     energy: EnergyCfg
     prior: PriorCfg
-    uncertainty: UncertaintyCfg
+    uncertainty: UncertaintyCfg | None = None
+    synth: SynthCfg = SynthCfg()

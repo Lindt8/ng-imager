@@ -1,10 +1,12 @@
 [run]
 mode = "fast"                      # fast | list
-source_type = "dt"                 # cf252 | dt | proton_center | phits
+source_type = "proton_center"                 # cf252 | dt | proton_center | phits
 workers = "auto"                   # int | "auto"
 chunk_cones = "auto"               # int | "auto"
 jit = false                        # set true if numba installed
 progress = true
+diagnostics = true
+max_cones = 3000
 
 [io]
 input = "PLACEHOLDER/path/to/input.root"
@@ -67,3 +69,8 @@ use_lut_bands = false
 [vis]
 export_png_on_write = true           # default true
 summed_dataset = "/images/summed"     # override if needed
+
+[synth]
+n_events = 3500
+# source_xyz_cm = [0.0, 0.0, 0.0]
+# detector_xyz_cm = [0.0, 0.0, 0.0]
