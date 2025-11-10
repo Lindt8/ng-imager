@@ -162,13 +162,6 @@ Utility for snapshotting the repository (e.g. for embedding into an HDF5 file).
 
 ::: ngimager.tools.bundle_repo
 
-### `ngimager.tools.generate_lut.NOVO_light_response_functions`
-
-Light-response fitting and LUT generation for NOVO’s scintillators (M600, OGS).
-
-::: ngimager.tools.generate_lut.NOVO_light_response_functions
-
-
 
 ---
 
@@ -183,20 +176,6 @@ The `ngimager.tools.generate_lut` module contains functions for building, fittin
       members_order: source
       heading_level: 2
 
----
-
-## Legacy Components
-
-These modules are kept for reference and validation purposes but are not part of the main public API.
-
-::: ngimager.legacy.expNOVO_imager_legacy
-    options:
-      show_root_full_path: false
-      heading_level: 2
-
----
-
-_TODO: Extend this page as the package matures to include the data I/O and analysis submodules, once their docstrings are finalized._
 
 ---
 
