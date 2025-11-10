@@ -1,0 +1,378 @@
+$DBG=2
+[ T i t l e ]
+minimized input file for lecture
+
+[ P a r a m e t e r s ]
+ icntl    =           0     # (D=0) Run mode, 0=normal, 3:ECH 5:NOR 6:SRC 7,8:GSH 11:DSH 12:DUMP
+ maxcas   =         1000000     # (D=10) number of particles per one batch
+ maxbch   =           10     # (D=10) number of batches
+ file(6)  = phits.out       # (D=phits.out) general output file name
+ negs     =           1     # (D=-1) =-1:original, =0:No, =1:EGS, =2:EGS(HE)
+ e-mode   =           2     # (D=0) 0: Normal, 1: Event generator mode Ver.1, 2: Ver.2
+ nucdata  =           1     # (D=1) auto set neutron energy data cutoffs, 0=no data; 1=JENDL-4.0 used
+ istdev   =           0     # (D=0) stat err calc type and restart mode; -2 = restart calculation
+ emin(12) =        0.02     # cut-off energy for electrons, MeV        
+ rseed    = 6647299062667   # (D=6647299061401) random seed
+$ Seeds with one hit in first 100 histories: 
+$ in OGS bar: 6647299062667, 6647299063177
+$ in M600 bar: 6647299062787, 6647299062957, 6647299063457
+ 
+
+
+
+[ S o u r c e ] 
+   s-type =   1             # mono-energetic axial source
+     proj =  proton         # kind of incident particle         
+      dir =   1.0           # z-direction of beam [cosine]
+       r0 =   0.            # radius [cm]
+       x0 =   0.            # x position [cm]
+       y0 =   0.            # y position [cm]
+       z0 =   -50           # minimum position of z-axis [cm]
+       z1 =   -50           # maximum position of z-axis [cm]
+       e0 =   150.          # energy of beam [MeV/u]
+
+[ S o u r c e ] off
+   s-type =   17            # reading from dump file
+     file = product_z_dmp.out # dump filename
+     dump = -16
+    2 3 4 8 9  10   11 12 17   18    19    20 1  5 6 7
+$   x y z e wt time c1 c2 name nocas nobch no kf u v w
+$ By default, all particles from dump file are sampled from.
+$ You can specify min/max x/y/z, directions (theta, phi, solid angle),
+$     energies, particle weights, etc. to futher filter sampled particles.
+
+
+[ S o u r c e ] off
+  totfact =   1             # (D=1.0) global factor
+   iscorr =   0             # (D=0) Correlated source option
+   s-type =   1             # axial source with energy spectrum
+     proj =  photon         # kind of incident particle         
+       r0 =   0.0           # radius [cm]
+	   x0 =   0.0           # x location [cm]
+       y0 =  19.0           # y location [cm] [cm]
+       z0 =   0.0           # minimum position of z-axis [cm]
+       z1 =   0.0           # maximum position of z-axis [cm]
+$      dir =   all           # emission direction
+      dir = 0.0             # cosine of angle between direction and z-axis [cosine]
+      phi = 90              # azimuthal angle from the x axis [degrees]
+      dom = 90              # solid angle spread from direction vector [degrees]
+   e-type =  28             # RI source
+       ni =   1             # number of registered nuclide
+    Cs-137  1.0e3           # (Bq)
+
+
+
+
+
+
+[ M a t e r i a l ]
+mat[1]    H 2  O 1                       $ Water, density = 1.0 g/cc
+mat[2]    C 0.532  H 0.456  Si 0.012     $ OGS (old draft of Joey's paper), density = 1.091 g/cc
+mat[3]    H 5.69  C 3.96  N 0.4  O 0.85  $ Target M600 (from paper), density = 1.207 g/cc 
+
+[Mat Name Color]
+mat   name   size   color
+0     void   1      lightgray
+1     water  1      pastelblue
+2     OGS    1      blue
+3     M600   1      orange
+
+
+set: c1[7.0] $ bar half length [cm]
+set: c2[0.6] $ bar half width [cm]
+set: c3[16]  $ y coord of bar closest to target
+set: c4[2*c2 + 0.2] $ y distance between bar centers
+
+[ S u r f a c e ]
+  10  rcc      -20 0 0 40 0 0 15              $ cylindrical target
+  20  rpp      -c1 c1 {c3-c2+0*c4} {c3+c2+0*c4} -c2 c2  $ NOVO bar element
+  21  rpp      -c1 c1 {c3-c2+1*c4} {c3+c2+1*c4} -c2 c2  $ NOVO bar element
+  22  rpp      -c1 c1 {c3-c2+2*c4} {c3+c2+2*c4} -c2 c2  $ NOVO bar element
+  23  rpp      -c1 c1 {c3-c2+3*c4} {c3+c2+3*c4} -c2 c2  $ NOVO bar element
+  24  rpp      -c1 c1 {c3-c2+4*c4} {c3+c2+4*c4} -c2 c2  $ NOVO bar element
+  99  so        100                           $ geometry outer boundary
+
+[ C e l l ]
+ 100     1 -1.0   -10                   $ water cylinder
+ 200     2 -1.091 -20                   $ OGS bar
+ 210     3 -1.207 -21                   $ M600 bar
+ 220     2 -1.091 -22                   $ OGS bar
+ 230     3 -1.207 -23                   $ M600 bar
+ 240     2 -1.091 -24                   $ OGS bar
+ 900     0         10 20 21 22 23 24 -99         $ void filling space between other cells (common to use air here too)
+ 999    -1         99                   $ Outer void (particle graveyard)
+
+[Volume]
+reg vol
+100 {pi*40*(15**2)}
+200 {14*1.2*1.2}
+210 {14*1.2*1.2}
+220 {14*1.2*1.2}
+230 {14*1.2*1.2}
+240 {14*1.2*1.2}
+900 1.0
+
+
+
+
+[ Forced Collisions ]  off
+part = neutron photon
+reg fcl
+200 1.0
+210 1.0
+
+$ Set counter to increment when:
+$ neutron or photon undergo collision in a bar
+[counter]  
+counter = 1
+part = neutron 
+reg in     out    coll
+100 10000  10000  0
+200 0      0      1
+210 0      0      1
+220 0      0      1
+230 0      0      1
+240 0      0      1
+900 0      0      0
+counter = 2
+part = photon 
+reg in     out    coll
+100 10000  10000  0
+200 0      0      1
+210 0      0      1
+220 0      0      1
+230 0      0      1
+240 0      0      1
+900 0      0      0
+
+
+
+
+
+[ T - 4Dtrack ] off 
+file = track.out
+
+
+[ T-Userdefined ]
+nudtvar = 11 # should be either the number of cells or this number plus 6
+udtvar(1) = 200
+udtvar(2) = 210
+udtvar(3) = 220
+udtvar(4) = 230
+udtvar(5) = 240
+# last six variables have different meaning 
+udtvar( 6) = 2    # required final value of counter 1 / n colisions in different cells
+udtvar( 7) = 3    # required final value of counter 2 / g colisions in different cells
+# more accurately, at least one counter must be >0, these values are the total number
+# of discrete regions with energy depositions exceeding the threshold values set below.
+udtvar( 8) = 0.1  # minimum E deposit for neutron reactions to be recorded (MeV)
+udtvar( 9) = 0.05 # minimum E deposit for gamma reactions to be recorded (MeV)
+udtvar(10) = 0    # 1 write reaction lines too / 0 write only energy deposition lines
+udtvar(11) = 1    # =1 specifies if above three are specified and used, otherwise means they don't exist
+# To be clear, the FINAL udtvar (n) specifies whether the five before it (n-1) to (n-5)
+#  mean to control the max counter values or are just cell numbers (including this final variable)
+# If this final udtvar is not equal to 1, then all udtvars are interpreted to be cell numbers
+# If equal to one, then the preceeding five are for the desired values of the specified counters
+# and energy deposition thresholds
+file = usrdef.out
+
+
+
+[ T - Product ] off 
+    title = Particle production tally along beam axis in water cylinder, E dist
+     mesh =  xyz            # mesh type is xyz scoring mesh
+   x-type =    1            # x-mesh is given by the below data
+       nx =    1            # number of x-mesh points
+           -0.5  0.5
+   y-type =    1            # y-mesh is given by the below data
+       ny =    1            # number of y-mesh points
+           -0.5  0.5
+   z-type =    2            # z-mesh is linear given by zmin, zmax and nz
+       nz =    1            # number of z-mesh points
+     zmin =  -20.           # minimum value of z-mesh points
+     zmax =   20.           # maximum value of z-mesh points
+     part =  neutron photon   
+   e-type =    2            # e-mesh is given by the below data
+       ne =  150            # number of e-mesh points
+     emin =  0.0            # minimum value of e-mesh points
+     emax =  150            # maximum value of e-mesh points
+     unit =    1            # unit is [1/source]
+     axis =   eng            # axis of output
+     file = product_eng.out  # file name of output for the above axis
+    gshow =    3            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+
+[ T - Product ] off 
+    title = Particle production tally along beam axis in water cylinder, Z dist
+     mesh =  xyz            # mesh type is xyz scoring mesh
+   x-type =    1            # x-mesh is given by the below data
+       nx =    1            # number of x-mesh points
+           -0.5  0.5
+   y-type =    1            # y-mesh is given by the below data
+       ny =    1            # number of y-mesh points
+           -0.5  0.5
+   z-type =    2            # z-mesh is linear given by zmin, zmax and nz
+       nz =   40            # number of z-mesh points
+     zmin =  -20.           # minimum value of z-mesh points
+     zmax =   20.           # maximum value of z-mesh points
+     part =  neutron photon   
+   e-type =    2            # e-mesh is given by the below data
+       ne =    1            # number of e-mesh points
+     emin =  0.0            # minimum value of e-mesh points
+     emax =  150            # maximum value of e-mesh points
+     unit =    1            # unit is [1/source]
+     axis =   z             # axis of output
+     file = product_z.out   # file name of output for the above axis
+    gshow =    3            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+     dump = -16
+    2 3 4 8 9  10   11 12 17   18    19    20 1  5 6 7
+$   x y z e wt time c1 c2 name nocas nobch no kf u v w
+
+
+
+[ T - T r a c k ] off 
+    title = Track Detection using [T-track] tally, XZ view
+     mesh =  xyz            # mesh type is xyz scoring mesh
+   x-type =    2            # x-mesh is linear given by xmin, xmax and nx
+       nx =  200            # number of x-mesh points
+     xmin =  -20.           # minimum value of x-mesh points
+     xmax =   20.           # maximum value of x-mesh points
+   y-type =    1            # y-mesh is given by the below data
+       ny =    1            # number of y-mesh points
+           -5.0  5.0
+   z-type =    2            # z-mesh is linear given by zmin, zmax and nz
+       nz =  200            # number of z-mesh points
+     zmin =  -20.           # minimum value of z-mesh points
+     zmax =   20.           # maximum value of z-mesh points
+     part =  neutron photon proton   
+   e-type =    1            # e-mesh is given by the below data
+       ne =    1            # number of e-mesh points
+            0.0  1000.0
+     unit =    1            # unit is [1/cm^2/source]
+     axis =   xz            # axis of output
+     file = track_xz.out  # file name of output for the above axis
+    gshow =    3            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+
+
+[ T - T r a c k ] off 
+    title = Track Detection using [T-track] tally, XY view
+     mesh =  xyz            # mesh type is xyz scoring mesh
+   x-type =    2            # x-mesh is linear given by xmin, xmax and nx
+       nx =  200            # number of x-mesh points
+     xmin =  -20.           # minimum value of x-mesh points
+     xmax =   20.           # maximum value of x-mesh points
+   z-type =    1            # z-mesh is given by the below data
+       nz =    1            # number of z-mesh points
+           -15.0  15.0
+   y-type =    2            # y-mesh is linear given by zmin, zmax and nz
+       ny =  225            # number of y-mesh points
+     ymin =  -20.           # minimum value of y-mesh points
+     ymax =   25.           # maximum value of y-mesh points
+     part =  neutron photon proton 
+   e-type =    1            # e-mesh is given by the below data
+       ne =    1            # number of e-mesh points
+            0.0  1000.0
+     unit =    1            # unit is [1/cm^2/source]
+     axis =   xy            # axis of output
+     file = track_xy.out  # file name of output for the above axis
+    gshow =    3            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+
+
+
+[ T - Deposit ]
+    title = Energy deposition spectra in cells
+     mesh = reg
+      reg = 100 200 210 220 230 240
+     unit = 3               # unit is [#/source]
+ material = all             # (D=all) number of specific material
+   output = deposit         # total deposit energy
+     axis = eng             # axis of output
+   e-type = 2
+       ne = 155
+     emin = 0.0
+     emax = 155
+     file = deposit.out     # file name of output for the above axis
+     part =  all            # (D=all) names of particles to tally
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+
+
+
+
+
+
+[ T - Deposit2 ] 
+    title = Correlated energy deposition
+     mesh =  reg           # mesh type is region-wise
+      reg =  200 210       # two region numbers to be tallied
+  e1-type =  2             # e-mesh is linear given by emin, emax and ne
+       ne =  50            # number of e-mesh points
+    emin  =  0.0001             # minimum value of e-mesh points
+    emax  =  20             # maximum value of e-mesh points
+$  dresol1 = 0.00081         # bar dresol (sigma_res)
+$   dfano1 = 0.000493        # bar dfano  (F)
+  e2-type =    2           # e-mesh is log given by emin, emax and ne
+       ne =  50            # number of e-mesh points
+    emin  =  0.0001             # minimum value of e-mesh points
+    emax  =  20            # maximum value of e-mesh points
+$  dresol1 = 0.00081         # bar dresol (sigma_res)
+$   dfano1 = 0.000493        # bar dfano  (F)
+     unit =    1           # 1=#/source
+     axis =    e12         # axis of output
+$ chmin(1) =  101           # enforce counter to only include events of desired neutron scattering history
+$ chmin(2) =  101           # enforce counter to only include events of desired photon scattering history
+     file = deposit2.out     # file name of output for the above axis
+     part =  all
+   epsout =    1            # (D=0) generate eps file by ANGEL
+
+
+[ T - Deposit ] off 
+    title = Energy deposition spectra in bars
+     mesh = reg
+      reg = 200 210
+     unit = 3               # unit is [#/source]
+ material = all             # (D=all) number of specific material
+   output = deposit         # total deposit energy
+     axis = eng             # axis of output
+   e-type = 2
+       ne = 100
+     emin = 0.0
+     emax = 1.0
+$  dresol1 = 0.00081         # bar dresol (sigma_res)
+$   dfano1 = 0.000493        # bar dfano  (F)
+     file = deposit_bars.out     # file name of output for the above axis
+     part =  all            # (D=all) names of particles to tally
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+
+
+
+[ T - Product ] off
+    title = Particle production tally
+     mesh =  r-z            # mesh type is r-z scoring mesh
+       x0 = 0.0             # offset for x coordinate of the central axis of cylinder 
+       y0 = 0.0             # offset for y coordinate of the central axis of cylinder 
+   r-type =    1            # r-mesh is given by the below data
+       nr =    1            # number of r-mesh points
+             0  1.0
+   z-type =    2            # z-mesh is linear given by zmin, zmax and nz
+       nz =   40            # number of z-mesh points
+     zmin =  -20.           # minimum value of z-mesh points
+     zmax =   20.           # maximum value of z-mesh points
+     part =  neutron photon   
+   e-type =    2            # e-mesh is given by the below data
+       ne =    1            # number of e-mesh points
+     emin =  0.0            # minimum value of e-mesh points
+     emax =  100            # maximum value of e-mesh points
+     unit =    1            # unit is [1/source]
+     axis =   z             # axis of output
+     file = product_rz.out   # file name of output for the above axis
+    gshow =    3            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+
+
+[ E n d ]
+
