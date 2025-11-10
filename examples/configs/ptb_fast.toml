@@ -68,7 +68,7 @@ use_lut_bands = false
 
 [vis]
 export_png_on_write = true           # default true
-summed_dataset = "/images/summed"     # override if needed
+summed_dataset = "/images/summed/n"     # override if needed
 
 [synth]
 n_events = 3500

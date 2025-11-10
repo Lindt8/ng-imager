@@ -73,6 +73,12 @@ class UncertaintyCfg(BaseModel):
     sigma_time_ns: float = 0.5
     use_lut_bands: bool = False
 
+class VisCfg(BaseModel):
+    export_png_on_write: bool = True
+    # Default to neutron summed image, matching lm_store layout
+    summed_dataset: str = "/images/summed/n"
+
+
 class Config(BaseModel):
     run: RunCfg
     io: IOCfg
@@ -82,3 +88,4 @@ class Config(BaseModel):
     prior: PriorCfg
     uncertainty: UncertaintyCfg | None = None
     synth: SynthCfg = SynthCfg()
+    vis: Optional[VisCfg] = None

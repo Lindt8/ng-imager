@@ -264,6 +264,13 @@ def run_pipeline(
 
     # Optional PNG export
     if getattr(cfg, "vis", None) and getattr(cfg.vis, "export_png_on_write", False):
-        save_summed_png(str(out_path))
+        try:
+            dset = getattr(cfg.vis, "summed_dataset", "/images/summed/n")
+            out_png = save_summed_png(str(out_path), dataset=dset)
+            if getattr(cfg.run, "diagnostics", False):
+                print(f"[pipeline] Wrote PNG {out_png} from {dset}")
+        except Exception as e:
+            if getattr(cfg.run, "diagnostics", False):
+                print(f"[pipeline] PNG export failed: {e!r}")
 
     return out_path
