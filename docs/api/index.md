@@ -198,4 +198,16 @@ These modules are kept for reference and validation purposes but are not part of
 
 _TODO: Extend this page as the package matures to include the data I/O and analysis submodules, once their docstrings are finalized._
 
+---
 
+## Appendix: Full API Surface (Auto-Generated)
+
+The following recursively lists **all modules and submodules** under the `ngimager` package.  
+
+
+::: ngimager
+    options:
+      show_root_heading: false
+      show_root_toc_entry: false
+      show_submodules: true
+      heading_level: 3
