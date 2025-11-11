@@ -1,0 +1,517 @@
+$DBG=2
+[ T i t l e ]
+NOVO array test with 3.2x bar spacing
+
+[ P a r a m e t e r s ]
+ icntl    =           0     # (D=7) 3:ECH 5:NOR 6:SRC 7,8:GSH 11:DSH 12:DUMP
+ maxcas   =    1000000     # (D=10) number of particles per one batch
+ maxbch   =          10     # (D=10) number of batches
+ file(1)  = c:/phits        # (D=c:/phits) PHITS install folder name
+ file(6)  = phits.out       # (D=phits.out) general output file name
+ file(7)  = c:/phits/data/xsdir.jnd      # (D=xdirs) nuclear data input file name
+ file(21) = c:/phits/dchain-sp/data       # Path to DCHAIN data library folder [REQUIRED FOR DCHAIN]
+ file(22) = batch.out       # (D=batch.out) batch output file name
+ jmout    =           1     # (D=0) Density echo, 0:input, 1:number density [REQUIRED FOR DCHAIN]
+ negs = -1 # -1 photons only, 0 ignore photons and electrons, 1 transport photons and electrons +/-
+ nucdata = 1
+ rseed = 6.645299061403E+12 # default 6.647299061401E+12
+ istdev   = 0
+ e-mode=2
+$ dumpall = -1
+
+ 
+$ system variables
+set: c1[1.0]     $ r - patient radius 
+set: c2[40.0]     $ h - patient height (length)
+set: c3[0.0]      $ p - x distance between z = 0 beam and patient center (in negative x)
+set: c4[100.0]    $ n - x distance between z = 0 beam and NOVO array face
+set: c5[14.0]     $ L - NOVO bar length 
+set: c6[1.2]      $ s - NOVO bar side edge width
+set: c9[4.8]      $ g - gap between NOVO bars 
+set: c10[c6+c9]   $ c - bar center-to-center distance
+
+set: c8[0.5*(2*c6+1*c9)]        $ v - z vertical offset to account for detector placement along beam path 
+set: c11[5.5+4.0]      $ solid angle of source cone, in degrees 
+# Find the above as the angle between (1,0,0) and the corner of the first detector layer 
+# https://mathsathome.com/angle-between-two-vectors/ 
+# 5.5 degrees good for 100 cm gap from source to NOVO front face
+# 21 degrees good for 25 cm gap from source to NOVO front face
+
+set: c30[(4*c5*c6)+(2*c6*c6)] $ surface area of a NOVO bar 
+
+[Transform]
+# *tr1 0 0 0    0 0 0     0 0 0 0 0 0 2
+*tr1 0 0 0    0 3 4     2 90    0 0   0 0   3
+
+
+[ S o u r c e ]  
+   s-type =   1             # beam 
+     proj =  neutron         # kind of incident particle         
+      dir =   1           # z-direction of beam [cosine]       
+      phi =   0           # x-direction of beam [cosine]
+	  dom = c11            # cone solid angle, in degrees (0=all, -1=cos^2 dist)
+       x0 = 0.0
+       y0 = 3.0
+       z0 = 4.0
+       z1 = 4.01
+       r0 = 5.2         # outer radius [cm]
+       r1 = 4.8         # inner radius 
+       trcl = 1
+       e0 =   14.1         # energy of beam [MeV/u]
+# centered at (0,3,4), ID 2*4.8 cm, OD 2*5.2 cm  (ring y[-2 to 8] z[-1 to 9]
+
+# triangle source 
+[ S o u r c e ] off 
+   s-type =   20             # beam 
+     proj =  neutron         # kind of incident particle         
+      dir =   all           # z-direction of beam [cosine]       
+#      phi =   1           # x-direction of beam [cosine]
+#	  dom = c11            # cone solid angle, in degrees (0=all, -1=cos^2 dist)
+       x0 = 0.0
+       y0 = -2.0
+       z0 = -1.0
+       x1 = 0.0
+       y1 = 4.0
+       z1 = 0.0
+       x2 = 0.0
+       y2 = 0.0
+       z2 = 2.0
+       x3 = 0.0001
+       y3 = 0.0
+       z3 = 0.0
+       e0 =   14.1         # energy of beam [MeV/u]
+# centered at (0,3,4), ID 2*4.8 cm, OD 2*5.2 cm  (ring y[-2 to 8] z[-1 to 9]
+
+[ M a t e r i a l ]
+mat[1]    H 4.546  C 4.906            $ EJ-276, density = 1.096 g/cc 
+mat[2]    C 0.532  H 0.456  Si 0.012  $ OGS, density = 1.091 g/cc (Joey, meas), 1.2591 g/cc (guessed by SRIM)
+$************************************************************
+$  4   : Air (dry, near sea level) 
+$  Source = PNNL-15870 Rev. 1 
+$  Density (g/cm3) = 0.001205 
+$  Total atom density (atoms/b-cm) = 4.988E-05 
+$  Composition by weight fraction 
+M4         6000  -0.000124       $  C
+           7000  -0.755268       $  N
+           8000  -0.231781       $  O
+          18000  -0.012827       $  Ar
+$************************************************************
+$************************************************************
+$  321 : Tissue, Soft (ICRU four component) 
+$  Source = PNNL-15870 Rev. 1 
+$  Density (g/cm3) = 1.000000 
+$  Total atom density (atoms/b-cm) = 9.581E-02 
+$  Composition by atom fraction 
+M321       1001  0.630936        $  H-1
+           6000  0.058092        $  C
+           7014  0.011668        $  N-14
+           8016  0.299304        $  O-16
+$************************************************************
+
+
+
+
+
+ 
+[ S u r f a c e ]
+$  1 rcc {-1*c3} {-0.5*c2} {0.5*(4*c6+3*c9)+c8} 0 c2 0 c1 $ patient
+  1 so c1 $ source
+  $ NOVO array 
+  $        x1             x2               y1        y2        z1          z2
+  11 rpp  {c4+0*c6+0*c9} {c4+1*c6+0*c9}   {-0.5*c5} {0.5*c5}  {0*c6+0*c9-c8} {1*c6+0*c9-c8}
+  12 rpp  {c4+1*c6+1*c9} {c4+2*c6+1*c9}   {-0.5*c5} {0.5*c5}  {0*c6+0*c9-c8} {1*c6+0*c9-c8}
+  13 rpp  {c4+2*c6+2*c9} {c4+3*c6+2*c9}   {-0.5*c5} {0.5*c5}  {0*c6+0*c9-c8} {1*c6+0*c9-c8}
+  21 rpp  {c4+0*c6+0*c9} {c4+1*c6+0*c9}   {-0.5*c5} {0.5*c5}  {1*c6+1*c9-c8} {2*c6+1*c9-c8}
+  22 rpp  {c4+1*c6+1*c9} {c4+2*c6+1*c9}   {-0.5*c5} {0.5*c5}  {1*c6+1*c9-c8} {2*c6+1*c9-c8}
+  23 rpp  {c4+2*c6+2*c9} {c4+3*c6+2*c9}   {-0.5*c5} {0.5*c5}  {1*c6+1*c9-c8} {2*c6+1*c9-c8}
+  $ surroundings
+  99 so 200 $ air
+
+[ C e l l ]
+ 1 4 -0.001205 -1  $ source 
+ $ NOVO array 
+ 11  2  -1.091 -11
+ 12  2  -1.091 -12
+ 13  2  -1.091 -13
+ 21  2  -1.091 -21
+ 22  2  -1.091 -22
+ 23  2  -1.091 -23
+ 90 4 -0.001205 1 11 12 13 21 22 23 -99 $ air 
+ 99 -1 99 $ graveyard
+ 
+[volume]
+reg vol 
+1   pi*(c1**2)*c2
+11  c5*(c6**2)
+12  c5*(c6**2)
+13  c5*(c6**2)
+21  c5*(c6**2)
+22  c5*(c6**2)
+23  c5*(c6**2)
+90  1
+
+
+[ Mat Name Color ] off 
+  mat    name     size    color         # HSB color value
+  4      Air      1.00    lightgray     # { -0.800  1.000  1.000 }
+  1      EJ-276   1.00    pastelgreen   # {  0.867  1.000  1.000 }  # orangeyellow
+  2      OGS      1.00    pastelcyan    # {  0.867  1.000  1.000 }
+ 321     Tissue   1.00    pastelpink    # {  0.250  0.400  1.000 }
+
+
+
+
+# Force any photons stricking a detector to interact 
+[Forced Collisions] off 
+part = photon 
+reg fcl 
+1   1.00
+2   1.00
+
+
+
+
+# Set counter to increment when:
+# neutron or photon undergo collision in a bar
+[counter] 
+counter = 1
+part = neutron 
+reg in     out    coll
+1   10000  10000  0
+11  0      0      1
+12  0      0      1
+13  0      0      1
+21  0      0      1
+22  0      0      1
+23  0      0      1
+90  0      0      0
+counter = 2
+part = photon 
+reg in     out    coll
+1   10000  10000  0
+11  0      0      1
+12  0      0      1
+13  0      0      1
+21  0      0      1
+22  0      0      1
+23  0      0      1
+90  0      0      0
+
+
+[ T-Userdefined ]
+nudtvar = 12 # should be either the number of cells or this number plus 6
+udtvar(1) = 11
+udtvar(2) = 12
+udtvar(3) = 13
+udtvar(4) = 21
+udtvar(5) = 22
+udtvar(6) = 23
+# last six variables have different meaning 
+udtvar( 7) = 2    # required final value of counter 1 / n colisions in different cells
+udtvar( 8) = 3    # required final value of counter 2 / g colisions in different cells
+# more accurately, at least one counter must be >0, these values are the total number
+# of discrete regions with energy depositions exceeding the threshold values set below.
+udtvar( 9) = 0.1  # minimum E deposit for neutron reactions to be recorded (MeV)
+udtvar(10) = 0.05 # minimum E deposit for gamma reactions to be recorded (MeV)
+udtvar(11) = 0    # 1 write reaction lines too / 0 write only energy deposition lines
+udtvar(12) = 1    # =1 specifies if above three are specified and used, otherwise means they don't exist
+# To be clear, the FINAL udtvar (n) specifies whether the five before it (n-1) to (n-5)
+#  mean to control the max counter values or are just cell numbers (including this final variable)
+# If this final udtvar is not equal to 1, then all udtvars are interpreted to be cell numbers
+# If equal to one, then the preceeding five are for the desired values of the specified counters
+# and energy deposition thresholds
+file = usrdef.out
+
+
+
+$ Production, crossing, and cutoff of neutrons, gammas, and their reaction products in NOVO bars 
+
+
+[ T - Product ] off
+    title = Secondary nuclear interactions in NOVO bars
+     mesh =  reg            # mesh type is region-wise
+      reg =  11 12 13 21 22 23 
+     part =  all
+ material =  2            # (D=all) number of specific material 
+             1 2
+     unit =    1            # unit is [1/source]
+     axis = eng           # flux E spectrum 
+   e-type =    3            # e-mesh is linear given by emin, emax and ne
+       ne =  100           # number of e-mesh points
+     emin =  0.1           # minimum value of e-mesh points
+     emax =  200           # maximum value of e-mesh points
+#     file = d:/phits_simulations/DTinDE/imaging/parallel_3d2t_elastic_only/dump_particles_product-nuclear-in-novo.out     # file name of output for the above axis
+     file = dump_particles_product-nuclear-in-novo.out     # file name of output for the above axis
+   output = nuclear
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+$   ctmin(1) =  2
+   chmin(1) =  2   # enforce counter to only include events of desired scattering history
+   dump = -16
+    2 3 4 8 9  10   11 12 17   18    19    20 1  5 6 7
+$   x y z e wt time c1 c2 name nocas nobch no kf u v w 
+
+[ T - Product ] off  
+    title = Secondary elastic interactions in NOVO bars
+     mesh =  reg            # mesh type is region-wise
+      reg =  11 12 13 21 22 23 
+     part =  all
+ material =  2            # (D=all) number of specific material 
+             1 2
+     unit =    1            # unit is [1/source]
+     axis = eng           # flux E spectrum 
+   e-type =    3            # e-mesh is linear given by emin, emax and ne
+       ne =  100           # number of e-mesh points
+     emin =  0.1           # minimum value of e-mesh points
+     emax =  200           # maximum value of e-mesh points
+#     file = d:/phits_simulations/DTinDE/imaging/parallel_3d2t_elastic_only/dump_particles_product-nuclear-in-novo.out     # file name of output for the above axis
+     file = dump_particles_product-nuclear-in-novo_elastic-only.out     # file name of output for the above axis
+   output = elastic
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+$   ctmin(1) =  2
+   chmin(1) =  2   # enforce counter to only include events of desired scattering history
+   dump = -16
+    2 3 4 8 9  10   11 12 17   18    19    20 1  5 6 7
+$   x y z e wt time c1 c2 name nocas nobch no kf u v w 
+
+[ T - Product ]   off 
+    title = Secondary nuclear interactions in NOVO bars
+     mesh =  reg            # mesh type is region-wise
+      reg =  11 12 13 21 22 23 
+     part =  all
+ material =  2            # (D=all) number of specific material 
+             1 2
+     unit =    1            # unit is [1/source]
+     axis = eng           # flux E spectrum 
+   e-type =    3            # e-mesh is linear given by emin, emax and ne
+       ne =  100           # number of e-mesh points
+     emin =  0.1           # minimum value of e-mesh points
+     emax =  200           # maximum value of e-mesh points
+#     file = d:/phits_simulations/DTinDE/imaging/parallel_3d2t_elastic_only/dump_particles_product-nuclear-in-novo.out     # file name of output for the above axis
+     file = dump_particles_product-nuclear-in-novo_nonelastic-only.out     # file name of output for the above axis
+   output = nonela
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+$   ctmin(1) =  2
+   chmin(1) =  2   # enforce counter to only include events of desired scattering history
+   dump = -16
+    2 3 4 8 9  10   11 12 17   18    19    20 1  5 6 7
+$   x y z e wt time c1 c2 name nocas nobch no kf u v w 
+
+
+[ T - Product ] off
+    title = Secondary atomic interactions in NOVO bars
+     mesh =  reg            # mesh type is region-wise
+      reg =  11 12 13 21 22 23 
+     part =  photon
+ material =  all            # (D=all) number of specific material
+     unit =    1            # unit is [1/source]
+     axis = eng           # flux E spectrum 
+   e-type =    3            # e-mesh is linear given by emin, emax and ne
+       ne =  100           # number of e-mesh points
+     emin =  0.01           # minimum value of e-mesh points
+     emax =  200           # maximum value of e-mesh points
+#     file = d:/phits_simulations/DTinDE/imaging/parallel_3d2t_elastic_only/dump_particles_product-atomic-in-novo.out     # file name of output for the above axis
+     file = dump_particles_product-atomic-in-novo.out     # file name of output for the above axis
+   output = atomic 
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+$   ctmin(1) =  2
+   chmin(2) =  3   # enforce counter to only include events of desired scattering history
+   dump = -16
+    2 3 4 8 9  10   11 12 17   18    19    20 1  5 6 7
+$   x y z e wt time c1 c2 name nocas nobch no kf u v w 
+
+
+[ T - Time ] off  
+    title = Secondary cutoffs in NOVO bars
+     mesh =  reg            # mesh type is region-wise
+      reg =  11 12 13 21 22 23
+     part =  all
+ material =  all            # (D=all) number of specific material
+     unit =    1            # unit is [1/cm^2/source]
+     axis = eng           # flux E spectrum 
+   e-type =    2            # e-mesh is linear given by emin, emax and ne
+       ne =    1           # number of e-mesh points
+     emin =  0.0           # minimum value of e-mesh points
+     emax =  200           # maximum value of e-mesh points
+   t-type =    2            # t-mesh is linear given by emin, emax and ne
+       nt =  1             # number of t-mesh points
+     tmin =  0             # minimum value of t-mesh points
+     tmax =  100           # maximum value of t-mesh points
+#     file = d:/phits_simulations/DTinDE/imaging/parallel_3d2t_elastic_only/dump_particles_time-in-novo.out     # file name of output for the above axis
+     file = dump_particles_time-in-novo.out     # file name of output for the above axis
+   output = cutoff 
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+   chmin(1) =  2   # enforce counter to only include events of desired scattering history
+   dump = -16
+    2 3 4 8 9  10   11 12 17   18    19    20 1  5 6 7
+$   x y z e wt time c1 c2 name nocas nobch no kf u v w 
+
+
+[ T - Cross ]  off 
+    title = Secondary inbound surface crossings in NOVO bars
+     mesh =  reg            # mesh type is region-wise
+      reg =  6
+	  r-from  r-to  area
+	  90      11    c30
+	  90      12    c30
+	  90      13    c30
+	  90      21    c30
+	  90      22    c30
+	  90      23    c30
+     part =  all
+     unit =    1            # unit is [1/cm^2/source]
+     axis = eng           # flux E spectrum 
+   e-type =    3            # e-mesh is linear given by emin, emax and ne
+       ne =  100           # number of e-mesh points
+     emin =  0.01           # minimum value of e-mesh points
+     emax =  200           # maximum value of e-mesh points
+     file = d:/phits_simulations/DTinDE/parallel_3d2t_elastic_only/dump_particles_cross-inbound-in-novo.out     # file name of output for the above axis
+#     file = dump_particles_cross-inbound-in-novo.out     # file name of output for the above axis
+   output = flux 
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+   chmin(1) =  2   # enforce counter to only include events of desired scattering history
+   dump = -13
+    2 3 4 8 9  10   11 12 17   18    19    20 1
+$   x y z e wt time c1 c2 name nocas nobch no kf
+
+
+[ T - Cross ]  off 
+    title = Secondary outbound surface crossings in NOVO bars
+     mesh =  reg            # mesh type is region-wise
+      reg =  6
+	  r-from  r-to  area
+	  11      90    c30
+	  12      90    c30
+	  13      90    c30
+	  21      90    c30
+	  22      90    c30
+	  23      90    c30
+     part =  all
+     unit =    1            # unit is [1/cm^2/source]
+     axis = eng           # flux E spectrum 
+   e-type =    3            # e-mesh is linear given by emin, emax and ne
+       ne =  100           # number of e-mesh points
+     emin =  0.01           # minimum value of e-mesh points
+     emax =  200           # maximum value of e-mesh points
+     file = d:/phits_simulations/DTinDE/parallel_3d2t_elastic_only/dump_particles_cross-outbound-in-novo.out     # file name of output for the above axis
+#     file = dump_particles_cross-outbound-in-novo.out     # file name of output for the above axis
+   output = flux 
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+   chmin(1) =  2   # enforce counter to only include events of desired scattering history
+   dump = -13
+    2 3 4 8 9  10   11 12 17   18    19    20 1
+$   x y z e wt time c1 c2 name nocas nobch no kf
+
+
+
+
+
+
+
+
+$ secondaries of interest produced in patient 
+
+[ T - Product ] off 
+    title = Neutrons produced in patient
+     mesh =  reg            # mesh type is region-wise
+      reg =  1
+     part =  neutron 
+ material =  all            # (D=all) number of specific material
+     unit =    1            # unit is [1/source]
+     axis = eng           # flux E spectrum 
+   e-type =    3            # e-mesh is linear given by emin, emax and ne
+       ne =  100           # number of e-mesh points
+     emin =  0.1           # minimum value of e-mesh points
+     emax =  200           # maximum value of e-mesh points
+     file = d:/phits_simulations/DTinDE/parallel_3d2t_elastic_only/dump_neutron_product-in-patient.out     # file name of output for the above axis
+#     file = dump_neutron_product-in-patient.out     # file name of output for the above axis
+   output = nuclear 
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+   chmin(1) =  2   # enforce counter to only include events of desired scattering history
+   dump = -13
+    2 3 4 8 9  10   11 12 17   18    19    20 1
+$   x y z e wt time c1 c2 name nocas nobch no kf
+
+[ T - Product ] off 
+    title = Photons produced in patient
+     mesh =  reg            # mesh type is region-wise
+      reg =  1
+     part =  photon
+ material =  all            # (D=all) number of specific material
+     unit =    1            # unit is [1/source]
+     axis = eng           # flux E spectrum 
+   e-type =    3            # e-mesh is linear given by emin, emax and ne
+       ne =  100           # number of e-mesh points
+     emin =  0.1           # minimum value of e-mesh points
+     emax =  200           # maximum value of e-mesh points
+     file = d:/phits_simulations/DTinDE/parallel_3d2t_elastic_only/dump_photon_product-in-patient.out     # file name of output for the above axis
+#     file = dump_photon_product-in-patient.out     # file name of output for the above axis
+   output = nuclear 
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+   chmin(2) =  3   # enforce counter to only include events of desired scattering history
+   dump = -13
+    2 3 4 8 9  10   11 12 17   18    19    20 1
+$   x y z e wt time c1 c2 name nocas nobch no kf
+
+
+
+[ T - Product ] 
+    title = Source particles
+     mesh =  xyz            # mesh type is region-wise
+   x-type =    2            # x-mesh is linear given by xmin, xmax and nx
+       nx =  1            # number of x-mesh points
+     xmin =  -0.1           # minimum value of x-mesh points
+     xmax =  0.1           # maximum value of x-mesh points
+   y-type =    2            # y-mesh is given by the below data
+       ny =  100            # number of y-mesh points
+     ymin =  -20.           # minimum value of y-mesh points
+     ymax =   20.           # maximum value of y-mesh points
+   z-type =    2            # z-mesh is linear given by zmin, zmax and nz
+       nz =  100            # number of z-mesh points
+     zmin =  -20.           # minimum value of z-mesh points
+     zmax =   20.           # maximum value of z-mesh points
+     part =  neutron 
+ material =  all            # (D=all) number of specific material
+     unit =    1            # unit is [1/source]
+     axis = yz           # flux E spectrum 
+   e-type =    3            # e-mesh is linear given by emin, emax and ne
+       ne =  1           # number of e-mesh points
+     emin =  0.1           # minimum value of e-mesh points
+     emax =  200           # maximum value of e-mesh points
+#     file = d:/phits_simulations/DTinDE/parallel_3d2t_elastic_only/dump_neutron_product-in-patient.out     # file name of output for the above axis
+     file = source_YZ.out     # file name of output for the above axis
+   output = source
+    gshow =    1            # 0: no 1:bnd, 2:bnd+mat, 3:bnd+reg 4:bnd+lat
+   epsout =    1            # (D=0) generate eps file by ANGEL
+
+
+
+[ T - gshow ] off
+   mesh = xyz
+   x-type = 2
+   nx = 100
+   xmin = -11.
+   xmax = 11
+   y-type = 1
+   ny = 1
+   -5.0 5.0
+   z-type = 2
+   nz = 100
+   zmin = -5.
+   zmax = 10.
+   axis = xz
+   output = 8
+   file = geometry.dat
+   epsout = 1
+
+
+[ E n d ]
+

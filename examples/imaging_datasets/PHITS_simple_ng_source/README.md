@@ -1,4 +1,5 @@
 # Imaging PHITS-produced data
+## Neutrons and gamma rays produced by protons in water
 
 The imaging dataset here was produced by running the PHITS input file `novo-example.inp` through PHITS that had been recompiled with a custom user-defined tally ([T-Userdefined]) whose source and documentation can be found at: https://github.com/Lindt8/T-Userdefined/tree/main/multi-coincidence_ng
 
