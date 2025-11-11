@@ -19,7 +19,10 @@ import hashlib
 import json
 import os
 import sys
+import subprocess
 from pathlib import Path
+from datetime import datetime, timezone
+from typing import Optional
 
 DEFAULT_INCLUDE_EXT = {
     ".py", ".toml", ".md", ".rst", ".txt",
@@ -37,12 +40,38 @@ DEFAULT_EXCLUDE_DIRS = {
     ".ipynb_checkpoints",
 }
 DEFAULT_INCLUDE_PATH = {
-    "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out"
+    "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out",
+    "examples/imaging_datasets/PHITS_simple_ng_source/usrdef_with-rxn-info.out",
 }
 MAX_FILE_BYTES = 400_000   # per file cap (~400 KB)
 MAX_TOTAL_BYTES = 5_000_000  # overall cap (~5 MB)
 
 BANNER = "="*78
+
+def get_git_commit(root: Path) -> Optional[str]:
+    """
+    Best-effort retrieval of the current Git commit SHA for the repo root.
+
+    Returns a full 40-character SHA string if available, otherwise None.
+    This is intentionally non-fatal: if the repo is not a Git checkout,
+    or git is not installed, or anything else goes wrong, we just return None.
+    """
+    git_dir = root / ".git"
+    if not git_dir.exists():
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=str(root),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+        sha = (result.stdout or "").strip()
+        return sha or None
+    except Exception:
+        return None
 
 def is_textlike(p: Path) -> bool:
     """Heuristic to decide if a file is text-like."""
@@ -90,6 +119,10 @@ def _normalize_rel_path(s: str) -> str:
         s = s[2:]
     return s
 
+def _self_sha_short(n: int = 8) -> str:
+    text = Path(__file__).read_bytes()
+    return hashlib.sha256(text).hexdigest()[:n]
+
 def main() -> None:
     ap = argparse.ArgumentParser(
         description="Bundle a repo into a single text file for ChatGPT-style tools."
@@ -134,7 +167,16 @@ def main() -> None:
     if not root.exists():
         print(f"Repo root not found: {root}", file=sys.stderr)
         sys.exit(1)
-
+    
+    # Bundle-level metadata
+    generated_at = datetime.now(timezone.utc).isoformat()
+    git_commit = get_git_commit(root)
+    # Simple stable-ish bundle identifier for humans+tools
+    bundle_id_parts = [generated_at]
+    if git_commit:
+        bundle_id_parts.append(git_commit)
+    bundle_id = "::".join(bundle_id_parts)
+    
     # Normalize include/ext controls
     include_ext = {e if e.startswith(".") else f".{e}" for e in args.ext}
     exclude_ext = {e if e.startswith(".") else f".{e}" for e in (args.exclude_ext or [])}
@@ -151,6 +193,10 @@ def main() -> None:
         # Header metadata
         meta = {
             "root": str(root),
+            "generated_at": generated_at,
+            "git_commit": git_commit,
+            "bundle_id": bundle_id,
+            "tool_version": f"bundle_repo.py/sha256:{_self_sha_short()}",
             "include_ext": sorted(include_ext),
             "exclude_ext": sorted(exclude_ext),
             "exclude_dirs": sorted(DEFAULT_EXCLUDE_DIRS),
