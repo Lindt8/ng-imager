@@ -24,6 +24,8 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
 
+schema_version = 1  # increment whenever we make any big changes to this script
+
 DEFAULT_INCLUDE_EXT = {
     ".py", ".toml", ".md", ".rst", ".txt",
     ".yml", ".yaml", ".ini", ".cfg",
@@ -188,6 +190,8 @@ def main() -> None:
     }
 
     total_written = 0
+    total_written = 0
+    file_count = 0  # number of FILE blocks written
 
     with open(args.out, "w", encoding="utf-8", newline="\n") as out:
         # Header metadata
@@ -196,7 +200,9 @@ def main() -> None:
             "generated_at": generated_at,
             "git_commit": git_commit,
             "bundle_id": bundle_id,
+            "schema_version": schema_version,
             "tool_version": f"bundle_repo.py/sha256:{_self_sha_short()}",
+            "has_handshake_protocol": True,
             "include_ext": sorted(include_ext),
             "exclude_ext": sorted(exclude_ext),
             "exclude_dirs": sorted(DEFAULT_EXCLUDE_DIRS),
@@ -282,11 +288,27 @@ def main() -> None:
             out.write(text + "\n")
             out.write(block_footer + "\n\n")
             total_written += block_bytes
+            file_count += 1
+            total_written += block_bytes
 
         out.write(BANNER + "\n")
         out.write("FILES_END\n")
 
-    print(f"Wrote {args.out} (~{total_written/1024:.1f} KiB)")
+    bundle_path = Path(args.out)
+    bundle_bytes = bundle_path.read_bytes()
+    bundle_sha = sha256_of_bytes(bundle_bytes)
+    bundle_size = len(bundle_bytes)
+    summary = (
+        "\n=== BUNDLE_SUMMARY ===\n"
+        f"Files included: {file_count} | "
+        f"Bundle bytes: {bundle_size} | "
+        f"Bundle SHA256: {bundle_sha}\n"
+    )
+    # Append the summary at the very end of the bundle file
+    with open(bundle_path, "a", encoding="utf-8", newline="\n") as out:
+        out.write(summary)
+
+    print(f"Wrote {args.out} (~{total_written / 1024:.1f} KiB)")
 
 
 if __name__ == "__main__":
