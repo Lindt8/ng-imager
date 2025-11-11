@@ -81,6 +81,12 @@ import time
 import argparse
 from pathlib import Path
 
+if not hasattr(np, "asfarray"):
+    # Reintroduce np.asfarray for legacy packages (lmfit <= 1.3)
+    def asfarray(a, dtype=float):
+        return np.asarray(a, dtype=dtype)
+    np.asfarray = asfarray
+
 def make_pickle(path_to_pickle_file, object_to_be_pickled):
     with open(path_to_pickle_file, 'wb') as handle:
         pickle.dump(object_to_be_pickled, handle, protocol=pickle.HIGHEST_PROTOCOL)
