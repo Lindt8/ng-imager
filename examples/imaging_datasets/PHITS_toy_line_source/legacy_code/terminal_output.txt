@@ -1,0 +1,79 @@
+Creating comprehensive list-mode image to be further filtered later                                                                                                                   
+WARNING: setting use_PT_on_tissue_mNOVOvFour_settings = True is enabled!
+images path= C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\PHITS_toy_line_source\legacy_code\imaging/
+Using 2 processes for parallelization for imaging...
+Overwriting default image settings with those in image_settings.txt
+Setting source coordinates at:  [0, 3, 4] for run number 99999
+Plane parallel to YZ plane at X = 0 spanning Y[-15,15] and Z[-15,15] selected.
+         Loading C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\PHITS_toy_line_source\legacy_code\imaging_data_records.pickle ...  (0.27 seconds elapsed)
+         Loaded  C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\PHITS_toy_line_source\legacy_code\imaging_data_records.pickle  !   (0.27 seconds elapsed)
+
+2115 neutron records and 0 gamma records found   (0.27 seconds elapsed)
+No gamma records found, not building cones for or imaging gamma events...
+
+Building neutron cones...   (0.27 seconds elapsed)
+C:\Users\Hunter\PycharmProjects\on_github\ng-imager\legacy\expNOVO_imager_legacy.py:4527: RuntimeWarning: invalid value encountered in arccos
+  theta_CoM = np.arccos(arg1)
+Bad neutron event provided
+(x1,y1,z1)= [np.float32(106.0), np.float32(0.89566), np.float32(3.5823)] (x2,y2,z2)= [np.float32(101.1), np.float32(0.83963), np.float32(2.6208)]
+t1= 20.808   t2= 20.998
+dist= 4.9937596 ToF= 0.18999863 velocity= 26.283134
+En_prime= 1015.6712 E_deposited= 10.406 E_inbound= 1026.0771
+
+Identified 1460 proton cones and 654 carbon cones
+2115 proton only events
+97 bad events supplied
+2018 total good cones to image
+Consisting of 1366 good proton cones and 652 good carbon cones
+Pickle file written: temp.pickle 
+
+
+Imaging neutron cones...   (2.41 seconds elapsed)
+        Starting process id 12332
+        Starting process id 15520
+<class 'list'>
+        Imaged all of 2018 cones...   (30.40 seconds elapsed)
+Not imaging gamma cones...
+
+Assembling packedbits image array from neutron cones...   (30.40 seconds elapsed)
+0 2018
+        Imaged 0 of 2018 cones...   (30.40 seconds elapsed)
+Not imaging gamma cones...
+
+Done processing packedbits image array...   (30.62 seconds elapsed)
+254485
+254485
+0
+Size of neutron packedbits list of images: 18232 bytes
+Size of neutron records list: 141372 bytes
+Size of neutron cones list: 112 bytes
+Size of gamma records list: 112 bytes
+Size of gamma cones list: 112 bytes
+
+Saving list mode results...   (30.64 seconds elapsed)
+Pickle file written: C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\PHITS_toy_line_source\legacy_code\imaging/imaging_results_list_mode_MCtrue.pickle 
+
+
+Generating plots...   (30.67 seconds elapsed)
+using Pearson7Model() instead of GaussianModel() for projection fitting
+C:\Users\Hunter\AppData\Local\Programs\Python\Python310\lib\site-packages\asteval\astutils.py:403: FutureWarning: In the future `np.str` will be defined as the corresponding NumPy scalar.
+  if hasattr(numpy, sym):
+lmfit results for ng image Z projection peak fit: sigma = 9.95367,   center = 40.4919
+using Pearson7Model() instead of GaussianModel() for projection fitting
+C:\Users\Hunter\AppData\Local\Programs\Python\Python310\lib\site-packages\asteval\astutils.py:403: FutureWarning: In the future `np.str` will be defined as the corresponding NumPy scalar.
+  if hasattr(numpy, sym):
+lmfit results for ng image Y projection peak fit: sigma = 458.369,   center = 31.8958
+using Pearson7Model() instead of GaussianModel() for projection fitting
+C:\Users\Hunter\AppData\Local\Programs\Python\Python310\lib\site-packages\asteval\astutils.py:403: FutureWarning: In the future `np.str` will be defined as the corresponding NumPy scalar.
+  if hasattr(numpy, sym):
+lmfit results for n image Z projection peak fit: sigma = 9.95367,   center = 40.4919
+using Pearson7Model() instead of GaussianModel() for projection fitting
+C:\Users\Hunter\AppData\Local\Programs\Python\Python310\lib\site-packages\asteval\astutils.py:403: FutureWarning: In the future `np.str` will be defined as the corresponding NumPy scalar.
+  if hasattr(numpy, sym):
+lmfit results for n image Y projection peak fit: sigma = 458.369,   center = 31.8958
+Pickle file written: C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\PHITS_toy_line_source\legacy_code\imaging_data_records_results.pickle 
+
+Pickle file written: C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\PHITS_toy_line_source\legacy_code\imaging/imaging_results_MCtrue.pickle
+
+
+Done.   (38.56 seconds elapsed)
