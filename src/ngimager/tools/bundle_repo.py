@@ -41,6 +41,9 @@ DEFAULT_EXCLUDE_DIRS = {
     "build", "dist", ".venv", "venv", ".idea", ".vscode",
     ".ipynb_checkpoints",
 }
+DEFAULT_EXCLUDE_PATTERNS = {
+    "repo_bundle.txt"
+}
 DEFAULT_INCLUDE_PATH = {
     "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out",
     "examples/imaging_datasets/PHITS_simple_ng_source/usrdef_with-rxn-info.out",
@@ -153,7 +156,7 @@ def main() -> None:
              "Dot prefix is optional.",
     )
     ap.add_argument(
-        "--exclude-pattern", nargs="*", default=[],
+        "--exclude-pattern", nargs="*", default=sorted(DEFAULT_EXCLUDE_PATTERNS),
         help="Glob patterns of root-relative paths to exclude "
              "(e.g. 'data/**/*.txt' 'sim_outputs/*').",
     )
