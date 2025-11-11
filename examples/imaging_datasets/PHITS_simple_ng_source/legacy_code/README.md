@@ -18,7 +18,7 @@ This produces the `imaging_data_records.pickle`. This file is then processed by 
 
 The imaging results (image, projections, etc.) are numerically stored in `imaging_data_records_results.pickle`, and the `imaging/` subdirectory contains the plotted results and "list-mode" imaging results.  The `terminal_output.txt` file shows what was written to the terminal during the running of the legacy imaging code when generating these results.
 
-The final image, consisting of 100 imaged neutron cones and 18 gamma-ray cones, is pictured below.  Statistics are not adequate to paint a compelling picture, but it is at least obvious there is a higher concentration of cone-plane intersections around the line x=0 and in -150 mm < z < 50 mm.
+The final image, consisting of 99 imaged neutron cones and 18 gamma-ray cones, is pictured below.  Statistics are not adequate to paint a compelling picture, but it is at least obvious there is a higher concentration of cone-plane intersections around the line x=0 and in -150 mm < z < 50 mm.
 
 ![](imaging/ng_image_MCtrue.png)
 

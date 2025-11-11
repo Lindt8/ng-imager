@@ -24,8 +24,8 @@ global g_min_elong ; g_min_elong  = 0.1 # MeVee
 # experiment settings 
 global source_type              ; source_type               = 'DT' # choose between 'Cf252', 'nELBE', and 'DT' ; this controls how En0 is determined
 # global source_coordinates     ; source_coordinates        = [0, 0, -549.3]  # cm, value for nELBE source 
-global source_coordinates       ; source_coordinates        = [0, 0, -15]  # cm, value for PHITS simulation 
-global NOVO_face_x_coord        ; NOVO_face_x_coord         = 0  # cm; is actually on the axis specified below
+global source_coordinates       ; source_coordinates        = [0, 0, -5]  # cm, value for PHITS simulation 
+global NOVO_face_x_coord        ; NOVO_face_x_coord         = 15  # cm; is actually on the axis specified below
 global axis_normal_to_array_face; axis_normal_to_array_face = 'y' # select 'x', 'y', or 'z'
 
 # standard imaging settings
