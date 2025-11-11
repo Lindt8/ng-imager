@@ -22,7 +22,6 @@ DEFAULT_INCLUDE_EXT = {
     ".json", ".csv", ".tsv",
     ".hpp", ".h", ".c", ".cpp",
     ".sh", ".bat", ".ps1",
-    ".inp", ".out",
 }
 DEFAULT_EXCLUDE_DIRS = {
     ".git", ".hg", ".svn", "__pycache__", ".mypy_cache", ".pytest_cache",

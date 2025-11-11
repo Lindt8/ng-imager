@@ -1,0 +1,149 @@
+Creating aggressively cut, low-res, fast image
+images path= C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\NOVO_experiment_DT_at_PTB\legacy_code\autoSorted_coinc_detector_DT-14p8MeV_000041\fastmode/
+Imaging data from file:  C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\NOVO_experiment_DT_at_PTB\legacy_code\autoSorted_coinc_detector_DT-14p8MeV_000041_fastmode.pickle
+Pickle file does not yet exist, converting it from ROOT file...    (0.00 seconds elapsed)
+        Converting file from ROOT to pickled Numpy array:  C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\NOVO_experiment_DT_at_PTB\autoSorted_coinc_detector_DT-14p8MeV_000041.root
+['histograms;1', 'histograms/h_posReconDiff_det0;1', 'histograms/h_posReconDiff_det0_clipped;1', 'histograms/h_posReconDiff_det0_unclipped;1', 'histograms/h_posReconDiff_det1;1', 'hi
+stograms/h_posReconDiff_det1_clipped;1', 'histograms/h_posReconDiff_det1_unclipped;1', 'histograms/h_posReconDiff_det2;1', 'histograms/h_posReconDiff_det2_clipped;1', 'histograms/h_p
+osReconDiff_det2_unclipped;1', 'histograms/h_posReconDiff_det3;1', 'histograms/h_posReconDiff_det3_clipped;1', 'histograms/h_posReconDiff_det3_unclipped;1', 'histograms/h_posReconDif
+f_det4;1', 'histograms/h_posReconDiff_det4_clipped;1', 'histograms/h_posReconDiff_det4_unclipped;1', 'histograms/h_posReconDiff_det5;1', 'histograms/h_posReconDiff_det5_clipped;1', '
+histograms/h_posReconDiff_det5_unclipped;1', 'histograms/h_posReconDiff_det6;1', 'histograms/h_posReconDiff_det6_clipped;1', 'histograms/h_posReconDiff_det6_unclipped;1', 'histograms
+/h_posReconDiff_det7;1', 'histograms/h_posReconDiff_det7_clipped;1', 'histograms/h_posReconDiff_det7_unclipped;1', 'histograms/h_posReconDiff_det8;1', 'histograms/h_posReconDiff_det8
+_clipped;1', 'histograms/h_posReconDiff_det8_unclipped;1', 'histograms/h_posReconDiff_det9;1', 'histograms/h_posReconDiff_det9_clipped;1', 'histograms/h_posReconDiff_det9_unclipped;1
+', 'histograms/h_posReconDiff_det10;1', 'histograms/h_posReconDiff_det10_clipped;1', 'histograms/h_posReconDiff_det10_unclipped;1', 'histograms/h_posReconDiff_det11;1', 'histograms/h
+_posReconDiff_det11_clipped;1', 'histograms/h_posReconDiff_det11_unclipped;1', 'histograms/h_posReconDiff_det12;1', 'histograms/h_posReconDiff_det12_clipped;1', 'histograms/h_posReco
+nDiff_det12_unclipped;1', 'histograms/h_posReconDiff_det13;1', 'histograms/h_posReconDiff_det13_clipped;1', 'histograms/h_posReconDiff_det13_unclipped;1', 'histograms/h_posReconDiff_det14;1', 'histograms/h_posReconDiff_det14_clipped;1', 'histograms/h_posReconDiff_det14_unclipped;1', 'image_tree;1', 'h_cardOffset_dta_dtb;1', 'meta;1']
+['multi', 'x1', 'y1', 'z1', 't1', 'dE1', 'psd1', 'det1', 'particle1', 'clipped1', 'x2', 'y2', 'z2', 't2', 'dE2', 'psd2', 'det2', 'particle2', 'clipped2', 'x3', 'y3', 'z3', 't3', 'dE3', 'psd3', 'det3', 'particle3', 'clipped3']
+Overwriting default event filtering criteria with those in image_settings14.txt
+Found that "source_type" is set to:  DT
+Starting ROOT to NumPy conversion...    (1.40 seconds elapsed)
+         456278 entries found...
+C:\Users\Hunter\PycharmProjects\on_github\ng-imager\legacy\expNOVO_imager_legacy.py:1151: RuntimeWarning: invalid value encountered in sqrt
+  gamma = np.sqrt(1 / (1 - beta ** 2))
+        of which, 39840 were not skipped immediately and
+        of which, 104711 were skipped by temporary filters:
+                 0 events with 2 start detectors firing
+                 104068 events with ToF between bars too long
+                 643 events with ToF between bars too short
+                 0 events with ToF between bar1hit and start detector too short
+                 0 events with ToF between bar1hit and start detector too high
+         308413 events failing Elong cuts
+         1208 events skipped due to upscattering (E1>E0)
+         35 events skipped due to NaN scattered neutron energy
+         0 triple g events skipped due to dt12 less than 0.05 ns
+         0 triple g events skipped due to dt12 greater than 25.0 ns
+         258 double n events skipped due to dt12 less than 0.5 ns
+         0 double n events skipped due to dt12 greater than 25.0 ns
+         0 double n events skipped due to En0 greater than 25.0 MeV
+         0 double n events skipped by "redundant" energy cuts (should be 0)
+         0 double n events skipped due to not matching inputted required bar sequences
+
+         37577 neutron events will be imaged, of 447695 double n events initially found
+
+         762 gamma events will be imaged, of 5269 triple g events initially found
+
+ Of 456278 events: 447695 double n, 3314 n+g, 5269 double g, 0 other combo
+ROOT to NumPy conversion complete!    (211.92 seconds elapsed)
+762 gamma cone candidates found, 37577 neutron cone candidates found
+debug ToF info for imaged double neutron events: min ToF =, 0.79345703125 ns, max ToF = 24.997787475585938  ns
+
+debug ToF info for ALL double neutron events: min ToF =, 0.0 ns, max ToF = 49.99993896484375  ns
+
+        Pickle file written: C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\NOVO_experiment_DT_at_PTB\legacy_code\autoSorted_coinc_detector_DT-14p8MeV_000041_fastmode.pickle
+
+         Recorded 37577 neutron events and 762 gamma events for potential imaging.
+Pickle file created!    (215.09 seconds elapsed)
+Using 2 processes for parallelization for imaging...
+Overwriting default image settings with those in image_settings14.txt
+Setting source coordinates at:  [0, 0, -109.6] for run number 41
+Plane parallel to XY plane at Z = -109.6 spanning X[-100,100] and Y[-100,100] selected.
+         Loading C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\NOVO_experiment_DT_at_PTB\legacy_code\autoSorted_coinc_detector_DT-14p8MeV_000041_fastmode.pickle ...  (215.09 seconds elapsed)
+         Loaded  C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\NOVO_experiment_DT_at_PTB\legacy_code\autoSorted_coinc_detector_DT-14p8MeV_000041_fastmode.pickle  !   (215.09 seconds elapsed)
+
+37577 neutron records and 762 gamma records found   (215.09 seconds elapsed)
+
+Building neutron cones...   (215.09 seconds elapsed)
+C:\Users\Hunter\PycharmProjects\on_github\ng-imager\legacy\expNOVO_imager_legacy.py:4527: RuntimeWarning: invalid value encountered in arccos
+  theta_CoM = np.arccos(arg1)
+Identified 20414 proton cones and 121 carbon cones
+0 proton only events
+534 bad events supplied
+20001 total good cones to image
+Consisting of 19887 good proton cones and 114 good carbon cones
+
+Building gamma cones...   (219.26 seconds elapsed)
+0 bad gamma events supplied
+762 total good gamma cones to image
+Pickle file written: temp.pickle 
+
+
+Imaging neutron cones...   (221.15 seconds elapsed)
+        Starting process id 3960
+        Starting process id 9208
+<class 'list'>
+        Imaged all of 20001 cones...   (401.33 seconds elapsed)
+
+Imaging gamma cones...   (401.33 seconds elapsed)
+        Starting process id 21452
+        Starting process id 10308
+<class 'list'>
+        Imaged all of 762 cones...   (408.10 seconds elapsed)
+
+Assembling packedbits image array from neutron cones...   (408.10 seconds elapsed)
+0 20001
+        Imaged 0 of 20001 cones...   (408.10 seconds elapsed)
+        Imaged 5000 of 20001 cones...   (408.39 seconds elapsed)
+        Imaged 10000 of 20001 cones...   (408.67 seconds elapsed)
+        Imaged 15000 of 20001 cones...   (408.95 seconds elapsed)
+        Imaged 20000 of 20001 cones...   (409.23 seconds elapsed)
+
+Assembling packedbits image array from gamma cones...   (409.23 seconds elapsed)
+1 762
+        Imaged 0 of 762 cones...   (409.23 seconds elapsed)
+
+Done processing packedbits image array...   (409.27 seconds elapsed)
+2892699
+2794285
+98414
+Size of neutron packedbits list of images: 173016 bytes
+Size of gamma packedbits list of images: 6936 bytes
+Size of neutron records list: 1400182 bytes
+Size of neutron cones list: 112 bytes
+Size of gamma records list: 84694 bytes
+Size of gamma cones list: 112 bytes
+
+Saving list mode results...   (409.32 seconds elapsed)
+Pickle file written: C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\NOVO_experiment_DT_at_PTB\legacy_code\autoSorted_coinc_detector_DT-14p8MeV_000041\fastmode/imaging_results_list_mode.pickle
+
+
+Generating plots...   (409.49 seconds elapsed)
+using Pearson7Model() instead of GaussianModel() for projection fitting
+C:\Users\Hunter\AppData\Local\Programs\Python\Python310\lib\site-packages\asteval\astutils.py:403: FutureWarning: In the future `np.str` will be defined as the corresponding NumPy scalar.
+  if hasattr(numpy, sym):
+lmfit results for ng image X projection peak fit: sigma = 167.886,   center = 105.538
+using Pearson7Model() instead of GaussianModel() for projection fitting
+C:\Users\Hunter\AppData\Local\Programs\Python\Python310\lib\site-packages\asteval\astutils.py:403: FutureWarning: In the future `np.str` will be defined as the corresponding NumPy scalar.
+  if hasattr(numpy, sym):
+lmfit results for ng image Y projection peak fit: sigma = 182.117,   center = -99.6104
+using Pearson7Model() instead of GaussianModel() for projection fitting
+C:\Users\Hunter\AppData\Local\Programs\Python\Python310\lib\site-packages\asteval\astutils.py:403: FutureWarning: In the future `np.str` will be defined as the corresponding NumPy scalar.
+  if hasattr(numpy, sym):
+lmfit results for n image X projection peak fit: sigma = 167.405,   center = 108.331
+using Pearson7Model() instead of GaussianModel() for projection fitting
+C:\Users\Hunter\AppData\Local\Programs\Python\Python310\lib\site-packages\asteval\astutils.py:403: FutureWarning: In the future `np.str` will be defined as the corresponding NumPy scalar.
+  if hasattr(numpy, sym):
+lmfit results for n image Y projection peak fit: sigma = 180.041,   center = -101.237
+using Pearson7Model() instead of GaussianModel() for projection fitting
+C:\Users\Hunter\AppData\Local\Programs\Python\Python310\lib\site-packages\asteval\astutils.py:403: FutureWarning: In the future `np.str` will be defined as the corresponding NumPy scalar.
+  if hasattr(numpy, sym):
+lmfit results for g image X projection peak fit: sigma = 145.698,   center = 24.3274
+using Pearson7Model() instead of GaussianModel() for projection fitting
+C:\Users\Hunter\AppData\Local\Programs\Python\Python310\lib\site-packages\asteval\astutils.py:403: FutureWarning: In the future `np.str` will be defined as the corresponding NumPy scalar.
+  if hasattr(numpy, sym):
+lmfit results for g image Y projection peak fit: sigma = 790.165,   center = -40.1116
+Pickle file written: C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\NOVO_experiment_DT_at_PTB\legacy_code\autoSorted_coinc_detector_DT-14p8MeV_000041_fastmode_results.pickle
+
+Pickle file written: C:\Users\Hunter\PycharmProjects\on_github\ng-imager\examples\imaging_datasets\NOVO_experiment_DT_at_PTB\legacy_code\autoSorted_coinc_detector_DT-14p8MeV_000041\fastmode/imaging_results.pickle
+
+
+Done.   (421.77 seconds elapsed)
