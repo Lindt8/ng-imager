@@ -42,7 +42,7 @@ DEFAULT_EXCLUDE_DIRS = {
     ".ipynb_checkpoints",
 }
 DEFAULT_EXCLUDE_PATTERNS = {
-    "repo_bundle.txt"
+    "*repo_bundle.txt"
 }
 DEFAULT_INCLUDE_PATH = {
     "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out",
