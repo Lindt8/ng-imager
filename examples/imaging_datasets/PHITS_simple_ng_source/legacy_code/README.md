@@ -15,3 +15,6 @@ This produces the `imaging_data_records.pickle`. This file is then processed by 
 ```commandline
  python "legacy/expNOVO_imager_legacy.py" "examples/imaging_datasets/PHITS_simple_ng_source/legacy_code/imaging_data_records.pickle" -p 2
 ```
+
+The imaging results (image, projections, etc.) are numerically stored in `imaging_data_records_results.pickle`, and the `imaging/` subdirectory contains the plotted results and "list-mode" imaging results.
+
