@@ -37,7 +37,7 @@ DEFAULT_EXCLUDE_DIRS = {
     ".ipynb_checkpoints",
 }
 DEFAULT_INCLUDE_PATH = {
-    "examples/imaging_datasets/PHITS_simple_ng_source/*"
+    "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out"
 }
 MAX_FILE_BYTES = 400_000   # per file cap (~400 KB)
 MAX_TOTAL_BYTES = 5_000_000  # overall cap (~5 MB)
