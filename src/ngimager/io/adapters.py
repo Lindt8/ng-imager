@@ -38,15 +38,14 @@ default_material = "M600"     # tag assigned to all hits unless mapped
 
 """
 from __future__ import annotations
-
-from typing import Dict, Iterator, Literal, Optional, Any
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, Iterator, Iterable, List, Literal, Optional, Any, Mapping, Protocol
+import io
+import pandas as pd
+import re
 
 # Optional imports (guarded)
-try:
-    import pandas as pd  # type: ignore
-except Exception:  # pragma: no cover
-    pd = None  # type: ignore
-
 try:
     import uproot  # type: ignore
 except Exception:  # pragma: no cover
@@ -75,6 +74,20 @@ def _as_opt_float(x) -> Optional[float]:
         return float(x)
     except Exception:
         return None
+
+
+# --- helper: sniff if a text file looks like 'short' usrdef ---
+def _phits_usrdef_is_short(head: list[str]) -> bool:
+    # conservative heuristic: first non-comment, non-empty line column count
+    for ln in head:
+        s = ln.strip()
+        if not s or s.startswith(("#", "*", "!")):
+            continue
+        ncols = len(s.split())
+        # When split, the length should be 21 (18 values + 3 punctuation marks) for neutron events
+        # 28 for gamma events
+        return ncols < 16
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -251,6 +264,124 @@ class ROOTAdapter(BaseAdapter):
 # PHITS adapter
 # ---------------------------------------------------------------------------
 
+def parse_phits_usrdef_short(path: str | Path) -> List[Dict[str, Any]]:
+    """
+    Parse PHITS 'usrdef.out' short format into variable-multiplicity events.
+    The [T-Userdefined] source code for this tally and documentation can be found at:
+    https://github.com/Lindt8/T-Userdefined/tree/main/multi-coincidence_ng
+
+    Input row format (tokens; delimiters ';' and ',' are cosmetic):
+        event_type  #iomp  #batch  #history  #no  #name  ;  reg  Edep(MeV)  x(cm)  y(cm)  z(cm)  t(ns)  ,  reg  Edep  x  y  z  t  ,  ...
+
+    Where:
+      - event_type: 'ne' (neutron) or 'ge' (gamma)
+      - #iomp, #batch, #history, #no, #name: integers (PHITS bookkeeping)
+      - For each hit: reg (int), Edep_MeV (float), x_cm (float), y_cm (float), z_cm (float), t_ns (float)
+      - 2 hits min for 'ne', 3 hits min for 'ge', but higher multiplicities may appear.
+
+    Returns a list of dicts, each with:
+      {
+        "event_type": "n" | "g",
+        "iomp": int, "batch": int, "history": int, "no": int, "name": int,
+        "hits": [
+           {"reg": int, "Edep_MeV": float, "x_cm": float, "y_cm": float, "z_cm": float, "t_ns": float},
+           ...
+        ],
+        "source": "PHITS",
+        "format": "usrdef.short",
+      }
+
+    NOTE: This function performs *no* physics decisions (pair/triple selection, species mixing, etc.).
+          It preserves all hits in the order they appear. Shaping happens downstream.
+    """
+    p = Path(path)
+    events: List[Dict[str, Any]] = []
+
+    # Fast replacements: remove cosmetic delimiters; keep whitespace tokenization stable.
+    delim_re = re.compile(r"[;,]")
+
+    with open(p, "r", encoding="utf-8", errors="ignore") as f:
+        for raw in f:
+            line = raw.strip()
+            if not line or line.startswith(("!", "#")):
+                continue
+
+            # Normalize delimiters to spaces and split.
+            line = delim_re.sub(" ", line)
+            parts = line.split()
+            if not parts:
+                continue
+
+            # Header: event_type + five ints
+            # Defensive checks: ensure we have at least 6 tokens before hits begin.
+            if len(parts) < 6:
+                continue
+
+            ev_type_tok = parts[0].lower()
+            if ev_type_tok not in ("ne", "ge"):
+                # If PHITS writes other tags in the future, skip for now (could log)
+                continue
+
+            try:
+                iomp   = int(parts[1])
+                batch  = int(parts[2])
+                hist   = int(parts[3])
+                no     = int(parts[4])
+                name   = int(parts[5])
+            except ValueError:
+                # Malformed header row; skip
+                continue
+
+            # Remaining tokens are in groups of 6 per hit
+            toks = parts[6:]
+            if len(toks) < 6:
+                # No hits present; skip this row
+                continue
+
+            if len(toks) % 6 != 0:
+                # Truncated or malformed line; drop trailing incomplete group
+                toks = toks[: (len(toks)//6) * 6]
+
+            hits: List[Dict[str, Any]] = []
+            for i in range(0, len(toks), 6):
+                try:
+                    reg  = int(toks[i + 0])
+                    edep = float(toks[i + 1])   # MeV
+                    x    = float(toks[i + 2])   # cm
+                    y    = float(toks[i + 3])   # cm
+                    z    = float(toks[i + 4])   # cm
+                    t    = float(toks[i + 5])   # ns
+                except ValueError:
+                    # Skip this hit if any conversion fails
+                    continue
+                hits.append({
+                    "reg": reg,
+                    "Edep_MeV": edep,
+                    "x_cm": x, "y_cm": y, "z_cm": z,
+                    "t_ns": t,
+                })
+
+            if not hits:
+                continue
+
+            events.append({
+                "event_type": "n" if ev_type_tok == "ne" else "g",
+                "iomp": iomp, "batch": batch, "history": hist, "no": no, "name": name,
+                "hits": hits,
+                "source": "PHITS",
+                "format": "usrdef.short",
+            })
+
+    return events
+
+def from_phits_usrdef(path: str | Path, *, format_hint: Literal["short","auto"]="auto") -> List[Dict[str, Any]]:
+    """
+    Public convenience entry point for PHITS usrdef ingestion.
+    Currently supports the 'short' format. 'auto' is reserved for future sniffing.
+    """
+    # In the future: sniff tokens/columns to choose short vs full.
+    return parse_phits_usrdef_short(path)
+
 class PHITSAdapter(BaseAdapter):
     """
     Read tabular event lists exported from PHITS post-processing.
@@ -283,14 +414,26 @@ class PHITSAdapter(BaseAdapter):
         self.default_material = default_material
 
     def _read_table(self, path: str):
-        p = path.lower()
-        if p.endswith(".csv"):
-            return pd.read_csv(path)
-        if p.endswith(".parquet") or p.endswith(".pq"):
-            return pd.read_parquet(path)
-        if p.endswith(".h5") or p.endswith(".hdf5"):
-            return pd.read_hdf(path)
-        raise ValueError(f"Unsupported PHITS table format: {path}")
+        p = Path(path)
+        suffix = p.suffix.lower()
+        
+        # reading from custom [T-Userdefined] output: https://github.com/Lindt8/T-Userdefined/tree/main/multi-coincidence_ng
+        if suffix == ".out":
+            # route to the short-format reader; if it fails, raise with guidance
+            return read_phits_usrdef_short(p, fieldmap=self.fieldmap)
+
+        if suffix in {".csv"}:
+            df = pd.read_csv(p)
+        elif suffix in {".parquet", ".pq"}:
+            df = pd.read_parquet(p)
+        elif suffix in {".h5", ".hdf5"}:
+            df = pd.read_hdf(p)
+        else:
+            raise ValueError(f"Unrecognized PHITSAdapter input: {p.name} (expected .csv/.parquet/.h5 or usrdef .out)")
+
+        if self.fieldmap:
+            df = df.rename(columns=dict(self.fieldmap))
+        return df
 
     def _hit_from_row(self, r, which: str) -> Optional[Hit]:
         keys = [f"x{which}", f"y{which}", f"z{which}", f"t{which}"]

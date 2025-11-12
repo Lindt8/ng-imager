@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Any, Dict, Iterable, List, Sequence, Tuple
 import h5py
 import numpy as np
 from datetime import datetime, timezone
@@ -139,6 +140,102 @@ def write_lm_indices(
     if "events" in grp:
         del grp["events"]
     grp.create_dataset("events", data=events_arr, compression="gzip")
+
+
+def _flatten_hits_for_ragged(phits_events: Sequence[Dict[str, Any]]
+                             ) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
+    """
+    Convert variable-length PHITS-style events (with 'hits' list) into ragged columns.
+
+    Returns:
+      event_ptr: (N_events+1,) int64 — CSR-style pointers into the flat hit arrays.
+      cols: dict of 1D arrays (len M = total hits):
+            'x_cm','y_cm','z_cm','t_ns','Edep_MeV','reg' (dtypes float32/float64 and int32)
+      Also returns event-level arrays in cols['events/…'] for convenience:
+            'event_type' (uint8: 0=unknown,1=n,2=g,3=mixed), 'iomp','batch','history','no','name' (int64)
+    """
+    n_events = len(phits_events)
+    ptr = np.zeros(n_events + 1, dtype=np.int64)
+    # First pass: count hits per event
+    k = 0
+    for i, ev in enumerate(phits_events):
+        nh = len(ev.get("hits", []))
+        k += nh
+        ptr[i + 1] = k
+
+    M = int(k)
+    x = np.empty(M, dtype=np.float32)
+    y = np.empty(M, dtype=np.float32)
+    z = np.empty(M, dtype=np.float32)
+    t = np.empty(M, dtype=np.float32)
+    e = np.empty(M, dtype=np.float32)
+    reg = np.empty(M, dtype=np.int32)
+
+    # Event-level metadata (fill with zeros/defaults if missing)
+    ev_type_map = {"n": 1, "g": 2, "mixed": 3}
+    etype = np.zeros(n_events, dtype=np.uint8)
+    iomp  = np.zeros(n_events, dtype=np.int64)
+    batch = np.zeros(n_events, dtype=np.int64)
+    hist  = np.zeros(n_events, dtype=np.int64)
+    eno   = np.zeros(n_events, dtype=np.int64)
+    name  = np.zeros(n_events, dtype=np.int64)
+
+    # Second pass: fill flat hits and per-event meta
+    w = 0
+    for i, ev in enumerate(phits_events):
+        etype[i] = ev_type_map.get(ev.get("event_type", ""), 0)
+        iomp[i]  = int(ev.get("iomp", 0))
+        batch[i] = int(ev.get("batch", 0))
+        hist[i]  = int(ev.get("history", 0))
+        eno[i]   = int(ev.get("no", 0))
+        name[i]  = int(ev.get("name", 0))
+        hits = ev.get("hits", [])
+        for h in hits:
+            x[w]   = float(h.get("x_cm", 0.0))
+            y[w]   = float(h.get("y_cm", 0.0))
+            z[w]   = float(h.get("z_cm", 0.0))
+            t[w]   = float(h.get("t_ns", 0.0))
+            e[w]   = float(h.get("Edep_MeV", 0.0))
+            reg[w] = int(h.get("reg", 0))
+            w += 1
+
+    cols = {
+        "x_cm": x, "y_cm": y, "z_cm": z, "t_ns": t, "Edep_MeV": e, "reg": reg,
+        "events/event_type": etype,
+        "events/iomp": iomp, "events/batch": batch, "events/history": hist,
+        "events/no": eno, "events/name": name,
+    }
+    return ptr, cols
+
+def write_lm_ragged(h5: h5py.File, phits_events: Sequence[Dict[str, Any]], *, group: str = "/lm") -> None:
+    """
+    Write variable-length list-mode (ragged) datasets for events with arbitrary hit multiplicity.
+    This is ADDITIVE and does not modify existing fixed-shape datasets you already write elsewhere.
+    """
+    if group.endswith("/"):
+        group = group[:-1]
+    g_hits = h5.require_group(f"{group}/hits")
+    g_ev   = h5.require_group(f"{group}/events")
+
+    event_ptr, cols = _flatten_hits_for_ragged(phits_events)
+
+    # Event pointer (CSR)
+    if "event_ptr" in g_hits:
+        del g_hits["event_ptr"]
+    g_hits.create_dataset("event_ptr", data=event_ptr, dtype="i8")
+
+    # Flat hit columns
+    for key in ("x_cm", "y_cm", "z_cm", "t_ns", "Edep_MeV", "reg"):
+        if key in g_hits:
+            del g_hits[key]
+        g_hits.create_dataset(key, data=cols[key])
+
+    # Event-level arrays
+    for key in ("event_type", "iomp", "batch", "history", "no", "name"):
+        arr = cols[f"events/{key}"]
+        if key in g_ev:
+            del g_ev[key]
+        g_ev.create_dataset(key, data=arr)
 
 
 # store per-event / per-hit physics data for list-mode
