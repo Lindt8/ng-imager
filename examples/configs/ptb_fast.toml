@@ -43,6 +43,10 @@ tof_window_ns = [0.0, 30.0]
 bars_include = []                  # optional list of det ids
 materials_include = []             # e.g. ["M600","OGS"]
 
+[detectors]
+material_map = { 200 = "OGS", 210 = "M600", 220 = "OGS", 230 = "M600", 240 = "OGS" }
+default_material = "UNK"
+
 [energy]
 strategy = "ELUT"                  # ELUT | ToF | FixedEn
 fixed_En_MeV = 14.1

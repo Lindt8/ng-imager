@@ -1,0 +1,75 @@
+[run]
+mode = "fast"                      # fast | list
+source_type = "phits"                 # cf252 | dt | proton_center | phits
+workers = 0 # "auto"
+chunk_cones = "auto"
+jit = false
+progress = true
+diagnostics = true
+max_cones = 3000
+
+[io]
+input = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out"
+output = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef_out.h5"
+detector_map = "PLACEHOLDER/path/to/detectors_mnovo.json"
+source = "phits"  # "synth" | "root" | "phits"
+
+[io.adapter]
+type = "phits"        # or "phits"
+style = "Joey"       # for ROOT from DDAQ-Tools
+unit_pos_is_mm = true
+time_units = "ns"    # or "ps"
+require_gamma_triples = true
+default_material = "UNK"
+# fieldmap = { x1="x1_custom", Elong1="ElongFirst", ... }
+material_map = { 200 = "OGS", 210 = "M600", 220 = "OGS", 230 = "M600", 240 = "OGS" }
+
+[detectors]
+material_map = { 200 = "OGS", 210 = "M600", 220 = "OGS", 230 = "M600", 240 = "OGS" }
+default_material = "OGS"
+
+[plane]
+origin = [0.0, 15.0, 0.0]   # a point on the plane;  y ≈ face coordinate
+normal = [0.0, 1.0, 0.0]    # +y
+u_axis = [1.0, 0.0, 0.0]    # x runs horizontal
+v_axis = [0.0, 0.0, 1.0]    # z runs vertical
+u_min = -20.0
+u_max =  20.0
+v_min = -20.0
+v_max =  20.0
+du = 0.1
+dv = 0.1
+
+[filters]
+min_light = 50.0
+max_light = 1.0e6
+tof_window_ns = [0.0, 30.0]
+bars_include = []
+materials_include = []  # e.g. ["M600","OGS"]
+
+
+
+[energy]
+strategy = "ELUT"                  # ELUT | ToF | FixedEn
+fixed_En_MeV = 14.1
+lut_paths.M600.proton = "data/lut/M600/lut_M600_proton_Birks.npz"
+lut_paths.M600.carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
+lut_paths.OGS.proton  = "data/lut/OGS/lut_OGS_proton_Birks.npz"
+lut_paths.OGS.carbon  = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
+
+[prior]
+type = "point"
+point = [0.0, 0.0, -500.0]
+strength = 1.0
+
+[uncertainty]
+enabled = false
+smearing = "thicken"
+sigma_doi_cm = 0.35
+sigma_transverse_cm = 0.346
+sigma_time_ns = 0.5
+use_lut_bands = false
+
+[vis]
+export_png_on_write = true           # default true
+summed_dataset = "/images/summed"     # override if needed

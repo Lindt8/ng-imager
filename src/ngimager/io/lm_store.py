@@ -191,12 +191,20 @@ def _flatten_hits_for_ragged(phits_events: Sequence[Dict[str, Any]]
         name[i]  = int(ev.get("name", 0))
         hits = ev.get("hits", [])
         for h in hits:
-            x[w]   = float(h.get("x_cm", 0.0))
-            y[w]   = float(h.get("y_cm", 0.0))
-            z[w]   = float(h.get("z_cm", 0.0))
-            t[w]   = float(h.get("t_ns", 0.0))
-            e[w]   = float(h.get("Edep_MeV", 0.0))
-            reg[w] = int(h.get("reg", 0))
+            if hasattr(h, "r"):  # Hit object
+                # r is cm; L is light-like; Edep_MeV may be in extras
+                x[w], y[w], z[w] = float(h.r[0]), float(h.r[1]), float(h.r[2])
+                t[w] = float(getattr(h, "t_ns"))
+                # Prefer Edep_MeV if available in extras; else fall back to L
+                e[w] = float(getattr(h, "extras", {}).get("Edep_MeV", getattr(h, "L", 0.0)))
+                reg[w] = int(getattr(h, "det_id", 0))
+            else:  # dict-like
+                x[w]   = float(h.get("x_cm", 0.0))
+                y[w]   = float(h.get("y_cm", 0.0))
+                z[w]   = float(h.get("z_cm", 0.0))
+                t[w]   = float(h.get("t_ns", 0.0))
+                e[w]   = float(h.get("Edep_MeV", 0.0))
+                reg[w] = int(h.get("reg", h.get("det_id", 0)))
             w += 1
 
     cols = {

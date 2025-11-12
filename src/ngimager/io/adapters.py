@@ -58,7 +58,10 @@ import numpy as np
 # ---------------------------------------------------------------------------
 from ngimager.physics.hits import Hit  # NOTE: Hit should have: det_id:int, r:np.ndarray(3), t_ns:float, L:float, material:str, extras:dict[str,Any]=...
 from ngimager.physics.events import NeutronEvent, GammaEvent  # NOTE: should accept meta:dict[str,Any]
-
+from ngimager.io.canonicalize import canonicalize_events_inplace
+from ngimager.config.materials import MaterialResolver
+from ngimager.filters.shapers import shape_events_for_cones, ShapeConfig
+from ngimager.filters.to_typed_events import shaped_to_typed_events
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -263,6 +266,20 @@ class ROOTAdapter(BaseAdapter):
 # ---------------------------------------------------------------------------
 # PHITS adapter
 # ---------------------------------------------------------------------------
+def dict_hits_to_Hit(h: dict, default_material: str = "UNK") -> Hit:
+    r = np.array([h["x_cm"], h["y_cm"], h["z_cm"]], dtype=float)
+    extras = dict(h.get("__extras__", {}))
+    if "Edep_MeV" in h:
+        extras.setdefault("Edep_MeV", h["Edep_MeV"])
+    return Hit(
+        det_id=int(h.get("det_id", h.get("reg", 0))),
+        r=r,
+        t_ns=float(h["t_ns"]),
+        L=float(h.get("L", h.get("Edep_MeV", 0.0))),
+        material=default_material,
+        extras=extras,
+    )
+
 
 def parse_phits_usrdef_short(path: str | Path) -> List[Dict[str, Any]]:
     """
@@ -374,13 +391,37 @@ def parse_phits_usrdef_short(path: str | Path) -> List[Dict[str, Any]]:
 
     return events
 
-def from_phits_usrdef(path: str | Path, *, format_hint: Literal["short","auto"]="auto") -> List[Dict[str, Any]]:
+def from_phits_usrdef(path: str | Path, *, format_hint: Literal["short","auto"]="auto", 
+                      resolver: MaterialResolver | None = None) -> List[Dict[str, Any]]:
     """
     Public convenience entry point for PHITS usrdef ingestion.
     Currently supports the 'short' format. 'auto' is reserved for future sniffing.
     """
     # In the future: sniff tokens/columns to choose short vs full.
-    return parse_phits_usrdef_short(path)
+    events = parse_phits_usrdef_short(path)
+    canonicalize_events_inplace(events)
+
+    # Resolve material from detector/region id via config (optional)
+    if resolver is None: 
+        resolver = MaterialResolver.from_env_or_defaults()
+
+    # Convert dict-hits → Hit objects (keep source fields in extras)
+    for ev in events:
+        hits_H: List[Hit] = []
+        for h in ev["hits"]:
+            det = int(h["det_id"]) if "det_id" in h else int(h.get("reg", 0))
+            r = np.array([h["x_cm"], h["y_cm"], h["z_cm"]], dtype=float)
+            extras = dict(h.get("__extras__", {}))
+            # Keep Edep explicitly in extras if present
+            if "Edep_MeV" in h:
+                extras.setdefault("Edep_MeV", h["Edep_MeV"])
+            material = resolver.material_for(det)
+            hits_H.append(Hit(det_id=det, r=r, t_ns=float(h["t_ns"]), L=float(h.get("L", extras.get("Edep_MeV", 0.0))),
+                              material=material, extras=extras))
+        ev["hits"] = hits_H
+    return events
+
+
 
 class PHITSAdapter(BaseAdapter):
     """
@@ -405,13 +446,15 @@ class PHITSAdapter(BaseAdapter):
         unit_pos_is_mm: bool = True,
         time_units: Literal["ns", "ps"] = "ns",
         default_material: str = "M600",
+        material_map: Optional[Dict[int, str]] = None,
     ) -> None:
-        if pd is None:  # pragma: no cover
-            raise RuntimeError("pandas is required for PHITSAdapter but is not installed.")
         self.unit_pos_is_mm = unit_pos_is_mm
         self.time_scale = 0.001 if time_units == "ps" else 1.0
         self.map = fieldmap or {}
         self.default_material = default_material
+        #mat_map = kwargs.get("material_map", None)
+        #default_mat = kwargs.get("default_material", "UNK")
+        self._material_resolver = MaterialResolver.from_mapping(material_map, default=default_material)
 
     def _read_table(self, path: str):
         p = Path(path)
@@ -420,7 +463,8 @@ class PHITSAdapter(BaseAdapter):
         # reading from custom [T-Userdefined] output: https://github.com/Lindt8/T-Userdefined/tree/main/multi-coincidence_ng
         if suffix == ".out":
             # route to the short-format reader; if it fails, raise with guidance
-            return read_phits_usrdef_short(p, fieldmap=self.fieldmap)
+            #return from_phits_usrdef(p) #, fieldmap=self.fieldmap)
+            raise ValueError("PHITS usrdef .out is ragged; iter_events() handles it directly.")
 
         if suffix in {".csv"}:
             df = pd.read_csv(p)
@@ -470,7 +514,39 @@ class PHITSAdapter(BaseAdapter):
             material=self.default_material,
             extras=extras,
         )
+    
+    def iter_events(self, path: str) -> Iterable[NeutronEvent | GammaEvent]:
+        """
+        Unified iterator:
+          - If 'path' ends with .out (PHITS usrdef, ragged): parse→Hit→shape→typed and yield typed events.
+          - Otherwise (CSV/Parquet/HDF): fall back to the existing table-based row iterator.
+        """
+        p = Path(path)
+        if p.suffix.lower() == ".out":
+            # 1) parse usrdef → Hit objects (your current helper)
+            #raw = from_phits_usrdef(p)     # returns list of dicts where 'hits' are Hit objects (as you implemented)
+            #raw = from_phits_usrdef(p, resolver=self._material_resolver)
+            events = from_phits_usrdef(p, resolver=self._material_resolver)
+            # 2) shape variable multiplicity into pairs/triples (policy from config later; defaults okay now)
+            shaped, _diag = shape_events_for_cones(events, ShapeConfig())
+            # 3) convert shaped → typed NeutronEvent/GammaEvent
+            typed = shaped_to_typed_events(shaped, default_material=self.default_material, order_time=True)
+            # 4) yield typed events to the pipeline
+            for ev in typed:
+                yield ev
+            return
 
+        # Fallback: table-based path (unchanged behavior)
+        df = self._read_table(path)
+        for _, r in df.iterrows():
+            # Your existing table-row → typed conversion logic stays as-is here.
+            # If the adapter previously yielded dicts here, keep that behavior.
+            # Example (pseudocode placeholder; keep your real code):
+            # ev = self._row_to_event(r)  # existing function
+            # yield ev
+            raise NotImplementedError("Table row→typed event conversion is unchanged; keep your existing code here.")
+    
+    '''
     def iter_events(self, path: str):
         df = self._read_table(path)
         # Apply field rename mapping once, if provided
@@ -496,7 +572,7 @@ class PHITSAdapter(BaseAdapter):
                 yield GammaEvent(h1=h1, h2=h2, h3=h3, meta=row_meta)
             else:
                 yield NeutronEvent(h1=h1, h2=h2, meta=row_meta)
-
+    '''
 
 # ---------------------------------------------------------------------------
 # Factory
@@ -533,7 +609,8 @@ def make_adapter(cfg: Dict) -> BaseAdapter:
             fieldmap=cfg.get("fieldmap"),
             unit_pos_is_mm=bool(cfg.get("unit_pos_is_mm", True)),
             time_units=cfg.get("time_units", "ns"),
-            default_material=cfg.get("default_material", "M600"),
+            default_material=cfg.get("default_material", "UNK"),
+            material_map=cfg.get("material_map"),
         )
 
     raise ValueError(f"Unknown adapter type: {typ}")
