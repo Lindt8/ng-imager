@@ -1544,8 +1544,8 @@ The CLI always loads the config first, then applies overrides before calling <co
 <h3 id="42-hit-construction-and-hit-level-filters">4.2. Hit Construction and Hit-Level Filters<a class="headerlink" href="#42-hit-construction-and-hit-level-filters" title="Permanent link">&para;</a></h3>
 <p>From each raw event:</p>
 <ol>
-<li>Convert raw hits to canonical <code>Hit</code> objects via a single function:</li>
-</ol>
+<li>
+<p>Convert raw hits to canonical <code>Hit</code> objects via a single function:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">dict_hits_to_Hit</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="n">Config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Hit</span><span class="p">:</span>
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="sd">    Map raw fields (det_id, region, energy deposit, time, position, etc.)</span>
@@ -1553,30 +1553,31 @@ The CLI always loads the config first, then applies overrides before calling <co
 <a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="sd">    &quot;&quot;&quot;</span>
 <a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="o">...</span>
 </code></pre></div>
-<ol>
-<li>Apply <strong>universal hit-level cuts</strong> (e.g. min light/energy):</li>
-</ol>
+</li>
+<li>
+<p>Apply <strong>universal hit-level cuts</strong> (e.g. min light/energy):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">hits</span> <span class="o">=</span> <span class="p">[</span><span class="n">dict_hits_to_Hit</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">raw_event</span><span class="p">]</span>
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">hits</span> <span class="o">=</span> <span class="n">apply_hit_filters</span><span class="p">(</span><span class="n">hits</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">hits</span><span class="p">,</span> <span class="n">counters</span><span class="p">)</span>
 </code></pre></div>
 <p>Here <code>counters</code> includes things like:</p>
-<div class="highlight"><pre><span></span><code> - `hits_total`
- - `hits_rejected_threshold`
- - etc.
-</code></pre></div>
-<ol>
+<ul>
+<li><code>hits_total</code></li>
+<li><code>hits_rejected_threshold</code></li>
+<li>etc.</li>
+</ul>
+</li>
 <li>
 <p>Determine whether the event is still <em>potentially reconstructable</em>:</p>
 <ul>
 <li>Count surviving neutron hits, gamma hits, etc.</li>
 <li>If there are fewer than 2 candidate neutron hits and fewer than 3 candidate gamma hits, the raw event can be discarded early.</li>
 </ul>
-</li>
-</ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">is_reconstructable</span><span class="p">(</span><span class="n">hits</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">filters</span><span class="p">):</span>
 <a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>    <span class="n">counters</span><span class="p">[</span><span class="s2">&quot;raw_events_rejected_unreconstructable&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 <a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    <span class="k">continue</span>  <span class="c1"># drop this raw event</span>
 </code></pre></div>
+</li>
+</ol>
 <p>This approach obeys the real acquisition model:</p>
 <ul>
 <li>Raw data is already in “coincidence windows” (crude events).</li>
@@ -1721,14 +1722,16 @@ The CLI always loads the config first, then applies overrides before calling <co
 <li>Timing between the first and second neutron hits (for post-scatter energy).</li>
 </ul>
 </li>
-<li>For example:</li>
+<li>For example:<ol>
 <li>A start detector sees a prompt gamma associated with a neutron’s production (e.g., Cf-252 spontaneous fission or a beam pulse on a photoneutron source).</li>
 <li>The known flight path between the source and start detector, combined with the start detector time, determines the neutron production time.</li>
 <li>The known distance between the production point and the first interaction location, and the time between production and first interaction, give the <strong>before-scatter neutron energy</strong>.</li>
 <li>The time between the first and second detector hits, along with the known geometry between those hits, gives the <strong>after-scatter neutron energy</strong>.</li>
 <li>The <strong>recoil energy</strong> used in cone kinematics is then:
-     <div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>E_recoil = E_before - E_after
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>E_recoil = E_before - E_after
 </code></pre></div></li>
+</ol>
+</li>
 <li>This supports legacy experiments where timing was the primary means of determining neutron energies.</li>
 </ul>
 <h3 id="73-fixed-incident-strategy">7.3. Fixed-Incident Strategy<a class="headerlink" href="#73-fixed-incident-strategy" title="Permanent link">&para;</a></h3>
