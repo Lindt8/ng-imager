@@ -353,38 +353,38 @@ From each raw event:
 
 1. Convert raw hits to canonical `Hit` objects via a single function:
 
-   ```python
-   def dict_hits_to_Hit(raw: dict, cfg: Config) -> Hit:
-       """
-       Map raw fields (det_id, region, energy deposit, time, position, etc.)
-       to a canonical Hit, using cfg.detector and cfg.materials.
-       """
-       ...
-   ```
+    ```python
+    def dict_hits_to_Hit(raw: dict, cfg: Config) -> Hit:
+        """
+        Map raw fields (det_id, region, energy deposit, time, position, etc.)
+        to a canonical Hit, using cfg.detector and cfg.materials.
+        """
+        ...
+    ```
 
 2. Apply **universal hit-level cuts** (e.g. min light/energy):
 
-   ```python
-   hits = [dict_hits_to_Hit(r, cfg) for r in raw_event]
-   hits = apply_hit_filters(hits, cfg.filters.hits, counters)
-   ```
-
-   Here `counters` includes things like:
-
-     - `hits_total`
-     - `hits_rejected_threshold`
-     - etc.
+    ```python
+    hits = [dict_hits_to_Hit(r, cfg) for r in raw_event]
+    hits = apply_hit_filters(hits, cfg.filters.hits, counters)
+    ```
+ 
+    Here `counters` includes things like:
+ 
+      - `hits_total`
+      - `hits_rejected_threshold`
+      - etc.
 
 3. Determine whether the event is still *potentially reconstructable*:
 
-     - Count surviving neutron hits, gamma hits, etc.
-     - If there are fewer than 2 candidate neutron hits and fewer than 3 candidate gamma hits, the raw event can be discarded early.
+      - Count surviving neutron hits, gamma hits, etc.
+      - If there are fewer than 2 candidate neutron hits and fewer than 3 candidate gamma hits, the raw event can be discarded early.
 
-```python
-if not is_reconstructable(hits, cfg.filters):
-    counters["raw_events_rejected_unreconstructable"] += 1
-    continue  # drop this raw event
-```
+    ```python
+    if not is_reconstructable(hits, cfg.filters):
+        counters["raw_events_rejected_unreconstructable"] += 1
+        continue  # drop this raw event
+    ```
 
 This approach obeys the real acquisition model:
 
@@ -558,14 +558,14 @@ For **EnergyFromToF**, neutron energies are derived from timing:
     - Timing between a “start” detector and the first neutron hit (for initial energy).
     - Timing between the first and second neutron hits (for post-scatter energy).
 - For example:
-  1. A start detector sees a prompt gamma associated with a neutron’s production (e.g., Cf-252 spontaneous fission or a beam pulse on a photoneutron source).
-  2. The known flight path between the source and start detector, combined with the start detector time, determines the neutron production time.
-  3. The known distance between the production point and the first interaction location, and the time between production and first interaction, give the **before-scatter neutron energy**.
-  4. The time between the first and second detector hits, along with the known geometry between those hits, gives the **after-scatter neutron energy**.
-  5. The **recoil energy** used in cone kinematics is then:
-     ```text
-     E_recoil = E_before - E_after
-     ```
+    1. A start detector sees a prompt gamma associated with a neutron’s production (e.g., Cf-252 spontaneous fission or a beam pulse on a photoneutron source).
+    2. The known flight path between the source and start detector, combined with the start detector time, determines the neutron production time.
+    3. The known distance between the production point and the first interaction location, and the time between production and first interaction, give the **before-scatter neutron energy**.
+    4. The time between the first and second detector hits, along with the known geometry between those hits, gives the **after-scatter neutron energy**.
+    5. The **recoil energy** used in cone kinematics is then:
+       ```text
+       E_recoil = E_before - E_after
+       ```
 - This supports legacy experiments where timing was the primary means of determining neutron energies.
 
 ### 7.3. Fixed-Incident Strategy
