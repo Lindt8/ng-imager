@@ -40,6 +40,9 @@ At a high level:
 10. **Image cones** (SBP initially, other methods later).
 11. **Write results to HDF5**, optionally at multiple stages.
 
+Depending on `run.use_neutrons` and `run.use_gammas`, only the chosen particle types are shaped into events, propagated into cones, and imaged; the other type is ignored at all stages.
+
+
 Conceptual pseudocode:
 
 ```python
@@ -133,18 +136,22 @@ These map naturally to `ngimager.config.schemas`.
 
 #### `[run]`
 
-General pipeline behavior and diagnostics:
+General pipeline behavior, particle-type toggles, and diagnostics:
 
 - `fast = false`  
   - Use more aggressive thresholds and limits for speed. Modifies the default behavior; does not replace it.
 - `list = false`  
   - Enable list-mode image outputs (per-cone footprints). Also a modifier of the default behavior.
+- `use_neutrons = true`  
+  - If `false`, neutron hits/events/cones/images are ignored and not produced. Allows gamma-only imaging.
+- `use_gammas = true`  
+  - If `false`, gamma hits/events/cones/images are ignored and not produced. Allows neutron-only imaging.
 - `stop_stage = "images"`  
   - One of `"hits" | "events" | "cones" | "images"`. Controls how far the pipeline runs.
 - `max_events = 0`  
-  - 0 means no limit; otherwise, stop after this many (typed) events.
+  - 0 means no limit; otherwise, stop after this many (typed) events (after particle-type toggles are applied).
 - `max_cones = 0`  
-  - 0 means no limit; otherwise, stop after this many **selected** cones.
+  - 0 means no limit; otherwise, stop after this many **selected** cones (after particle-type toggles are applied).
 - `diagnostic_level = 1`  
   - `0`: silent (no diagnostic prints except fatal errors)  
   - `1`: minimal, important pipeline messages  
@@ -154,7 +161,9 @@ General pipeline behavior and diagnostics:
 > - `--fast` and `--no-fast` override `run.fast`.  
 > - `--list` and `--no-list` override `run.list`.  
 > - `--stop-stage` can override `run.stop_stage`.  
+> - Future CLI flags like `--neutrons-only` / `--gammas-only` may override `use_neutrons` / `use_gammas`.  
 > The CLI always loads the config first, then applies overrides before calling `run_pipeline`.
+
 
 #### `[io]`
 
@@ -871,6 +880,33 @@ This enables:
 - Re-running imaging with different plane/imaging settings without recomputing events/cones.
 - Sharing hits+events+cones with collaborators who may implement their own imaging.
 
+
+### 12.4. Converting Between List-Mode and Non-List-Mode Outputs
+
+For a completed ngimager HDF5 file, it should be straightforward to move between:
+
+- A **non-list-mode** representation (summed images only), and
+- A **list-mode** representation (summed images + per-cone sparse footprints).
+
+Two common workflows:
+
+1. **List-mode → non-list-mode**
+
+   - This is trivial: delete the `/images/listmode/*` groups from the HDF5 file.
+   - Hits, events, cones, and summed images remain intact.
+
+2. **Non-list-mode → list-mode**
+
+   - Start from an HDF5 file that already contains selected cones and summed images, but no list-mode images.
+   - Re-run the pipeline with:
+     - `input_format = "hdf5_ngimager"`
+     - `run.stop_stage = "images"`
+     - `run.list = true`
+   - The pipeline detects existing hits/events/cones, skips rebuilding them, and re-runs only the imaging stage, this time computing and writing per-cone sparse footprints into `/images/listmode/*`.
+
+This makes it cheap to “upgrade” a previously run dataset from non-list-mode to list-mode without redoing the entire event and cone construction chain.
+
+
 ---
 
 ## 13. Diagnostics, Logging, and Counters
@@ -881,60 +917,84 @@ Diagnostics are gated by `run.diagnostic_level`:
 - `1`: minimal messages indicating:
   - Stage entry/exit (hits/events/cones/images).
   - Counts (e.g., number of events, cones).
-  - Summary statistics at the end.
+  - **Per-stage runtimes** (e.g., “hits stage took 0.42 s”, “imaging stage took 3.1 s”).
+  - A final counter summary at the end of the run.
 - `2`: verbose messages, including:
   - Detailed adapter parsing notes.
   - Filter statistics per stage.
-  - Timing information for profiling.
+  - Fine-grained timing information useful for profiling (sub-stage timers).
   - These verbose lines should be indented with a leading tab (`\t`) to visually distinguish them from level-1 outputs.
 
 Example usage:
 
 ```python
+t0 = time.perf_counter()
+# ... run hits stage ...
+t1 = time.perf_counter()
+
 if cfg.run.diagnostic_level >= 1:
-    print("[pipeline] Loaded config", cfg_path)
+    print(f"[pipeline] hits stage completed in {t1 - t0:.3f} s")
 
 if cfg.run.diagnostic_level >= 2:
-    print("\t[pipeline] Parsed", counters["raw_events_total"], "raw events")
+    print(f"\t[pipeline] hits stage parsed {counters['hits_total']} hits")
 ```
+
+This keeps level 1 useful for humans (you always see stage runtimes and the counter summary) and level 2 for more granular profiling noise.
 
 ### 13.1. Counters
 
 A shared `counters` dict is passed through the pipeline and used to record:
 
-- Raw events:
+- Raw events (type-agnostic):
   - `raw_events_total`
   - `raw_events_rejected_unreconstructable`
   - `raw_events_rejected_shaping`
-- Hits:
+- Hits (per-particle where meaningful):
   - `hits_total`
+  - `hits_total_n`, `hits_total_g`
   - `hits_rejected_threshold`
+  - `hits_rejected_threshold_n`, `hits_rejected_threshold_g`
 - Events:
   - `shaped_events_total`
+  - `shaped_events_n`, `shaped_events_g`
+  - `typed_events_total`
   - `typed_events_n`, `typed_events_g`
-  - `events_rejected_time_window`
-  - `events_rejected_geometry`
-  - `events_passed`
+  - `events_rejected_time_window_total`
+  - `events_rejected_time_window_n`, `events_rejected_time_window_g`
+  - `events_rejected_geometry_total`
+  - `events_rejected_geometry_n`, `events_rejected_geometry_g`
+  - `events_passed_total`
+  - `events_passed_n`, `events_passed_g`
 - Cones:
   - `candidate_cones_total`
-  - `candidate_cones_rejected_filters`
+  - `candidate_cones_n`, `candidate_cones_g`
+  - `candidate_cones_rejected_filters_total`
+  - `candidate_cones_rejected_filters_n`, `candidate_cones_rejected_filters_g`
+  - `selected_cones_total`
   - `selected_cones_n`, `selected_cones_g`
-  - `selected_cones_proton`, `selected_cones_carbon`
+  - `selected_cones_proton`, `selected_cones_carbon`  # neutron-only refinements
 - Imaging:
   - `cones_imaged_total`
+  - `cones_imaged_n`, `cones_imaged_g`
   - `sbp_pixels_touched_total`
+  - `sbp_pixels_touched_n`, `sbp_pixels_touched_g`
   - `sbp_time_seconds`
+
+**Pattern:** wherever it is conceptually meaningful to separate by particle type, we maintain **three** counters:
+
+- A `_total` counter (neutrons + gammas),
+- A `_n` counter (neutrons only),
+- A `_g` counter (gammas only).
 
 A summary of these counters should be:
 
-- Printed at the end of the run (depending on diagnostic level).
-- Stored under `/meta/counters` in the HDF5 output.
+- Printed at the end of the run for `diagnostic_level >= 1` (minimal and verbose).
+- Stored under `/meta/counters` in the HDF5 output (for **all** diagnostic levels).
 
 This allows:
 
-- Quick insight into where events are being rejected.
-- Traceability of “N final events imaged out of M raw events” with breakdown by stage.
-
+- Quick insight into where events are being rejected, separated by particle type.
+- Traceability of “N final events imaged out of M raw events” with breakdown by stage and by neutron/gamma.
 
 
 
@@ -1009,6 +1069,8 @@ This checklist tracks migration from the current state to the architecture descr
 - [ ] Make `shape_events_for_cones` the single entry point from raw-event hits to shaped events.
 - [ ] Make `shaped_to_typed_events` the only path to `NeutronEvent`/`GammaEvent`.
 - [ ] Guarantee that all event classes always carry their `Hit` lists and that indices in HDF5 allow round-tripping.
+- [ ] Ensure counters at the hit and event levels follow the `_n` / `_g` / `_total` naming pattern where meaningful.
+
 
 ### 16.4. Filters, Priors, and Sequencing
 
@@ -1031,16 +1093,20 @@ This checklist tracks migration from the current state to the architecture descr
 - [ ] Ensure `physics.cones` provides the canonical functions for building candidate cones from events.
 - [ ] Confirm `imaging.sbp.reconstruct_sbp` works directly from the `Cone` dataclass and `Plane`.
 - [ ] Implement optional per-cone sparse footprints used only when `run.list` is true.
+- [ ] Ensure cone and imaging counters follow the `_n` / `_g` / `_total` naming pattern where meaningful, and that per-stage runtimes are recorded and reported.
+
 
 ### 16.7. Unified Pipeline and CLI
 
 - [ ] Make `pipelines.core.run_pipeline` the central pipeline function.
-- [ ] Deprecate/remove `pipelines.fastmode` and `pipelines.listmode` in favor of a single CLI that respects `run.fast` and `run.list` from config and CLI flags.
+- [ ] Deprecate/remove `pipelines.fastmode` and `pipelines.listmode` in favor of a single CLI that respects `run.fast`, `run.list`, `run.use_neutrons`, and `run.use_gammas` from config and CLI flags.
 - [ ] Implement CLI flags:
   - `--fast` / `--no-fast`
   - `--list` / `--no-list`
   - `--stop-stage`
+  - optional convenience flags like `--neutrons-only` / `--gammas-only` mapped to `use_neutrons` / `use_gammas`
 - [ ] Implement `run.stop_stage` gating at the main stages and support resuming from ngimager HDF5 files (`input_format = "hdf5_ngimager"`).
+
 
 ### 16.8. HDF5 and Visualization
 
@@ -1048,6 +1114,8 @@ This checklist tracks migration from the current state to the architecture descr
 - [ ] Ensure hits/events/cones/images store the necessary indices for full back-tracing.
 - [ ] Ensure final HDF5 outputs (for full runs) contain only objects that survive all active filters, with counters and metadata describing what was rejected at each stage.
 - [ ] Wrap PNG export in a clean CLI function that calls `vis.hdf.save_summed_png` driven by `[vis]`.
+- [ ] Support imaging-only reruns from existing cones (ngimager HDF5 input) to generate list-mode per-cone images from previously non-list-mode outputs.
+
 
 ### 16.9. Documentation and Example Configs
 
