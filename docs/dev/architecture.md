@@ -15,8 +15,8 @@ Core goals:
 - Replace the legacy monolithic script with a **modular, testable, config-driven** package.
 - Keep NOVO-specific details (detector layouts, materials, PHITS/ROOT formats, specific acquisition systems) **isolated** in adapters and configuration, so the **physics and imaging core can be reused**.
 - Support a single unified pipeline whose behavior can be modified via two orthogonal toggles:
-  - **Fast mode**: more aggressive filtering and limits for quick feedback during experiments.
-  - **List mode**: additional per-cone imaging output for deep post-processing.
+    - **Fast mode**: more aggressive filtering and limits for quick feedback during experiments.
+    - **List mode**: additional per-cone imaging output for deep post-processing.
 
 The legacy script remains the behavioral reference: given equivalent inputs and reasonable settings, `ngimager` should produce images that are physically consistent with the legacy SBP images (even if the file formats and small numerical details differ).
 
@@ -114,8 +114,8 @@ def run_pipeline(cfg: Config, input_path: Path) -> Path:
 - Universal hit-level cuts are applied early. Raw events that no longer contain enough candidate hits to ever form a reconstructable cone are discarded before shaping.
 - Shaping and typing are separate from the adapter, so physics and filtering logic is shared across PHITS, ROOT, and future formats.
 - Cone-building is a two-stage concept:
-  - Enumerate all plausible cones per event (e.g., neutron proton vs carbon, gamma permutations).
-  - Use priors + cone-level filters to select at most one final cone per event.
+    - Enumerate all plausible cones per event (e.g., neutron proton vs carbon, gamma permutations).
+    - Use priors + cone-level filters to select at most one final cone per event.
 - Each stage maintains **counters** for accepted/rejected objects, and HDF5 output can reflect only the surviving objects after the full chain, while still allowing early-exit runs.
 
 ---
@@ -139,23 +139,23 @@ These map naturally to `ngimager.config.schemas`.
 General pipeline behavior, particle-type toggles, and diagnostics:
 
 - `fast = false`  
-  - Use more aggressive thresholds and limits for speed. Modifies the default behavior; does not replace it.
+    - Use more aggressive thresholds and limits for speed. Modifies the default behavior; does not replace it.
 - `list = false`  
-  - Enable list-mode image outputs (per-cone footprints). Also a modifier of the default behavior.
+    - Enable list-mode image outputs (per-cone footprints). Also a modifier of the default behavior.
 - `use_neutrons = true`  
-  - If `false`, neutron hits/events/cones/images are ignored and not produced. Allows gamma-only imaging.
+    - If `false`, neutron hits/events/cones/images are ignored and not produced. Allows gamma-only imaging.
 - `use_gammas = true`  
-  - If `false`, gamma hits/events/cones/images are ignored and not produced. Allows neutron-only imaging.
+    - If `false`, gamma hits/events/cones/images are ignored and not produced. Allows neutron-only imaging.
 - `stop_stage = "images"`  
-  - One of `"hits" | "events" | "cones" | "images"`. Controls how far the pipeline runs.
+    - One of `"hits" | "events" | "cones" | "images"`. Controls how far the pipeline runs.
 - `max_events = 0`  
-  - 0 means no limit; otherwise, stop after this many (typed) events (after particle-type toggles are applied).
+    - 0 means no limit; otherwise, stop after this many (typed) events (after particle-type toggles are applied).
 - `max_cones = 0`  
-  - 0 means no limit; otherwise, stop after this many **selected** cones (after particle-type toggles are applied).
+    - 0 means no limit; otherwise, stop after this many **selected** cones (after particle-type toggles are applied).
 - `diagnostic_level = 1`  
-  - `0`: silent (no diagnostic prints except fatal errors)  
-  - `1`: minimal, important pipeline messages  
-  - `2`: verbose, detailed debugging info (these messages are indented with an extra tab for readability)
+    - `0`: silent (no diagnostic prints except fatal errors)  
+    - `1`: minimal, important pipeline messages  
+    - `2`: verbose, detailed debugging info (these messages are indented with an extra tab for readability)
 
 > **CLI overrides:**  
 > - `--fast` and `--no-fast` override `run.fast`.  
@@ -329,10 +329,10 @@ Adapters translate source-specific raw data into a **canonical representation**.
 Adapters emit **raw events**:
 
 - Each raw event corresponds to:
-  - A PHITS history line (`usrdef.out`), or
-  - An experimental trigger/coincidence window in ROOT, etc.
+    - A PHITS history line (`usrdef.out`), or
+    - An experimental trigger/coincidence window in ROOT, etc.
 - Each raw event contains **all hits in the coincidence window**:
-  - Multiple detectors, possibly multiple particles (n + γ), and noise.
+    - Multiple detectors, possibly multiple particles (n + γ), and noise.
 
 Interface sketch:
 
@@ -371,14 +371,14 @@ From each raw event:
 
    Here `counters` includes things like:
 
-   - `hits_total`
-   - `hits_rejected_threshold`
-   - etc.
+     - `hits_total`
+     - `hits_rejected_threshold`
+     - etc.
 
 3. Determine whether the event is still *potentially reconstructable*:
 
-   - Count surviving neutron hits, gamma hits, etc.
-   - If there are fewer than 2 candidate neutron hits and fewer than 3 candidate gamma hits, the raw event can be discarded early.
+     - Count surviving neutron hits, gamma hits, etc.
+     - If there are fewer than 2 candidate neutron hits and fewer than 3 candidate gamma hits, the raw event can be discarded early.
 
 ```python
 if not is_reconstructable(hits, cfg.filters):
@@ -405,8 +405,8 @@ Responsibilities:
 
 - Separate neutron from gamma hits.
 - Handle higher multiplicities:
-  - Multiple neutron candidates in one window → potentially multiple 2-hit neutron events.
-  - Gamma hits ≥ 3 → one or more 3-hit gamma events.
+    - Multiple neutron candidates in one window → potentially multiple 2-hit neutron events.
+    - Gamma hits ≥ 3 → one or more 3-hit gamma events.
 - Potentially handle multi-particle mixed windows, splitting them into separate neutron and gamma events.
 
 Interface:
@@ -476,11 +476,11 @@ Once we have typed events, we apply **event-level cuts** based on timing, geomet
 Examples:
 
 - Neutron events:
-  - Time between scatters within [min_dt_ns_n, max_dt_ns_n].
-  - Minimum bar separation and geometry cuts.
+    - Time between scatters within [min_dt_ns_n, max_dt_ns_n].
+    - Minimum bar separation and geometry cuts.
 - Gamma events:
-  - Timing consistency within the timing resolution.
-  - Basic geometric sanity checks (e.g., bar separation, positions).
+    - Timing consistency within the timing resolution.
+    - Basic geometric sanity checks (e.g., bar separation, positions).
 
 Centralized interface:
 
@@ -555,8 +555,8 @@ Internally, this uses `io.lut.LUT` objects, which themselves may be produced usi
 For **EnergyFromToF**, neutron energies are derived from timing:
 
 - “Before” and “after” energies are constructed from:
-  - Timing between a “start” detector and the first neutron hit (for initial energy).
-  - Timing between the first and second neutron hits (for post-scatter energy).
+    - Timing between a “start” detector and the first neutron hit (for initial energy).
+    - Timing between the first and second neutron hits (for post-scatter energy).
 - For example:
   1. A start detector sees a prompt gamma associated with a neutron’s production (e.g., Cf-252 spontaneous fission or a beam pulse on a photoneutron source).
   2. The known flight path between the source and start detector, combined with the start detector time, determines the neutron production time.
@@ -616,46 +616,46 @@ For gamma events:
 - A 3-hit gamma event has 6 possible permutations (orderings).
 - Many of these may be physically implausible.
 - Sequencing logic:
-  - For each permutation, construct a candidate cone geometry.
-  - Evaluate its kinematic plausibility and consistency with the source prior.
-  - Assign a quality metric (e.g., likelihood score, χ²-like measure).
-  - These candidate cones are passed on to the cone-selection stage.
+    - For each permutation, construct a candidate cone geometry.
+    - Evaluate its kinematic plausibility and consistency with the source prior.
+    - Assign a quality metric (e.g., likelihood score, χ²-like measure).
+    - These candidate cones are passed on to the cone-selection stage.
 
 For neutron events:
 
 - There is ambiguity between proton vs carbon recoil interpretations.
 - For each neutron event, we can construct:
-  - A proton-based candidate cone.
-  - A carbon-based candidate cone.
+    - A proton-based candidate cone.
+    - A carbon-based candidate cone.
 - Each candidate has different opening angles and orientations given the energy and kinematics.
 - Again, priors and kinematic consistency can be used to score these candidates.
 
 **Design approach:**
 
 - `enumerate_candidate_cones`:
-  - For each neutron event:
-    - Build one or more candidate cones (e.g., proton-based and carbon-based).
-  - For each gamma event:
-    - Build candidate cones corresponding to each viable permutation.
-  - Each candidate cone carries metadata describing:
-    - Its originating event.
-    - Proton vs carbon assumption (for neutrons).
-    - Hit ordering/permutation (for gammas).
-    - Diagnostics and scores.
+    - For each neutron event:
+        - Build one or more candidate cones (e.g., proton-based and carbon-based).
+    - For each gamma event:
+        - Build candidate cones corresponding to each viable permutation.
+    - Each candidate cone carries metadata describing:
+        - Its originating event.
+        - Proton vs carbon assumption (for neutrons).
+        - Hit ordering/permutation (for gammas).
+        - Diagnostics and scores.
 
 - `select_cones`:
-  - Takes all candidate cones for a given event and:
-    - Applies cone-level filters.
-    - Uses priors and quality metrics to select at most one cone per event.
-    - Can choose “no cone” if none are acceptable.
-  - Records which candidate was selected and why (via metadata and counters).
+    - Takes all candidate cones for a given event and:
+        - Applies cone-level filters.
+        - Uses priors and quality metrics to select at most one cone per event.
+        - Can choose “no cone” if none are acceptable.
+    - Records which candidate was selected and why (via metadata and counters).
 
 **Event objects must store:**
 
 - For `GammaEvent`:
-  - The chosen ordering (e.g. a permutation of indices `[0,1,2] → [2,0,1]`).
+    - The chosen ordering (e.g. a permutation of indices `[0,1,2] → [2,0,1]`).
 - For `NeutronEvent`:
-  - The chosen recoil interpretation (e.g. `"proton"` or `"carbon"`).
+    - The chosen recoil interpretation (e.g. `"proton"` or `"carbon"`).
 
 This information is persisted to HDF5 so downstream analyses can see what was inferred independently of raw timestamps.
 
@@ -714,8 +714,8 @@ The first imaging back-end is **simple back projection (SBP)**, but the architec
 - Normal vector `n̂`
 - Basis vectors `êu`, `êv`
 - Mappings:
-  - From 3D coordinates to plane `(u, v)`.
-  - From `(u, v)` back to 3D.
+    - From 3D coordinates to plane `(u, v)`.
+    - From `(u, v)` back to 3D.
 
 This object is constructed from `[plane]` config entries.
 
@@ -725,11 +725,11 @@ This object is constructed from `[plane]` config entries.
 
 - Takes a collection of **selected** `Cone` objects and a `Plane`.
 - For each cone:
-  - Computes cone–plane intersection analytically.
-  - Rasterizes the intersection into the plane’s pixel grid.
+    - Computes cone–plane intersection analytically.
+    - Rasterizes the intersection into the plane’s pixel grid.
 - Produces:
-  - A **summed image** (2D array).
-  - Optionally, per-cone sparse footprints (for list-mode).
+    - A **summed image** (2D array).
+    - Optionally, per-cone sparse footprints (for list-mode).
 
 SBP is imaging-method-agnostic in the sense that it only depends on the generic `Cone` representation and `Plane`.
 
@@ -772,22 +772,22 @@ Without any modifiers:
 ### 11.2. Fast Mode (`run.fast`)
 
 - Uses alternative or stricter settings:
-  - Higher hit-level thresholds.
-  - Stronger event and cone cuts.
-  - Possibly lower `max_events` / `max_cones`.
+    - Higher hit-level thresholds.
+    - Stronger event and cone cuts.
+    - Possibly lower `max_events` / `max_cones`.
 - Aimed at **quick feedback** (e.g., during experiments).
 - Still writes:
-  - Hits, events, cones, and summed images.
-  - It may just be a subset of what default settings would produce.
+    - Hits, events, cones, and summed images.
+    - It may just be a subset of what default settings would produce.
 
 Fast mode is configured via `[run] fast = true` but can also be enabled via CLI `--fast` (CLI overrides the config). Minimal vs verbose diagnostics still apply.
 
 ### 11.3. List Mode (`run.list`)
 
 - When `list = true`, in addition to the default outputs, the pipeline:
-  - Computes **per-cone sparse images**:
-    - For each cone, store the pixel indices and weights where its SBP footprint deposited counts.
-  - Writes these list-mode images to `/images/listmode/*` in HDF5.
+    - Computes **per-cone sparse images**:
+        - For each cone, store the pixel indices and weights where its SBP footprint deposited counts.
+    - Writes these list-mode images to `/images/listmode/*` in HDF5.
 
 List mode is configured via `[run] list = true` or CLI `--list`.
 
@@ -807,32 +807,32 @@ The HDF5 format is the primary output, and it should support:
 ### 12.1. HDF5 Layout (Suggested)
 
 - `/meta`
-  - `config_toml`
-  - `git_commit`
-  - `ngimager_version`
-  - `run_timestamp`
-  - `run_fast` (bool), `run_list` (bool)
-  - `run_stop_stage`
-  - `counters` (group or JSON blob with pipeline counts)
+    - `config_toml`
+    - `git_commit`
+    - `ngimager_version`
+    - `run_timestamp`
+    - `run_fast` (bool), `run_list` (bool)
+    - `run_stop_stage`
+    - `counters` (group or JSON blob with pipeline counts)
 - `/hits/n`, `/hits/g`
-  - Ragged or structured datasets:
-    - `det_id`, `t_ns`, `L`, `x_cm`, `y_cm`, `z_cm`, `material`, etc.
+    - Ragged or structured datasets:
+        - `det_id`, `t_ns`, `L`, `x_cm`, `y_cm`, `z_cm`, `material`, etc.
 - `/events/n`, `/events/g`
-  - Event datasets:
-    - References (indices) into `/hits/*`.
-    - Per-event energies, timing deltas, sequencing choices, etc.
+    - Event datasets:
+        - References (indices) into `/hits/*`.
+        - Per-event energies, timing deltas, sequencing choices, etc.
 - `/cones/n`, `/cones/g`
-  - Cone datasets:
-    - `r0` (3 floats), `k_hat` (3 floats), `theta` (1 float).
-    - Index into events.
-    - Particle type and candidate type.
+    - Cone datasets:
+        - `r0` (3 floats), `k_hat` (3 floats), `theta` (1 float).
+        - Index into events.
+        - Particle type and candidate type.
 - `/images/summed/n`, `/images/summed/g`
-  - Main SBP images (2D arrays).
+    - Main SBP images (2D arrays).
 - `/images/listmode/n`, `/images/listmode/g` (optional)
-  - Per-cone sparse footprints:
-    - For each cone index K:
-      - `pixel_indices` (1D int array)
-      - `weights` (1D float array)
+    - Per-cone sparse footprints:
+        - For each cone index K:
+            - `pixel_indices` (1D int array)
+            - `weights` (1D float array)
 
 **Guarantees:**
 
@@ -845,8 +845,8 @@ The HDF5 format is the primary output, and it should support:
   via indices and datasets, in all modes (default, fast, list).
 
 - When the pipeline runs all the way to cones or images, the HDF5 file should **not** contain earlier-stage objects that correspond to cones or events that were ultimately rejected. Practical options include:
-  - Writing to temporary datasets and then compacting to “final” datasets.
-  - Writing all candidates but then rewriting/compacting the corresponding HDF5 groups after selection.
+    - Writing to temporary datasets and then compacting to “final” datasets.
+    - Writing all candidates but then rewriting/compacting the corresponding HDF5 groups after selection.
 
 Partial runs (e.g., `stop_stage = "events"`) naturally represent the state **before** later filters and selection have been applied.
 
@@ -857,23 +857,23 @@ The pipeline can write intermediate results **incrementally**, but the final HDF
 Recommended behavior:
 
 - For `stop_stage` less than `"images"`:
-  - Write out the current stage’s results (e.g., hits, events) as they stand at that stage, without later pruning.
+    - Write out the current stage’s results (e.g., hits, events) as they stand at that stage, without later pruning.
 - For full pipeline runs (`stop_stage = "images"`):
-  - Maintain internal buffers during processing.
-  - When the pipeline has finished selection:
-    - Write **only** the surviving hits/events/cones to the final HDF5 groups.
-    - Store all counters describing how many objects were rejected at each stage.
+    - Maintain internal buffers during processing.
+    - When the pipeline has finished selection:
+        - Write **only** the surviving hits/events/cones to the final HDF5 groups.
+        - Store all counters describing how many objects were rejected at each stage.
 
 ### 12.3. Resuming from HDF5
 
 When `input_format = "hdf5_ngimager"`:
 
 - If `/cones/*` exists but `/images/*` does not:
-  - Start at cones → images.
+    - Start at cones → images.
 - If `/events/*` exists but `/cones/*` does not:
-  - Start at events → cones → images.
+    - Start at events → cones → images.
 - If only `/hits/*` exist:
-  - Start at events → cones → images.
+    - Start at events → cones → images.
 
 This enables:
 
@@ -892,17 +892,17 @@ Two common workflows:
 
 1. **List-mode → non-list-mode**
 
-   - This is trivial: delete the `/images/listmode/*` groups from the HDF5 file.
-   - Hits, events, cones, and summed images remain intact.
+     - This is trivial: delete the `/images/listmode/*` groups from the HDF5 file.
+     - Hits, events, cones, and summed images remain intact.
 
 2. **Non-list-mode → list-mode**
 
-   - Start from an HDF5 file that already contains selected cones and summed images, but no list-mode images.
-   - Re-run the pipeline with:
-     - `input_format = "hdf5_ngimager"`
-     - `run.stop_stage = "images"`
-     - `run.list = true`
-   - The pipeline detects existing hits/events/cones, skips rebuilding them, and re-runs only the imaging stage, this time computing and writing per-cone sparse footprints into `/images/listmode/*`.
+     - Start from an HDF5 file that already contains selected cones and summed images, but no list-mode images.
+     - Re-run the pipeline with:
+         - `input_format = "hdf5_ngimager"`
+         - `run.stop_stage = "images"`
+         - `run.list = true`
+     - The pipeline detects existing hits/events/cones, skips rebuilding them, and re-runs only the imaging stage, this time computing and writing per-cone sparse footprints into `/images/listmode/*`.
 
 This makes it cheap to “upgrade” a previously run dataset from non-list-mode to list-mode without redoing the entire event and cone construction chain.
 
@@ -915,15 +915,15 @@ Diagnostics are gated by `run.diagnostic_level`:
 
 - `0`: no diagnostic messages (except fatal errors).
 - `1`: minimal messages indicating:
-  - Stage entry/exit (hits/events/cones/images).
-  - Counts (e.g., number of events, cones).
-  - **Per-stage runtimes** (e.g., “hits stage took 0.42 s”, “imaging stage took 3.1 s”).
-  - A final counter summary at the end of the run.
+    - Stage entry/exit (hits/events/cones/images).
+    - Counts (e.g., number of events, cones).
+    - **Per-stage runtimes** (e.g., “hits stage took 0.42 s”, “imaging stage took 3.1 s”).
+    - A final counter summary at the end of the run.
 - `2`: verbose messages, including:
-  - Detailed adapter parsing notes.
-  - Filter statistics per stage.
-  - Fine-grained timing information useful for profiling (sub-stage timers).
-  - These verbose lines should be indented with a leading tab (`\t`) to visually distinguish them from level-1 outputs.
+    - Detailed adapter parsing notes.
+    - Filter statistics per stage.
+    - Fine-grained timing information useful for profiling (sub-stage timers).
+    - These verbose lines should be indented with a leading tab (`\t`) to visually distinguish them from level-1 outputs.
 
 Example usage:
 
@@ -946,39 +946,39 @@ This keeps level 1 useful for humans (you always see stage runtimes and the coun
 A shared `counters` dict is passed through the pipeline and used to record:
 
 - Raw events (type-agnostic):
-  - `raw_events_total`
-  - `raw_events_rejected_unreconstructable`
-  - `raw_events_rejected_shaping`
+    - `raw_events_total`
+    - `raw_events_rejected_unreconstructable`
+    - `raw_events_rejected_shaping`
 - Hits (per-particle where meaningful):
-  - `hits_total`
-  - `hits_total_n`, `hits_total_g`
-  - `hits_rejected_threshold`
-  - `hits_rejected_threshold_n`, `hits_rejected_threshold_g`
+    - `hits_total`
+    - `hits_total_n`, `hits_total_g`
+    - `hits_rejected_threshold`
+    - `hits_rejected_threshold_n`, `hits_rejected_threshold_g`
 - Events:
-  - `shaped_events_total`
-  - `shaped_events_n`, `shaped_events_g`
-  - `typed_events_total`
-  - `typed_events_n`, `typed_events_g`
-  - `events_rejected_time_window_total`
-  - `events_rejected_time_window_n`, `events_rejected_time_window_g`
-  - `events_rejected_geometry_total`
-  - `events_rejected_geometry_n`, `events_rejected_geometry_g`
-  - `events_passed_total`
-  - `events_passed_n`, `events_passed_g`
+    - `shaped_events_total`
+    - `shaped_events_n`, `shaped_events_g`
+    - `typed_events_total`
+    - `typed_events_n`, `typed_events_g`
+    - `events_rejected_time_window_total`
+    - `events_rejected_time_window_n`, `events_rejected_time_window_g`
+    - `events_rejected_geometry_total`
+    - `events_rejected_geometry_n`, `events_rejected_geometry_g`
+    - `events_passed_total`
+    - `events_passed_n`, `events_passed_g`
 - Cones:
-  - `candidate_cones_total`
-  - `candidate_cones_n`, `candidate_cones_g`
-  - `candidate_cones_rejected_filters_total`
-  - `candidate_cones_rejected_filters_n`, `candidate_cones_rejected_filters_g`
-  - `selected_cones_total`
-  - `selected_cones_n`, `selected_cones_g`
-  - `selected_cones_proton`, `selected_cones_carbon`  # neutron-only refinements
+    - `candidate_cones_total`
+    - `candidate_cones_n`, `candidate_cones_g`
+    - `candidate_cones_rejected_filters_total`
+    - `candidate_cones_rejected_filters_n`, `candidate_cones_rejected_filters_g`
+    - `selected_cones_total`
+    - `selected_cones_n`, `selected_cones_g`
+    - `selected_cones_proton`, `selected_cones_carbon`  # neutron-only refinements
 - Imaging:
-  - `cones_imaged_total`
-  - `cones_imaged_n`, `cones_imaged_g`
-  - `sbp_pixels_touched_total`
-  - `sbp_pixels_touched_n`, `sbp_pixels_touched_g`
-  - `sbp_time_seconds`
+    - `cones_imaged_total`
+    - `cones_imaged_n`, `cones_imaged_g`
+    - `sbp_pixels_touched_total`
+    - `sbp_pixels_touched_n`, `sbp_pixels_touched_g`
+    - `sbp_time_seconds`
 
 **Pattern:** wherever it is conceptually meaningful to separate by particle type, we maintain **three** counters:
 
@@ -1006,12 +1006,12 @@ This allows:
 Legacy timing-based workflows are supported via the energy strategies (Section 7):
 
 - **ToF-based paths**:
-  - Maintained via `EnergyFromToF`, configured in `[energy.tof]`.
-  - Useful for setups using a start detector and time-of-flight for incident energy.
+    - Maintained via `EnergyFromToF`, configured in `[energy.tof]`.
+    - Useful for setups using a start detector and time-of-flight for incident energy.
 - **Fixed incident energy**:
-  - `EnergyFromFixedIncident` for known beam energies.
+    - `EnergyFromFixedIncident` for known beam energies.
 - **Light-based E(L) LUT**:
-  - `EnergyFromLightLUT` using calibrated E(L) curves; this is the default for modern NOVO experiments with calibrated light response for OGS/M600.
+    - `EnergyFromLightLUT` using calibrated E(L) curves; this is the default for modern NOVO experiments with calibrated light response for OGS/M600.
 
 These paths share a common conceptual picture:
 
@@ -1031,18 +1031,18 @@ Guidelines:
 
 - Use **dataclasses** for structured data (Hit, NeutronEvent, GammaEvent, Cone).
 - Use **type hints** extensively:
-  - `Hit`, `NeutronEvent`, `GammaEvent`, `Cone`, `Plane`, `np.ndarray`, etc.
+    - `Hit`, `NeutronEvent`, `GammaEvent`, `Cone`, `Plane`, `np.ndarray`, etc.
 - Keep modules focused:
-  - `physics.*`: physical models, kinematics, priors, event definitions.
-  - `geometry.*`: planes and coordinate transforms.
-  - `imaging.*`: turning cones into images.
-  - `io.*`: adapters, HDF5 I/O, LUT loading.
-  - `filters.*`: hit/event/cone shaping and selection.
-  - `pipelines.*`: orchestration and CLIs.
-  - `sim.*`: **deprecated for active pipelines**; if synthetic data is kept at all, it should live primarily in examples/tests rather than the core package.
+    - `physics.*`: physical models, kinematics, priors, event definitions.
+    - `geometry.*`: planes and coordinate transforms.
+    - `imaging.*`: turning cones into images.
+    - `io.*`: adapters, HDF5 I/O, LUT loading.
+    - `filters.*`: hit/event/cone shaping and selection.
+    - `pipelines.*`: orchestration and CLIs.
+    - `sim.*`: **deprecated for active pipelines**; if synthetic data is kept at all, it should live primarily in examples/tests rather than the core package.
 - NOVO-specific quirks live in:
-  - `io.adapters`, `tools/*`, and configuration.
-  - Not in the physics/imaging core.
+    - `io.adapters`, `tools/*`, and configuration.
+    - Not in the physics/imaging core.
 
 The aim is for someone familiar with the legacy script to be able to read this code and see where each piece migrated, and for new contributors to navigate the code via module names + this document.
 
@@ -1077,8 +1077,8 @@ This checklist tracks migration from the current state to the architecture descr
 - [ ] Centralize event and cone selection logic into `filters` modules, driven by `[filters]` config.
 - [ ] Ensure priors are only defined in `physics.priors` and configured via `[prior]`.
 - [ ] Implement `enumerate_candidate_cones` and `select_cones` so that:
-  - Multiple candidate cones per event (proton vs carbon, gamma permutations) are supported.
-  - At most one cone per event is ultimately selected.
+    - Multiple candidate cones per event (proton vs carbon, gamma permutations) are supported.
+    - At most one cone per event is ultimately selected.
 - [ ] Implement storage of gamma sequencing choice and neutron recoil interpretation in the event objects and HDF5.
 
 ### 16.5. Energy Strategy Integration
@@ -1101,10 +1101,10 @@ This checklist tracks migration from the current state to the architecture descr
 - [ ] Make `pipelines.core.run_pipeline` the central pipeline function.
 - [ ] Deprecate/remove `pipelines.fastmode` and `pipelines.listmode` in favor of a single CLI that respects `run.fast`, `run.list`, `run.use_neutrons`, and `run.use_gammas` from config and CLI flags.
 - [ ] Implement CLI flags:
-  - `--fast` / `--no-fast`
-  - `--list` / `--no-list`
-  - `--stop-stage`
-  - optional convenience flags like `--neutrons-only` / `--gammas-only` mapped to `use_neutrons` / `use_gammas`
+    - `--fast` / `--no-fast`
+    - `--list` / `--no-list`
+    - `--stop-stage`
+    - optional convenience flags like `--neutrons-only` / `--gammas-only` mapped to `use_neutrons` / `use_gammas`
 - [ ] Implement `run.stop_stage` gating at the main stages and support resuming from ngimager HDF5 files (`input_format = "hdf5_ngimager"`).
 
 
@@ -1121,7 +1121,7 @@ This checklist tracks migration from the current state to the architecture descr
 
 - [ ] Add an example `.toml` in `examples/configs/` with extensive comments explaining each section and option.
 - [ ] Provide a worked example for:
-  - `examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out`
+    - `examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out`
 - [ ] Use this document as the basis of a “Developer Tour” page in `docs/dev/architecture.md` (or similar) to keep the code and architecture aligned.
 
 ---

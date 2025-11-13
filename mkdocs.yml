@@ -1,6 +1,29 @@
 site_name: ng-imager
 theme:
   name: material
+  palette:
+    # Dark mode by default
+    - scheme: slate         
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+    # Light mode
+    - scheme: default        
+      primary: indigo        
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - toc.integrate
+    - content.code.copy      # copy button on code blocks
+
 nav:
   - Home: index.md
   - User Guide:
@@ -10,6 +33,7 @@ nav:
   - Developer:
       - Architecture: dev/architecture.md
       - API: api/index.md
+
 plugins:
   - mkdocstrings:
       handlers:
@@ -17,3 +41,32 @@ plugins:
           options:
             docstring_style: numpy
             show_source: true
+            # These help keep API pages consistent & compact
+            separate_signature: true
+            show_root_toc_entry: false
+            show_if_no_docstring: false
+            merge_init_into_class: true
+
+markdown_extensions:
+  # Core Markdown quality-of-life
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  # PyMdown extensions for better GitHub-like behavior
+  - pymdownx.betterem
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.magiclink
+  # Syntax highlighting & code fences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      linenums: false  
+      guess_lang: false
+      use_pygments: true
+
