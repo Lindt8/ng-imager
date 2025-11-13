@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#code-architecture" class="md-skip">
+        <a href="#ng-imager-architecture-pipeline-overview" class="md-skip">
           Skip to content
         </a>
       
@@ -381,6 +381,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -397,6 +415,707 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose-and-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose and Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-high-level-dataflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. High-Level Dataflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-configuration-the-toml-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configuration: The .toml File
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Configuration: The .toml File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-proposed-top-level-sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1. Proposed Top-Level Sections
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.1. Proposed Top-Level Sections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [run]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [io]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [detector]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#materials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [materials]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#energy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [energy]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [plane]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [filters]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [prior]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uncertainty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [uncertainty]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [vis]
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-input-adapters-raw-events-and-hits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Input Adapters: Raw Events and Hits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Input Adapters: Raw Events and Hits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-raw-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1. Raw Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-hit-construction-and-hit-level-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2. Hit Construction and Hit-Level Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-from-hits-to-events-shaping-and-typing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. From Hits to Events: Shaping and Typing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. From Hits to Events: Shaping and Typing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-shaping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1. Shaping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-typed-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2. Typed Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-event-level-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Event-Level Filters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-energy-strategies-for-neutrons-and-el-lut-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Energy Strategies for Neutrons and E(L) LUT Integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Energy Strategies for Neutrons and E(L) LUT Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-light-based-strategy-el-lut" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1. Light-Based Strategy (E(L) LUT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-tof-based-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2. ToF-Based Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-fixed-incident-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3. Fixed-Incident Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-current-scope-and-gamma-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4. Current Scope and Gamma Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-priors-and-sequencing-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Priors and Sequencing Logic
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Priors and Sequencing Logic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-source-priors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1. Source Priors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-sequencing-and-event-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2. Sequencing and Event Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-cone-representation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Cone Representation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-imaging-back-end-sbp-and-future-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Imaging Back-End (SBP and Future Methods)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Imaging Back-End (SBP and Future Methods)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#101-imaging-plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1. Imaging Plane
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102-sbp-rasterization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2. SBP Rasterization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#103-pluggable-imaging-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3. Pluggable Imaging Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-fast-vs-list-mode-modifiers-of-the-default-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Fast vs List Mode: Modifiers of the Default Pipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Fast vs List Mode: Modifiers of the Default Pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-default-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1. Default Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-fast-mode-runfast" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2. Fast Mode (run.fast)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113-list-mode-runlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3. List Mode (run.list)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-hdf5-data-model-and-partial-pipelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. HDF5 Data Model and Partial Pipelines
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. HDF5 Data Model and Partial Pipelines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121-hdf5-layout-suggested" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.1. HDF5 Layout (Suggested)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#122-writing-at-multiple-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.2. Writing at Multiple Stages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#123-resuming-from-hdf5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.3. Resuming from HDF5
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-diagnostics-logging-and-counters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Diagnostics, Logging, and Counters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Diagnostics, Logging, and Counters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#131-counters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.1. Counters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-legacy-timing-and-future-proofing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Legacy Timing and Future-Proofing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-coding-style-and-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Coding Style and Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-roadmap-refactor-and-implementation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Roadmap (Refactor and Implementation Checklist)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. Roadmap (Refactor and Implementation Checklist)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#161-cleanup-and-deletion-of-redundant-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.1. Cleanup and Deletion of Redundant Paths
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#162-adapters-and-raw-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.2. Adapters and Raw Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#163-shaper-and-typed-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.3. Shaper and Typed Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#164-filters-priors-and-sequencing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.4. Filters, Priors, and Sequencing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#165-energy-strategy-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.5. Energy Strategy Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#166-cone-construction-and-imaging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.6. Cone Construction and Imaging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#167-unified-pipeline-and-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.7. Unified Pipeline and CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#168-hdf5-and-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.8. HDF5 and Visualization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#169-documentation-and-example-configs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.9. Documentation and Example Configs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -458,6 +1177,696 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose-and-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Purpose and Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-high-level-dataflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. High-Level Dataflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-configuration-the-toml-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configuration: The .toml File
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Configuration: The .toml File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-proposed-top-level-sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1. Proposed Top-Level Sections
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.1. Proposed Top-Level Sections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [run]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [io]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [detector]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#materials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [materials]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#energy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [energy]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [plane]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [filters]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [prior]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uncertainty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [uncertainty]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [vis]
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-input-adapters-raw-events-and-hits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Input Adapters: Raw Events and Hits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Input Adapters: Raw Events and Hits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-raw-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1. Raw Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-hit-construction-and-hit-level-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2. Hit Construction and Hit-Level Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-from-hits-to-events-shaping-and-typing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. From Hits to Events: Shaping and Typing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. From Hits to Events: Shaping and Typing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-shaping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1. Shaping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-typed-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2. Typed Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-event-level-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Event-Level Filters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-energy-strategies-for-neutrons-and-el-lut-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Energy Strategies for Neutrons and E(L) LUT Integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Energy Strategies for Neutrons and E(L) LUT Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-light-based-strategy-el-lut" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1. Light-Based Strategy (E(L) LUT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-tof-based-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2. ToF-Based Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-fixed-incident-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3. Fixed-Incident Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-current-scope-and-gamma-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4. Current Scope and Gamma Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-priors-and-sequencing-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Priors and Sequencing Logic
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Priors and Sequencing Logic">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-source-priors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1. Source Priors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-sequencing-and-event-interpretation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2. Sequencing and Event Interpretation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-cone-representation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Cone Representation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-imaging-back-end-sbp-and-future-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Imaging Back-End (SBP and Future Methods)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Imaging Back-End (SBP and Future Methods)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#101-imaging-plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1. Imaging Plane
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#102-sbp-rasterization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2. SBP Rasterization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#103-pluggable-imaging-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3. Pluggable Imaging Methods
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-fast-vs-list-mode-modifiers-of-the-default-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Fast vs List Mode: Modifiers of the Default Pipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Fast vs List Mode: Modifiers of the Default Pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#111-default-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1. Default Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#112-fast-mode-runfast" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2. Fast Mode (run.fast)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113-list-mode-runlist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3. List Mode (run.list)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-hdf5-data-model-and-partial-pipelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. HDF5 Data Model and Partial Pipelines
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. HDF5 Data Model and Partial Pipelines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#121-hdf5-layout-suggested" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.1. HDF5 Layout (Suggested)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#122-writing-at-multiple-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.2. Writing at Multiple Stages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#123-resuming-from-hdf5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.3. Resuming from HDF5
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-diagnostics-logging-and-counters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Diagnostics, Logging, and Counters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Diagnostics, Logging, and Counters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#131-counters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.1. Counters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-legacy-timing-and-future-proofing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Legacy Timing and Future-Proofing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-coding-style-and-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Coding Style and Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-roadmap-refactor-and-implementation-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Roadmap (Refactor and Implementation Checklist)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. Roadmap (Refactor and Implementation Checklist)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#161-cleanup-and-deletion-of-redundant-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.1. Cleanup and Deletion of Redundant Paths
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#162-adapters-and-raw-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.2. Adapters and Raw Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#163-shaper-and-typed-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.3. Shaper and Typed Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#164-filters-priors-and-sequencing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.4. Filters, Priors, and Sequencing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#165-energy-strategy-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.5. Energy Strategy Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#166-cone-construction-and-imaging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.6. Cone Construction and Imaging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#167-unified-pipeline-and-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.7. Unified Pipeline and CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#168-hdf5-and-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.8. HDF5 and Visualization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#169-documentation-and-example-configs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.9. Documentation and Example Configs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -473,14 +1882,919 @@
 
 
 
-<h1 id="code-architecture">Code Architecture</h1>
-<p>This document will provide an overview of <strong>ng-imager</strong>'s internal structure.</p>
-<p>Planned contents:
-- High-level module and package layout
-- Data flow between stages (input → simulation → imaging → export)
-- Key classes and their roles
-- Extension and plugin design (if any)</p>
-<p><em>TODO: Include a diagram of the processing pipeline once finalized.</em></p>
+<h1 id="ng-imager-architecture-pipeline-overview">ng-imager Architecture &amp; Pipeline Overview</h1>
+<p><em>(Design document and development guideline)</em></p>
+<blockquote>
+<p>This document describes how <code>ngimager</code> <strong>should</strong> be structured and behave, not necessarily how the current codebase looks today. It is the reference for refactors and future development, and it is meant to supersede any ad-hoc design that emerged during early implementation experiments.</p>
+</blockquote>
+<hr />
+<h2 id="1-purpose-and-scope">1. Purpose and Scope</h2>
+<p><code>ngimager</code> is a modular, maintainable re-implementation of the legacy <code>expNOVO_imager_legacy.py</code> script for neutron and gamma imaging with NOVO detectors.</p>
+<p>Core goals:</p>
+<ul>
+<li>Reproduce (and eventually improve on) the physics and imaging behavior of the legacy script, especially <strong>2D SBP images from neutron and gamma cones</strong> given equivalent inputs.</li>
+<li>Replace the legacy monolithic script with a <strong>modular, testable, config-driven</strong> package.</li>
+<li>Keep NOVO-specific details (detector layouts, materials, PHITS/ROOT formats, specific acquisition systems) <strong>isolated</strong> in adapters and configuration, so the <strong>physics and imaging core can be reused</strong>.</li>
+<li>Support a single unified pipeline whose behavior can be modified via two orthogonal toggles:</li>
+<li><strong>Fast mode</strong>: more aggressive filtering and limits for quick feedback during experiments.</li>
+<li><strong>List mode</strong>: additional per-cone imaging output for deep post-processing.</li>
+</ul>
+<p>The legacy script remains the behavioral reference: given equivalent inputs and reasonable settings, <code>ngimager</code> should produce images that are physically consistent with the legacy SBP images (even if the file formats and small numerical details differ).</p>
+<hr />
+<h2 id="2-high-level-dataflow">2. High-Level Dataflow</h2>
+<p>The pipeline transforms <strong>raw coincident event data</strong> into <strong>images</strong>, with explicit intermediate representations.</p>
+<p>At a high level:</p>
+<ol>
+<li><strong>Load config</strong> (<code>.toml</code>).</li>
+<li><strong>Select adapter</strong> (PHITS / ROOT / HDF5) based on config.</li>
+<li><strong>Adapter emits raw events</strong>: each raw event is a <em>set of correlated/coincident hits</em>.</li>
+<li><strong>Construct canonical Hits</strong> and apply <strong>universal hit-level filters</strong>.</li>
+<li><strong>Discard raw events</strong> that no longer have enough hits to be kinematically reconstructable (e.g., fewer than 2 valid neutron hits or 3 valid gamma hits).</li>
+<li><strong>Shape hits into imaging-viable Events</strong> (neutron 2-hit, gamma 3-hit, etc.).</li>
+<li><strong>Apply event-level filters</strong>.</li>
+<li><strong>Apply energy strategy &amp; priors</strong>, and enumerate <strong>candidate cones</strong> for each event (multiple cones per event are allowed).</li>
+<li><strong>Apply cone-level filtering and selection</strong>, picking at most one cone per event to be imaged (or zero if none are viable).</li>
+<li><strong>Image cones</strong> (SBP initially, other methods later).</li>
+<li><strong>Write results to HDF5</strong>, optionally at multiple stages.</li>
+</ol>
+<p>Conceptual pseudocode:</p>
+<pre><code class="language-python">def run_pipeline(cfg: Config, input_path: Path) -&gt; Path:
+    adapter = make_adapter(cfg.io, cfg.detector, cfg.materials)
+    raw_events = adapter.iter_raw_events(input_path)
+
+    # Stage 1: Raw events → Hits (with hit-level filtering)
+    hits_by_raw_event = []
+    for raw_event in raw_events:
+        hits = [
+            dict_hits_to_Hit(raw_hit, cfg)
+            for raw_hit in raw_event
+        ]
+        hits = apply_hit_filters(hits, cfg.filters.hits, counters)
+        if is_reconstructable(hits, cfg.filters):
+            hits_by_raw_event.append(hits)
+        else:
+            counters[&quot;raw_events_rejected_unreconstructable&quot;] += 1
+
+    write_hits_stage(hits_by_raw_event, cfg, counters)
+
+    if cfg.run.stop_stage == &quot;hits&quot;:
+        finalize_stats_and_metadata(cfg, counters)
+        return cfg.io.output_path
+
+    # Stage 2: Hits → Shaped events → Typed events
+    shaped_events = shape_events_for_cones(hits_by_raw_event, cfg.filters, counters)
+    typed_events = shaped_to_typed_events(shaped_events, cfg.filters, counters)
+    filtered_events = list(filter_events(typed_events, cfg.filters, counters))
+
+    write_events_stage(filtered_events, cfg, counters)
+
+    if cfg.run.stop_stage == &quot;events&quot;:
+        finalize_stats_and_metadata(cfg, counters)
+        return cfg.io.output_path
+
+    # Stage 3: Events → Candidate cones → Selected cones
+    energy_strategy = make_energy_strategy(cfg.energy, cfg.materials)
+    prior = make_prior(cfg.prior)
+
+    annotated_events = [
+        energy_strategy.annotate_event(e, counters)
+        for e in filtered_events
+    ]
+
+    candidate_cones = enumerate_candidate_cones(annotated_events, prior, counters)
+    selected_cones = select_cones(candidate_cones, prior, cfg.filters.cones, counters)
+
+    write_cones_stage(selected_cones, cfg, counters)
+
+    if cfg.run.stop_stage == &quot;cones&quot;:
+        finalize_stats_and_metadata(cfg, counters)
+        return cfg.io.output_path
+
+    # Stage 4: Cones → Images
+    plane = make_plane(cfg.plane)
+    images = image_cones(selected_cones, plane, cfg, counters)
+
+    write_images_stage(images, cfg, counters)
+
+    finalize_stats_and_metadata(cfg, counters)
+    return cfg.io.output_path
+</code></pre>
+<p><strong>Key points:</strong></p>
+<ul>
+<li>Adapters emit <strong>raw events</strong> that already group coincident hits (the acquisition system’s notion of “event”), but thresholds in acquisition are lower than post-processing thresholds.</li>
+<li>Universal hit-level cuts are applied early. Raw events that no longer contain enough candidate hits to ever form a reconstructable cone are discarded before shaping.</li>
+<li>Shaping and typing are separate from the adapter, so physics and filtering logic is shared across PHITS, ROOT, and future formats.</li>
+<li>Cone-building is a two-stage concept:</li>
+<li>Enumerate all plausible cones per event (e.g., neutron proton vs carbon, gamma permutations).</li>
+<li>Use priors + cone-level filters to select at most one final cone per event.</li>
+<li>Each stage maintains <strong>counters</strong> for accepted/rejected objects, and HDF5 output can reflect only the surviving objects after the full chain, while still allowing early-exit runs.</li>
+</ul>
+<hr />
+<h2 id="3-configuration-the-toml-file">3. Configuration: The <code>.toml</code> File</h2>
+<p>The <code>.toml</code> config is the single source of truth for all non-data settings. It should be:</p>
+<ul>
+<li><strong>Explicit</strong>: parameters are clearly described and named.</li>
+<li><strong>Non-redundant</strong>: no value should have to be repeated in multiple places.</li>
+<li><strong>Overridable by CLI</strong> for operational convenience (e.g. <code>--fast</code>, <code>--list</code>).</li>
+</ul>
+<p>In actual example configs under <code>examples/configs/</code>, we expect <strong>liberal use of comments</strong> documenting what each section and field is for.</p>
+<h3 id="31-proposed-top-level-sections">3.1. Proposed Top-Level Sections</h3>
+<p>These map naturally to <code>ngimager.config.schemas</code>.</p>
+<h4 id="run"><code>[run]</code></h4>
+<p>General pipeline behavior and diagnostics:</p>
+<ul>
+<li><code>fast = false</code>  </li>
+<li>Use more aggressive thresholds and limits for speed. Modifies the default behavior; does not replace it.</li>
+<li><code>list = false</code>  </li>
+<li>Enable list-mode image outputs (per-cone footprints). Also a modifier of the default behavior.</li>
+<li><code>stop_stage = "images"</code>  </li>
+<li>One of <code>"hits" | "events" | "cones" | "images"</code>. Controls how far the pipeline runs.</li>
+<li><code>max_events = 0</code>  </li>
+<li>0 means no limit; otherwise, stop after this many (typed) events.</li>
+<li><code>max_cones = 0</code>  </li>
+<li>0 means no limit; otherwise, stop after this many <strong>selected</strong> cones.</li>
+<li><code>diagnostic_level = 1</code>  </li>
+<li><code>0</code>: silent (no diagnostic prints except fatal errors)  </li>
+<li><code>1</code>: minimal, important pipeline messages  </li>
+<li><code>2</code>: verbose, detailed debugging info (these messages are indented with an extra tab for readability)</li>
+</ul>
+<blockquote>
+<p><strong>CLI overrides:</strong><br />
+- <code>--fast</code> and <code>--no-fast</code> override <code>run.fast</code>.<br />
+- <code>--list</code> and <code>--no-list</code> override <code>run.list</code>.<br />
+- <code>--stop-stage</code> can override <code>run.stop_stage</code>.<br />
+The CLI always loads the config first, then applies overrides before calling <code>run_pipeline</code>.</p>
+</blockquote>
+<h4 id="io"><code>[io]</code></h4>
+<p>Input/output format and paths:</p>
+<ul>
+<li><code>input_path = "..."</code>  </li>
+<li><code>input_format = "phits_usrdef" | "root_novo_ddaq" | "hdf5_ngimager"</code>  </li>
+<li><code>output_path = "..."</code>  </li>
+<li><code>hdf5_overwrite = true/false</code></li>
+</ul>
+<p>If <code>input_format = "hdf5_ngimager"</code>, the pipeline can <strong>resume</strong> from partially processed ngimager output.</p>
+<p>The string <code>"root_novo_ddaq"</code> refers to the current NOVO acquisition system; future acquisition formats can be added as additional <code>input_format</code> values with new adapters.</p>
+<h4 id="detector"><code>[detector]</code></h4>
+<p>Detector geometry and mapping from IDs/regions to materials etc.:</p>
+<pre><code class="language-toml">layout = &quot;mNOVO_vX&quot;
+
+[[detector.bars]]
+det_id   = 200
+material = &quot;OGS&quot;
+position = [x_cm, y_cm, z_cm]
+axis     = [ux, uy, uz]  # bar axis direction
+# optional: length, width, height, region_id, etc.
+</code></pre>
+<p>All information about NOVO-specific numbering, region codes, and orientations lives here.</p>
+<h4 id="materials"><code>[materials]</code></h4>
+<p>Scintillator materials and associated LUTs:</p>
+<pre><code class="language-toml">[[materials.scintillators]]
+name    = &quot;OGS&quot;
+lut_npz = &quot;path/to/OGS_proton_E_vs_L.npz&quot;
+
+[[materials.scintillators]]
+name    = &quot;M600&quot;
+lut_npz = &quot;path/to/M600_proton_E_vs_L.npz&quot;
+</code></pre>
+<p>Optional: additional physics descriptors (density, Z, etc.) if needed later.</p>
+<h4 id="energy"><code>[energy]</code></h4>
+<p>Energy strategies for <strong>neutron events</strong>:</p>
+<pre><code class="language-toml">strategy = &quot;light_lut&quot;  # or &quot;tof&quot; or &quot;fixed_incident&quot;
+
+[energy.light_lut]
+default_material = &quot;OGS&quot;   # used when material-specific LUT selection is ambiguous
+
+[energy.tof]
+start_detector  = &quot;tagger&quot;
+flight_path_cm  = 100.0
+
+[energy.fixed_incident]
+En_MeV = 14.1
+</code></pre>
+<ul>
+<li><code>light_lut</code> uses calibrated E(L) LUTs per material (the modern default).  </li>
+<li><code>tof</code> uses time-of-flight for incident neutron energy (legacy compatible).  </li>
+<li><code>fixed_incident</code> uses a constant incident energy (e.g. DT source).  </li>
+</ul>
+<p>These strategies are currently designed for <strong>neutron kinematics</strong>; gamma energy handling is much less critical for the present imaging method and may be added later if needed.</p>
+<h4 id="plane"><code>[plane]</code></h4>
+<p>Imaging plane specification:</p>
+<pre><code class="language-toml">origin   = [x0, y0, z0]
+normal   = [nx, ny, nz]
+u_axis   = [ux, uy, uz]  # optional if deducible
+v_axis   = [vx, vy, vz]  # optional
+u_extent = [umin, umax]
+v_extent = [vmin, vmax]
+nu       = 256
+nv       = 256
+</code></pre>
+<p>This maps directly to <code>geometry.Plane</code>.</p>
+<h4 id="filters"><code>[filters]</code></h4>
+<p>Thresholds and cuts:</p>
+<pre><code class="language-toml">[filters.hits]
+min_light_n = 0.5  # MeVee or equivalent
+min_light_g = 0.1
+
+[filters.events]
+min_dt_ns_n = 0.0
+max_dt_ns_n = 50.0
+# gamma-specific cuts, etc.
+
+[filters.cones]
+min_opening_angle_deg = 5.0
+max_opening_angle_deg = 60.0
+# other cone-level quality metrics
+</code></pre>
+<p>Hit, event, and cone cuts are all driven from here; there should be <strong>no hard-coded cuts</strong> scattered across modules.</p>
+<h4 id="prior"><code>[prior]</code></h4>
+<p>Source priors:</p>
+<pre><code class="language-toml">type = &quot;point&quot;  # or &quot;line&quot;
+
+[prior.point]
+r0 = [x_cm, y_cm, z_cm]
+
+[prior.line]
+r0        = [x0_cm, y0_cm, z0_cm]
+direction = [dx, dy, dz]
+</code></pre>
+<p>Extensible to more complex priors later (e.g. volumetric distributions, tabulated distributions).</p>
+<h4 id="uncertainty"><code>[uncertainty]</code></h4>
+<p>Resolution models (for future extensions):</p>
+<pre><code class="language-toml">[uncertainty.energy]
+# placeholder: parameters for σ_E(E)
+
+[uncertainty.time]
+# parameters for σ_t
+
+[uncertainty.doi]
+# parameters for DOI resolution
+</code></pre>
+<p>Initially unused or used only for diagnostics; later can feed into uncertainty-aware imaging.</p>
+<h4 id="vis"><code>[vis]</code></h4>
+<p>Visualization / PNG export:</p>
+<pre><code class="language-toml">export_png_on_write = true
+png_dir             = &quot;images/&quot;
+colormap            = &quot;viridis&quot;   # used by visualization, not core SBP
+</code></pre>
+<hr />
+<h2 id="4-input-adapters-raw-events-and-hits">4. Input Adapters: Raw Events and Hits</h2>
+<p>Adapters translate source-specific raw data into a <strong>canonical representation</strong>.</p>
+<h3 id="41-raw-events">4.1. Raw Events</h3>
+<p>Adapters emit <strong>raw events</strong>:</p>
+<ul>
+<li>Each raw event corresponds to:</li>
+<li>A PHITS history line (<code>usrdef.out</code>), or</li>
+<li>An experimental trigger/coincidence window in ROOT, etc.</li>
+<li>Each raw event contains <strong>all hits in the coincidence window</strong>:</li>
+<li>Multiple detectors, possibly multiple particles (n + γ), and noise.</li>
+</ul>
+<p>Interface sketch:</p>
+<pre><code class="language-python">class BaseAdapter(ABC):
+    def iter_raw_events(self, path: Path) -&gt; Iterable[Iterable[dict]]:
+        &quot;&quot;&quot;
+        Yield raw events, each as an iterable of raw-hit dicts.
+        &quot;&quot;&quot;
+        ...
+</code></pre>
+<p><code>PHITSAdapter</code> and <code>ROOTAdapter</code> implement this, hiding format quirks.</p>
+<h3 id="42-hit-construction-and-hit-level-filters">4.2. Hit Construction and Hit-Level Filters</h3>
+<p>From each raw event:</p>
+<ol>
+<li>Convert raw hits to canonical <code>Hit</code> objects via a single function:</li>
+</ol>
+<p><code>python
+   def dict_hits_to_Hit(raw: dict, cfg: Config) -&gt; Hit:
+       """
+       Map raw fields (det_id, region, energy deposit, time, position, etc.)
+       to a canonical Hit, using cfg.detector and cfg.materials.
+       """
+       ...</code></p>
+<ol>
+<li>Apply <strong>universal hit-level cuts</strong> (e.g. min light/energy):</li>
+</ol>
+<p><code>python
+   hits = [dict_hits_to_Hit(r, cfg) for r in raw_event]
+   hits = apply_hit_filters(hits, cfg.filters.hits, counters)</code></p>
+<p>Here <code>counters</code> includes things like:</p>
+<ul>
+<li><code>hits_total</code></li>
+<li><code>hits_rejected_threshold</code></li>
+<li>
+<p>etc.</p>
+</li>
+<li>
+<p>Determine whether the event is still <em>potentially reconstructable</em>:</p>
+</li>
+<li>
+<p>Count surviving neutron hits, gamma hits, etc.</p>
+</li>
+<li>If there are fewer than 2 candidate neutron hits and fewer than 3 candidate gamma hits, the raw event can be discarded early.</li>
+</ul>
+<pre><code class="language-python">if not is_reconstructable(hits, cfg.filters):
+    counters[&quot;raw_events_rejected_unreconstructable&quot;] += 1
+    continue  # drop this raw event
+</code></pre>
+<p>This approach obeys the real acquisition model:</p>
+<ul>
+<li>Raw data is already in “coincidence windows” (crude events).</li>
+<li>Acquisition thresholds are looser; post-processing thresholds refine which hits (and events) we keep.</li>
+</ul>
+<hr />
+<h2 id="5-from-hits-to-events-shaping-and-typing">5. From Hits to Events: Shaping and Typing</h2>
+<p>After hit-level filtering, we convert surviving raw events into <strong>imaging-viable Events</strong>.</p>
+<h3 id="51-shaping">5.1. Shaping</h3>
+<p>The <strong>shaper</strong> decides how to partition hits within each raw event into candidate events suitable for imaging.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>Separate neutron from gamma hits.</li>
+<li>Handle higher multiplicities:</li>
+<li>Multiple neutron candidates in one window → potentially multiple 2-hit neutron events.</li>
+<li>Gamma hits ≥ 3 → one or more 3-hit gamma events.</li>
+<li>Potentially handle multi-particle mixed windows, splitting them into separate neutron and gamma events.</li>
+</ul>
+<p>Interface:</p>
+<pre><code class="language-python">def shape_events_for_cones(
+    hits_by_raw_event: Iterable[Iterable[Hit]],
+    cfg: FiltersCfg,
+    counters: dict,
+) -&gt; Iterable[ShapedEvent]:
+    &quot;&quot;&quot;
+    For each raw event's survived hits, yield zero or more ShapedEvent
+    objects describing candidate neutron/gamma events.
+    &quot;&quot;&quot;
+</code></pre>
+<p><code>ShapedEvent</code> is a lightweight structure holding:</p>
+<ul>
+<li>A list of <code>Hit</code>s.</li>
+<li>A particle type (e.g. <code>"n"</code> or <code>"g"</code>).</li>
+<li>Basic metadata (original raw event index, multiplicity, etc.).</li>
+</ul>
+<p>Counters at this stage might include:</p>
+<ul>
+<li><code>shaped_events_total</code></li>
+<li><code>shaped_events_n</code></li>
+<li><code>shaped_events_g</code></li>
+<li><code>raw_events_rejected_shaping</code> (if nothing usable can be formed)</li>
+</ul>
+<h3 id="52-typed-events">5.2. Typed Events</h3>
+<p>Next, we convert <code>ShapedEvent</code> objects into physics-aware event classes:</p>
+<ul>
+<li><code>NeutronEvent</code>: always carries its constituent <code>Hit</code>s.</li>
+<li><code>GammaEvent</code>: always carries its constituent <code>Hit</code>s.</li>
+</ul>
+<p>Interface:</p>
+<pre><code class="language-python">from ngimager.physics.events import NeutronEvent, GammaEvent
+
+def shaped_to_typed_events(
+    shaped: Iterable[ShapedEvent],
+    cfg: FiltersCfg,
+    counters: dict,
+) -&gt; Iterable[Union[NeutronEvent, GammaEvent]]:
+    ...
+</code></pre>
+<p><strong>Invariant:</strong> <code>NeutronEvent</code> and <code>GammaEvent</code> <em>always</em> hold references to their constituent <code>Hit</code> objects. This guarantee is reflected both in memory and in the HDF5 representation, where cones can be traced back to events and events to hits via indices.</p>
+<p>Counters incremented here might track:</p>
+<ul>
+<li><code>typed_events_n</code></li>
+<li><code>typed_events_g</code></li>
+<li><code>typed_events_rejected</code> (e.g., invalid combinations)</li>
+</ul>
+<hr />
+<h2 id="6-event-level-filters">6. Event-Level Filters</h2>
+<p>Once we have typed events, we apply <strong>event-level cuts</strong> based on timing, geometry, and other derived quantities.</p>
+<p>Examples:</p>
+<ul>
+<li>Neutron events:</li>
+<li>Time between scatters within [min_dt_ns_n, max_dt_ns_n].</li>
+<li>Minimum bar separation and geometry cuts.</li>
+<li>Gamma events:</li>
+<li>Timing consistency within the timing resolution.</li>
+<li>Basic geometric sanity checks (e.g., bar separation, positions).</li>
+</ul>
+<p>Centralized interface:</p>
+<pre><code class="language-python">def filter_events(
+    events: Iterable[Union[NeutronEvent, GammaEvent]],
+    cfg: FiltersCfg,
+    counters: dict,
+) -&gt; Iterable[Union[NeutronEvent, GammaEvent]]:
+    ...
+</code></pre>
+<p>Counters:</p>
+<ul>
+<li><code>events_total_before_filters</code></li>
+<li><code>events_rejected_time_window</code></li>
+<li><code>events_rejected_geometry</code></li>
+<li><code>events_passed</code></li>
+</ul>
+<p>This keeps the event selection logic <strong>configurable and testable</strong> and avoids hidden “magic cuts” in random places.</p>
+<hr />
+<h2 id="7-energy-strategies-for-neutrons-and-el-lut-integration">7. Energy Strategies for Neutrons and E(L) LUT Integration</h2>
+<p>The <strong>energy strategy</strong> determines how neutron energy information is obtained for kinematic reconstruction.</p>
+<p>At present, energy strategies are defined for <strong>neutrons</strong>:</p>
+<ul>
+<li>For neutron cones, the key quantity is the <strong>recoil energy</strong> (proton or carbon).</li>
+<li>There are multiple ways to obtain the “before” and “after” neutron energies.</li>
+</ul>
+<p>Supported neutron strategies:</p>
+<ul>
+<li><code>EnergyFromLightLUT</code> (modern default).</li>
+<li><code>EnergyFromToF</code> (legacy timing-based with start detector).</li>
+<li><code>EnergyFromFixedIncident</code> (fixed initial energy, e.g. DT).</li>
+</ul>
+<p>Factory:</p>
+<pre><code class="language-python">strategy = make_energy_strategy(cfg.energy, cfg.materials)
+</code></pre>
+<p>Usage:</p>
+<pre><code class="language-python">annotated_events = [
+    strategy.annotate_event(e, counters)
+    for e in events
+]
+</code></pre>
+<p><code>annotate_event</code> attaches to <code>NeutronEvent</code>:</p>
+<ul>
+<li>Estimates of incident neutron energy before the first scatter.</li>
+<li>Estimates of neutron energy after the first scatter (where needed).</li>
+<li>Recoil energy deposits per scatter, for both proton and carbon interpretations if applicable.</li>
+</ul>
+<h3 id="71-light-based-strategy-el-lut">7.1. Light-Based Strategy (E(L) LUT)</h3>
+<p>For <strong>EnergyFromLightLUT</strong>:</p>
+<ul>
+<li>We use calibrated <code>E(L)</code> look-up tables for each scintillator material (OGS, M600, etc.).</li>
+<li>The LUT returns deposited energy from measured light output for proton and/or carbon recoils.</li>
+<li>This directly yields the recoil energy required for cone kinematics.</li>
+</ul>
+<p>Internally, this uses <code>io.lut.LUT</code> objects, which themselves may be produced using scripts that utilize <code>NOVO_light_response_functions</code>.</p>
+<h3 id="72-tof-based-strategy">7.2. ToF-Based Strategy</h3>
+<p>For <strong>EnergyFromToF</strong>, neutron energies are derived from timing:</p>
+<ul>
+<li>“Before” and “after” energies are constructed from:</li>
+<li>Timing between a “start” detector and the first neutron hit (for initial energy).</li>
+<li>Timing between the first and second neutron hits (for post-scatter energy).</li>
+<li>For example:</li>
+<li>A start detector sees a prompt gamma associated with a neutron’s production (e.g., Cf-252 spontaneous fission or a beam pulse on a photoneutron source).</li>
+<li>The known flight path between the source and start detector, combined with the start detector time, determines the neutron production time.</li>
+<li>The known distance between the production point and the first interaction location, and the time between production and first interaction, give the <strong>before-scatter neutron energy</strong>.</li>
+<li>The time between the first and second detector hits, along with the known geometry between those hits, gives the <strong>after-scatter neutron energy</strong>.</li>
+<li>The <strong>recoil energy</strong> used in cone kinematics is then:
+     <code>text
+     E_recoil = E_before - E_after</code></li>
+<li>This supports legacy experiments where timing was the primary means of determining neutron energies.</li>
+</ul>
+<h3 id="73-fixed-incident-strategy">7.3. Fixed-Incident Strategy</h3>
+<p>For <strong>EnergyFromFixedIncident</strong>:</p>
+<ul>
+<li>A fixed initial incident neutron energy is assumed (e.g., DT reactions).</li>
+<li>The <strong>after-scatter energy</strong> is still obtained via ToF between the first and second neutron hits.</li>
+<li>Recoil energy is again:
+  <code>text
+  E_recoil = E_before_fixed - E_after</code>
+  where <code>E_before_fixed</code> is a constant specified in the config.</li>
+</ul>
+<h3 id="74-current-scope-and-gamma-events">7.4. Current Scope and Gamma Events</h3>
+<p>Currently, energy strategies are primarily designed for <strong>neutron events</strong>; gamma events for the SBP-style imaging do not require as detailed energy treatment for the existing reconstruction logic. If future gamma imaging methods require more detailed gamma energy estimation, extensions can be added to the energy strategy system.</p>
+<p>All these energy strategies are encapsulated in <code>energy_strategies</code> and configured via <code>[energy]</code>, not scattered across the pipeline.</p>
+<hr />
+<h2 id="8-priors-and-sequencing-logic">8. Priors and Sequencing Logic</h2>
+<h3 id="81-source-priors">8.1. Source Priors</h3>
+<p>Priors reflect what we know about where radiation is coming from:</p>
+<ul>
+<li><code>PointPrior</code>: for point sources (e.g., Cf-252, DT tubes).</li>
+<li><code>LinePrior</code>: for extended line-like sources (e.g., proton beams in a phantom).</li>
+</ul>
+<p>Created via:</p>
+<pre><code class="language-python">prior = make_prior(cfg.prior)
+</code></pre>
+<p>They are used both in:</p>
+<ul>
+<li><strong>Event interpretation</strong> (e.g., deciding which neutron recoil interpretation or which gamma permutation is more plausible).</li>
+<li><strong>Cone-level selection</strong> (e.g., choosing which cone from several candidates best matches the prior).</li>
+<li>Potentially <strong>imaging</strong> (e.g., weighting cones based on intersection with the prior).</li>
+</ul>
+<h3 id="82-sequencing-and-event-interpretation">8.2. Sequencing and Event Interpretation</h3>
+<p>For gamma events:</p>
+<ul>
+<li>A 3-hit gamma event has 6 possible permutations (orderings).</li>
+<li>Many of these may be physically implausible.</li>
+<li>Sequencing logic:</li>
+<li>For each permutation, construct a candidate cone geometry.</li>
+<li>Evaluate its kinematic plausibility and consistency with the source prior.</li>
+<li>Assign a quality metric (e.g., likelihood score, χ²-like measure).</li>
+<li>These candidate cones are passed on to the cone-selection stage.</li>
+</ul>
+<p>For neutron events:</p>
+<ul>
+<li>There is ambiguity between proton vs carbon recoil interpretations.</li>
+<li>For each neutron event, we can construct:</li>
+<li>A proton-based candidate cone.</li>
+<li>A carbon-based candidate cone.</li>
+<li>Each candidate has different opening angles and orientations given the energy and kinematics.</li>
+<li>Again, priors and kinematic consistency can be used to score these candidates.</li>
+</ul>
+<p><strong>Design approach:</strong></p>
+<ul>
+<li><code>enumerate_candidate_cones</code>:</li>
+<li>For each neutron event:<ul>
+<li>Build one or more candidate cones (e.g., proton-based and carbon-based).</li>
+</ul>
+</li>
+<li>For each gamma event:<ul>
+<li>Build candidate cones corresponding to each viable permutation.</li>
+</ul>
+</li>
+<li>
+<p>Each candidate cone carries metadata describing:</p>
+<ul>
+<li>Its originating event.</li>
+<li>Proton vs carbon assumption (for neutrons).</li>
+<li>Hit ordering/permutation (for gammas).</li>
+<li>Diagnostics and scores.</li>
+</ul>
+</li>
+<li>
+<p><code>select_cones</code>:</p>
+</li>
+<li>Takes all candidate cones for a given event and:<ul>
+<li>Applies cone-level filters.</li>
+<li>Uses priors and quality metrics to select at most one cone per event.</li>
+<li>Can choose “no cone” if none are acceptable.</li>
+</ul>
+</li>
+<li>Records which candidate was selected and why (via metadata and counters).</li>
+</ul>
+<p><strong>Event objects must store:</strong></p>
+<ul>
+<li>For <code>GammaEvent</code>:</li>
+<li>The chosen ordering (e.g. a permutation of indices <code>[0,1,2] → [2,0,1]</code>).</li>
+<li>For <code>NeutronEvent</code>:</li>
+<li>The chosen recoil interpretation (e.g. <code>"proton"</code> or <code>"carbon"</code>).</li>
+</ul>
+<p>This information is persisted to HDF5 so downstream analyses can see what was inferred independently of raw timestamps.</p>
+<hr />
+<h2 id="9-cone-representation">9. Cone Representation</h2>
+<p>Cones are constructed from energy-annotated, sequenced events and priors.</p>
+<p><code>enumerate_candidate_cones</code> and <code>select_cones</code> work with a <code>Cone</code> dataclass:</p>
+<pre><code class="language-python">@dataclass
+class Cone:
+    r0: np.ndarray      # apex position (3,)
+    k_hat: np.ndarray   # unit axis direction (3,)
+    theta: float        # opening angle [rad]
+    event_index: int    # index into events dataset
+    particle_type: Literal[&quot;n&quot;, &quot;g&quot;]
+    candidate_type: str # e.g. 'proton', 'carbon', 'gamma_perm_012', etc.
+    score: float        # quality metric used during selection
+    meta: dict          # extra details: energies, ordering, etc.
+</code></pre>
+<p>These parameters <strong>fully define the analytic cone</strong>:</p>
+<ul>
+<li>Points <code>x</code> on the cone satisfy:
+  <code>text
+  (x - r0) · k_hat = |x - r0| cos(theta)</code></li>
+</ul>
+<p><strong>Design choice on analytic cone equations:</strong></p>
+<ul>
+<li>The <code>Cone</code> class itself stores the <strong>canonical geometric parameters</strong> (<code>r0</code>, <code>k_hat</code>, <code>theta</code>), which are sufficient to recover the analytic equation.</li>
+<li>Imaging backends (e.g. SBP, MLEM) may construct alternative internal representations (e.g. matrices for quadric surfaces), but these are <strong>derived</strong> from the <code>Cone</code> parameters and not stored as part of the core <code>Cone</code> model.</li>
+<li>This keeps <code>Cone</code> simple and imaging-method agnostic, while still embedding all necessary analytic information.</li>
+</ul>
+<p>Counters here include:</p>
+<ul>
+<li><code>candidate_cones_total</code></li>
+<li><code>candidate_cones_rejected_filters</code></li>
+<li><code>selected_cones_total</code> (with separate counts for neutrons/gammas and for proton/carbon selections).</li>
+</ul>
+<hr />
+<h2 id="10-imaging-back-end-sbp-and-future-methods">10. Imaging Back-End (SBP and Future Methods)</h2>
+<p>The first imaging back-end is <strong>simple back projection (SBP)</strong>, but the architecture is intended to support others later.</p>
+<h3 id="101-imaging-plane">10.1. Imaging Plane</h3>
+<p><code>ngimager.geometry.plane.Plane</code> encodes:</p>
+<ul>
+<li>Origin <code>P0</code></li>
+<li>Normal vector <code>n̂</code></li>
+<li>Basis vectors <code>êu</code>, <code>êv</code></li>
+<li>Mappings:</li>
+<li>From 3D coordinates to plane <code>(u, v)</code>.</li>
+<li>From <code>(u, v)</code> back to 3D.</li>
+</ul>
+<p>This object is constructed from <code>[plane]</code> config entries.</p>
+<h3 id="102-sbp-rasterization">10.2. SBP Rasterization</h3>
+<p><code>ngimager.imaging.sbp.reconstruct_sbp</code> roughly:</p>
+<ul>
+<li>Takes a collection of <strong>selected</strong> <code>Cone</code> objects and a <code>Plane</code>.</li>
+<li>For each cone:</li>
+<li>Computes cone–plane intersection analytically.</li>
+<li>Rasterizes the intersection into the plane’s pixel grid.</li>
+<li>Produces:</li>
+<li>A <strong>summed image</strong> (2D array).</li>
+<li>Optionally, per-cone sparse footprints (for list-mode).</li>
+</ul>
+<p>SBP is imaging-method-agnostic in the sense that it only depends on the generic <code>Cone</code> representation and <code>Plane</code>.</p>
+<h3 id="103-pluggable-imaging-methods">10.3. Pluggable Imaging Methods</h3>
+<p>The imaging step is a dispatcher:</p>
+<pre><code class="language-python">def image_cones(cones, plane, cfg: Config, counters: dict):
+    method = cfg.imaging.method  # e.g. &quot;sbp&quot; now, &quot;mlem&quot; later
+    if method == &quot;sbp&quot;:
+        return reconstruct_sbp(cones, plane, cfg.imaging, counters)
+    elif method == &quot;mlem&quot;:
+        ...
+</code></pre>
+<p>Future methods (MLEM, SOE, etc.) will reuse the same <code>Cone</code> and <code>Plane</code> abstractions.</p>
+<p>Counters for imaging might include:</p>
+<ul>
+<li><code>cones_imaged_total</code></li>
+<li><code>sbp_pixels_touched_total</code></li>
+<li><code>sbp_time_seconds</code></li>
+</ul>
+<hr />
+<h2 id="11-fast-vs-list-mode-modifiers-of-the-default-pipeline">11. Fast vs List Mode: Modifiers of the Default Pipeline</h2>
+<p>There is a <strong>single unified pipeline</strong>. “Fast” and “list” are orthogonal <strong>modifiers</strong> of its behavior, not separate pipelines or modes that change control flow.</p>
+<h3 id="111-default-behavior">11.1. Default Behavior</h3>
+<p>Without any modifiers:</p>
+<ul>
+<li>Reasonable thresholds and limits.</li>
+<li>Full SBP summed images.</li>
+<li>Hits, events, and selected cones stored in HDF5.</li>
+<li>No per-cone images.</li>
+</ul>
+<h3 id="112-fast-mode-runfast">11.2. Fast Mode (<code>run.fast</code>)</h3>
+<ul>
+<li>Uses alternative or stricter settings:</li>
+<li>Higher hit-level thresholds.</li>
+<li>Stronger event and cone cuts.</li>
+<li>Possibly lower <code>max_events</code> / <code>max_cones</code>.</li>
+<li>Aimed at <strong>quick feedback</strong> (e.g., during experiments).</li>
+<li>Still writes:</li>
+<li>Hits, events, cones, and summed images.</li>
+<li>It may just be a subset of what default settings would produce.</li>
+</ul>
+<p>Fast mode is configured via <code>[run] fast = true</code> but can also be enabled via CLI <code>--fast</code> (CLI overrides the config). Minimal vs verbose diagnostics still apply.</p>
+<h3 id="113-list-mode-runlist">11.3. List Mode (<code>run.list</code>)</h3>
+<ul>
+<li>When <code>list = true</code>, in addition to the default outputs, the pipeline:</li>
+<li>Computes <strong>per-cone sparse images</strong>:<ul>
+<li>For each cone, store the pixel indices and weights where its SBP footprint deposited counts.</li>
+</ul>
+</li>
+<li>Writes these list-mode images to <code>/images/listmode/*</code> in HDF5.</li>
+</ul>
+<p>List mode is configured via <code>[run] list = true</code> or CLI <code>--list</code>.</p>
+<p>Fast and list can be combined (e.g., fast thresholds but list-mode storage). The combination might be less common operationally but is conceptually well-defined.</p>
+<hr />
+<h2 id="12-hdf5-data-model-and-partial-pipelines">12. HDF5 Data Model and Partial Pipelines</h2>
+<p>The HDF5 format is the primary output, and it should support:</p>
+<ul>
+<li><strong>Full pipeline outputs</strong> (hits, events, cones, images).</li>
+<li><strong>Partial pipeline outputs</strong> (e.g., hits + events only).</li>
+<li><strong>Resuming</strong> from partially processed data.</li>
+<li><strong>Consistent views</strong> of what survived all active filters at each stage.</li>
+</ul>
+<h3 id="121-hdf5-layout-suggested">12.1. HDF5 Layout (Suggested)</h3>
+<ul>
+<li><code>/meta</code></li>
+<li><code>config_toml</code></li>
+<li><code>git_commit</code></li>
+<li><code>ngimager_version</code></li>
+<li><code>run_timestamp</code></li>
+<li><code>run_fast</code> (bool), <code>run_list</code> (bool)</li>
+<li><code>run_stop_stage</code></li>
+<li><code>counters</code> (group or JSON blob with pipeline counts)</li>
+<li><code>/hits/n</code>, <code>/hits/g</code></li>
+<li>Ragged or structured datasets:<ul>
+<li><code>det_id</code>, <code>t_ns</code>, <code>L</code>, <code>x_cm</code>, <code>y_cm</code>, <code>z_cm</code>, <code>material</code>, etc.</li>
+</ul>
+</li>
+<li><code>/events/n</code>, <code>/events/g</code></li>
+<li>Event datasets:<ul>
+<li>References (indices) into <code>/hits/*</code>.</li>
+<li>Per-event energies, timing deltas, sequencing choices, etc.</li>
+</ul>
+</li>
+<li><code>/cones/n</code>, <code>/cones/g</code></li>
+<li>Cone datasets:<ul>
+<li><code>r0</code> (3 floats), <code>k_hat</code> (3 floats), <code>theta</code> (1 float).</li>
+<li>Index into events.</li>
+<li>Particle type and candidate type.</li>
+</ul>
+</li>
+<li><code>/images/summed/n</code>, <code>/images/summed/g</code></li>
+<li>Main SBP images (2D arrays).</li>
+<li><code>/images/listmode/n</code>, <code>/images/listmode/g</code> (optional)</li>
+<li>Per-cone sparse footprints:<ul>
+<li>For each cone index K:</li>
+<li><code>pixel_indices</code> (1D int array)</li>
+<li><code>weights</code> (1D float array)</li>
+</ul>
+</li>
+</ul>
+<p><strong>Guarantees:</strong></p>
+<ul>
+<li>It must always be possible to trace:</li>
+</ul>
+<p><code>text
+  image pixel   → cone(s)   → event   → hits</code></p>
+<p>via indices and datasets, in all modes (default, fast, list).</p>
+<ul>
+<li>When the pipeline runs all the way to cones or images, the HDF5 file should <strong>not</strong> contain earlier-stage objects that correspond to cones or events that were ultimately rejected. Practical options include:</li>
+<li>Writing to temporary datasets and then compacting to “final” datasets.</li>
+<li>Writing all candidates but then rewriting/compacting the corresponding HDF5 groups after selection.</li>
+</ul>
+<p>Partial runs (e.g., <code>stop_stage = "events"</code>) naturally represent the state <strong>before</strong> later filters and selection have been applied.</p>
+<h3 id="122-writing-at-multiple-stages">12.2. Writing at Multiple Stages</h3>
+<p>The pipeline can write intermediate results <strong>incrementally</strong>, but the final HDF5 layout should be consistent with the selected objects after all enabled filters.</p>
+<p>Recommended behavior:</p>
+<ul>
+<li>For <code>stop_stage</code> less than <code>"images"</code>:</li>
+<li>Write out the current stage’s results (e.g., hits, events) as they stand at that stage, without later pruning.</li>
+<li>For full pipeline runs (<code>stop_stage = "images"</code>):</li>
+<li>Maintain internal buffers during processing.</li>
+<li>When the pipeline has finished selection:<ul>
+<li>Write <strong>only</strong> the surviving hits/events/cones to the final HDF5 groups.</li>
+<li>Store all counters describing how many objects were rejected at each stage.</li>
+</ul>
+</li>
+</ul>
+<h3 id="123-resuming-from-hdf5">12.3. Resuming from HDF5</h3>
+<p>When <code>input_format = "hdf5_ngimager"</code>:</p>
+<ul>
+<li>If <code>/cones/*</code> exists but <code>/images/*</code> does not:</li>
+<li>Start at cones → images.</li>
+<li>If <code>/events/*</code> exists but <code>/cones/*</code> does not:</li>
+<li>Start at events → cones → images.</li>
+<li>If only <code>/hits/*</code> exist:</li>
+<li>Start at events → cones → images.</li>
+</ul>
+<p>This enables:</p>
+<ul>
+<li>Re-running imaging with different plane/imaging settings without recomputing events/cones.</li>
+<li>Sharing hits+events+cones with collaborators who may implement their own imaging.</li>
+</ul>
+<hr />
+<h2 id="13-diagnostics-logging-and-counters">13. Diagnostics, Logging, and Counters</h2>
+<p>Diagnostics are gated by <code>run.diagnostic_level</code>:</p>
+<ul>
+<li><code>0</code>: no diagnostic messages (except fatal errors).</li>
+<li><code>1</code>: minimal messages indicating:</li>
+<li>Stage entry/exit (hits/events/cones/images).</li>
+<li>Counts (e.g., number of events, cones).</li>
+<li>Summary statistics at the end.</li>
+<li><code>2</code>: verbose messages, including:</li>
+<li>Detailed adapter parsing notes.</li>
+<li>Filter statistics per stage.</li>
+<li>Timing information for profiling.</li>
+<li>These verbose lines should be indented with a leading tab (<code>\t</code>) to visually distinguish them from level-1 outputs.</li>
+</ul>
+<p>Example usage:</p>
+<pre><code class="language-python">if cfg.run.diagnostic_level &gt;= 1:
+    print(&quot;[pipeline] Loaded config&quot;, cfg_path)
+
+if cfg.run.diagnostic_level &gt;= 2:
+    print(&quot;\t[pipeline] Parsed&quot;, counters[&quot;raw_events_total&quot;], &quot;raw events&quot;)
+</code></pre>
+<h3 id="131-counters">13.1. Counters</h3>
+<p>A shared <code>counters</code> dict is passed through the pipeline and used to record:</p>
+<ul>
+<li>Raw events:</li>
+<li><code>raw_events_total</code></li>
+<li><code>raw_events_rejected_unreconstructable</code></li>
+<li><code>raw_events_rejected_shaping</code></li>
+<li>Hits:</li>
+<li><code>hits_total</code></li>
+<li><code>hits_rejected_threshold</code></li>
+<li>Events:</li>
+<li><code>shaped_events_total</code></li>
+<li><code>typed_events_n</code>, <code>typed_events_g</code></li>
+<li><code>events_rejected_time_window</code></li>
+<li><code>events_rejected_geometry</code></li>
+<li><code>events_passed</code></li>
+<li>Cones:</li>
+<li><code>candidate_cones_total</code></li>
+<li><code>candidate_cones_rejected_filters</code></li>
+<li><code>selected_cones_n</code>, <code>selected_cones_g</code></li>
+<li><code>selected_cones_proton</code>, <code>selected_cones_carbon</code></li>
+<li>Imaging:</li>
+<li><code>cones_imaged_total</code></li>
+<li><code>sbp_pixels_touched_total</code></li>
+<li><code>sbp_time_seconds</code></li>
+</ul>
+<p>A summary of these counters should be:</p>
+<ul>
+<li>Printed at the end of the run (depending on diagnostic level).</li>
+<li>Stored under <code>/meta/counters</code> in the HDF5 output.</li>
+</ul>
+<p>This allows:</p>
+<ul>
+<li>Quick insight into where events are being rejected.</li>
+<li>Traceability of “N final events imaged out of M raw events” with breakdown by stage.</li>
+</ul>
+<hr />
+<h2 id="14-legacy-timing-and-future-proofing">14. Legacy Timing and Future-Proofing</h2>
+<p>Legacy timing-based workflows are supported via the energy strategies (Section 7):</p>
+<ul>
+<li><strong>ToF-based paths</strong>:</li>
+<li>Maintained via <code>EnergyFromToF</code>, configured in <code>[energy.tof]</code>.</li>
+<li>Useful for setups using a start detector and time-of-flight for incident energy.</li>
+<li><strong>Fixed incident energy</strong>:</li>
+<li><code>EnergyFromFixedIncident</code> for known beam energies.</li>
+<li><strong>Light-based E(L) LUT</strong>:</li>
+<li><code>EnergyFromLightLUT</code> using calibrated E(L) curves; this is the default for modern NOVO experiments with calibrated light response for OGS/M600.</li>
+</ul>
+<p>These paths share a common conceptual picture:</p>
+<ul>
+<li>Neutron energies <strong>before</strong> and <strong>after</strong> the first scatter are estimated.</li>
+<li>Recoil energy is computed as <code>E_before - E_after</code> (except in LUT-based approaches where recoil energy is directly inferred from light).</li>
+<li>The recoil energy feeds directly into neutron cone kinematics.</li>
+</ul>
+<p>All such behaviors are isolated to the energy strategy and config, not hard-coded if/else blocks scattered across the pipeline.</p>
+<p>Uncertainty models (energy, DOI, timing) are kept modular to be turned on when supporting data (e.g. measured resolution curves) is integrated.</p>
+<hr />
+<h2 id="15-coding-style-and-conventions">15. Coding Style and Conventions</h2>
+<p>Guidelines:</p>
+<ul>
+<li>Use <strong>dataclasses</strong> for structured data (Hit, NeutronEvent, GammaEvent, Cone).</li>
+<li>Use <strong>type hints</strong> extensively:</li>
+<li><code>Hit</code>, <code>NeutronEvent</code>, <code>GammaEvent</code>, <code>Cone</code>, <code>Plane</code>, <code>np.ndarray</code>, etc.</li>
+<li>Keep modules focused:</li>
+<li><code>physics.*</code>: physical models, kinematics, priors, event definitions.</li>
+<li><code>geometry.*</code>: planes and coordinate transforms.</li>
+<li><code>imaging.*</code>: turning cones into images.</li>
+<li><code>io.*</code>: adapters, HDF5 I/O, LUT loading.</li>
+<li><code>filters.*</code>: hit/event/cone shaping and selection.</li>
+<li><code>pipelines.*</code>: orchestration and CLIs.</li>
+<li><code>sim.*</code>: <strong>deprecated for active pipelines</strong>; if synthetic data is kept at all, it should live primarily in examples/tests rather than the core package.</li>
+<li>NOVO-specific quirks live in:</li>
+<li><code>io.adapters</code>, <code>tools/*</code>, and configuration.</li>
+<li>Not in the physics/imaging core.</li>
+</ul>
+<p>The aim is for someone familiar with the legacy script to be able to read this code and see where each piece migrated, and for new contributors to navigate the code via module names + this document.</p>
+<hr />
+<h2 id="16-roadmap-refactor-and-implementation-checklist">16. Roadmap (Refactor and Implementation Checklist)</h2>
+<p>This checklist tracks migration from the current state to the architecture described here.</p>
+<h3 id="161-cleanup-and-deletion-of-redundant-paths">16.1. Cleanup and Deletion of Redundant Paths</h3>
+<ul>
+<li>[ ] Remove any parallel PHITS→Hit/Event paths; ensure <code>PHITSAdapter</code> + <code>dict_hits_to_Hit</code> is the <strong>only</strong> canonical route for PHITS.</li>
+<li>[ ] Deprecate and remove <code>sim.*</code> from the active pipeline; if synthetic capabilities are retained, move them to examples/tests.</li>
+<li>[ ] Ensure only one <code>Hit</code> class exists and is used everywhere.</li>
+</ul>
+<h3 id="162-adapters-and-raw-events">16.2. Adapters and Raw Events</h3>
+<ul>
+<li>[ ] Ensure <code>PHITSAdapter.iter_raw_events</code> returns raw events as collections of hit dicts.</li>
+<li>[ ] Implement/clean up <code>ROOTAdapter.iter_raw_events</code> with <code>input_format = "root_novo_ddaq"</code> for the current acquisition system.</li>
+<li>[ ] Implement the early <code>is_reconstructable</code> logic after hit-level filtering to discard unviable raw events, with appropriate counters.</li>
+</ul>
+<h3 id="163-shaper-and-typed-events">16.3. Shaper and Typed Events</h3>
+<ul>
+<li>[ ] Make <code>shape_events_for_cones</code> the single entry point from raw-event hits to shaped events.</li>
+<li>[ ] Make <code>shaped_to_typed_events</code> the only path to <code>NeutronEvent</code>/<code>GammaEvent</code>.</li>
+<li>[ ] Guarantee that all event classes always carry their <code>Hit</code> lists and that indices in HDF5 allow round-tripping.</li>
+</ul>
+<h3 id="164-filters-priors-and-sequencing">16.4. Filters, Priors, and Sequencing</h3>
+<ul>
+<li>[ ] Centralize event and cone selection logic into <code>filters</code> modules, driven by <code>[filters]</code> config.</li>
+<li>[ ] Ensure priors are only defined in <code>physics.priors</code> and configured via <code>[prior]</code>.</li>
+<li>[ ] Implement <code>enumerate_candidate_cones</code> and <code>select_cones</code> so that:</li>
+<li>Multiple candidate cones per event (proton vs carbon, gamma permutations) are supported.</li>
+<li>At most one cone per event is ultimately selected.</li>
+<li>[ ] Implement storage of gamma sequencing choice and neutron recoil interpretation in the event objects and HDF5.</li>
+</ul>
+<h3 id="165-energy-strategy-integration">16.5. Energy Strategy Integration</h3>
+<ul>
+<li>[ ] Wire <code>make_energy_strategy(cfg.energy, cfg.materials)</code> into the pipeline, with all neutron energy calculations happening via this interface.</li>
+<li>[ ] Integrate E(L) LUTs for OGS and M600 via <code>io.lut.LUT</code>.</li>
+<li>[ ] Validate <code>EnergyFromToF</code> and <code>EnergyFromFixedIncident</code> paths with simple tests.</li>
+<li>[ ] Document the conceptual picture in code comments, referencing this document.</li>
+</ul>
+<h3 id="166-cone-construction-and-imaging">16.6. Cone Construction and Imaging</h3>
+<ul>
+<li>[ ] Ensure <code>physics.cones</code> provides the canonical functions for building candidate cones from events.</li>
+<li>[ ] Confirm <code>imaging.sbp.reconstruct_sbp</code> works directly from the <code>Cone</code> dataclass and <code>Plane</code>.</li>
+<li>[ ] Implement optional per-cone sparse footprints used only when <code>run.list</code> is true.</li>
+</ul>
+<h3 id="167-unified-pipeline-and-cli">16.7. Unified Pipeline and CLI</h3>
+<ul>
+<li>[ ] Make <code>pipelines.core.run_pipeline</code> the central pipeline function.</li>
+<li>[ ] Deprecate/remove <code>pipelines.fastmode</code> and <code>pipelines.listmode</code> in favor of a single CLI that respects <code>run.fast</code> and <code>run.list</code> from config and CLI flags.</li>
+<li>[ ] Implement CLI flags:</li>
+<li><code>--fast</code> / <code>--no-fast</code></li>
+<li><code>--list</code> / <code>--no-list</code></li>
+<li><code>--stop-stage</code></li>
+<li>[ ] Implement <code>run.stop_stage</code> gating at the main stages and support resuming from ngimager HDF5 files (<code>input_format = "hdf5_ngimager"</code>).</li>
+</ul>
+<h3 id="168-hdf5-and-visualization">16.8. HDF5 and Visualization</h3>
+<ul>
+<li>[ ] Finalize and document the HDF5 layout described above.</li>
+<li>[ ] Ensure hits/events/cones/images store the necessary indices for full back-tracing.</li>
+<li>[ ] Ensure final HDF5 outputs (for full runs) contain only objects that survive all active filters, with counters and metadata describing what was rejected at each stage.</li>
+<li>[ ] Wrap PNG export in a clean CLI function that calls <code>vis.hdf.save_summed_png</code> driven by <code>[vis]</code>.</li>
+</ul>
+<h3 id="169-documentation-and-example-configs">16.9. Documentation and Example Configs</h3>
+<ul>
+<li>[ ] Add an example <code>.toml</code> in <code>examples/configs/</code> with extensive comments explaining each section and option.</li>
+<li>[ ] Provide a worked example for:</li>
+<li><code>examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out</code></li>
+<li>[ ] Use this document as the basis of a “Developer Tour” page in <code>docs/dev/architecture.md</code> (or similar) to keep the code and architecture aligned.</li>
+</ul>
+<hr />
+<p>This document is intended to be the <strong>ground truth design</strong> for <code>ngimager</code>. As code evolves, it should either be updated to reflect the new reality or drive refactors back into alignment, keeping the system clean, maintainable, and physically faithful to the NOVO imaging goals.</p>
 
 
 
