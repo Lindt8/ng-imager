@@ -942,6 +942,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#124-converting-between-list-mode-and-non-list-mode-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.4. Converting Between List-Mode and Non-List-Mode Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1694,6 +1705,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#124-converting-between-list-mode-and-non-list-mode-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12.4. Converting Between List-Mode and Non-List-Mode Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1917,6 +1939,7 @@
 <li><strong>Image cones</strong> (SBP initially, other methods later).</li>
 <li><strong>Write results to HDF5</strong>, optionally at multiple stages.</li>
 </ol>
+<p>Depending on <code>run.use_neutrons</code> and <code>run.use_gammas</code>, only the chosen particle types are shaped into events, propagated into cones, and imaged; the other type is ignored at all stages.</p>
 <p>Conceptual pseudocode:</p>
 <pre><code class="language-python">def run_pipeline(cfg: Config, input_path: Path) -&gt; Path:
     adapter = make_adapter(cfg.io, cfg.detector, cfg.materials)
@@ -2001,18 +2024,22 @@
 <h3 id="31-proposed-top-level-sections">3.1. Proposed Top-Level Sections</h3>
 <p>These map naturally to <code>ngimager.config.schemas</code>.</p>
 <h4 id="run"><code>[run]</code></h4>
-<p>General pipeline behavior and diagnostics:</p>
+<p>General pipeline behavior, particle-type toggles, and diagnostics:</p>
 <ul>
 <li><code>fast = false</code>  </li>
 <li>Use more aggressive thresholds and limits for speed. Modifies the default behavior; does not replace it.</li>
 <li><code>list = false</code>  </li>
 <li>Enable list-mode image outputs (per-cone footprints). Also a modifier of the default behavior.</li>
+<li><code>use_neutrons = true</code>  </li>
+<li>If <code>false</code>, neutron hits/events/cones/images are ignored and not produced. Allows gamma-only imaging.</li>
+<li><code>use_gammas = true</code>  </li>
+<li>If <code>false</code>, gamma hits/events/cones/images are ignored and not produced. Allows neutron-only imaging.</li>
 <li><code>stop_stage = "images"</code>  </li>
 <li>One of <code>"hits" | "events" | "cones" | "images"</code>. Controls how far the pipeline runs.</li>
 <li><code>max_events = 0</code>  </li>
-<li>0 means no limit; otherwise, stop after this many (typed) events.</li>
+<li>0 means no limit; otherwise, stop after this many (typed) events (after particle-type toggles are applied).</li>
 <li><code>max_cones = 0</code>  </li>
-<li>0 means no limit; otherwise, stop after this many <strong>selected</strong> cones.</li>
+<li>0 means no limit; otherwise, stop after this many <strong>selected</strong> cones (after particle-type toggles are applied).</li>
 <li><code>diagnostic_level = 1</code>  </li>
 <li><code>0</code>: silent (no diagnostic prints except fatal errors)  </li>
 <li><code>1</code>: minimal, important pipeline messages  </li>
@@ -2023,6 +2050,7 @@
 - <code>--fast</code> and <code>--no-fast</code> override <code>run.fast</code>.<br />
 - <code>--list</code> and <code>--no-list</code> override <code>run.list</code>.<br />
 - <code>--stop-stage</code> can override <code>run.stop_stage</code>.<br />
+- Future CLI flags like <code>--neutrons-only</code> / <code>--gammas-only</code> may override <code>use_neutrons</code> / <code>use_gammas</code>.<br />
 The CLI always loads the config first, then applies overrides before calling <code>run_pipeline</code>.</p>
 </blockquote>
 <h4 id="io"><code>[io]</code></h4>
@@ -2628,6 +2656,38 @@ class Cone:
 <li>Re-running imaging with different plane/imaging settings without recomputing events/cones.</li>
 <li>Sharing hits+events+cones with collaborators who may implement their own imaging.</li>
 </ul>
+<h3 id="124-converting-between-list-mode-and-non-list-mode-outputs">12.4. Converting Between List-Mode and Non-List-Mode Outputs</h3>
+<p>For a completed ngimager HDF5 file, it should be straightforward to move between:</p>
+<ul>
+<li>A <strong>non-list-mode</strong> representation (summed images only), and</li>
+<li>A <strong>list-mode</strong> representation (summed images + per-cone sparse footprints).</li>
+</ul>
+<p>Two common workflows:</p>
+<ol>
+<li>
+<p><strong>List-mode → non-list-mode</strong></p>
+</li>
+<li>
+<p>This is trivial: delete the <code>/images/listmode/*</code> groups from the HDF5 file.</p>
+</li>
+<li>
+<p>Hits, events, cones, and summed images remain intact.</p>
+</li>
+<li>
+<p><strong>Non-list-mode → list-mode</strong></p>
+</li>
+<li>
+<p>Start from an HDF5 file that already contains selected cones and summed images, but no list-mode images.</p>
+</li>
+<li>Re-run the pipeline with:<ul>
+<li><code>input_format = "hdf5_ngimager"</code></li>
+<li><code>run.stop_stage = "images"</code></li>
+<li><code>run.list = true</code></li>
+</ul>
+</li>
+<li>The pipeline detects existing hits/events/cones, skips rebuilding them, and re-runs only the imaging stage, this time computing and writing per-cone sparse footprints into <code>/images/listmode/*</code>.</li>
+</ol>
+<p>This makes it cheap to “upgrade” a previously run dataset from non-list-mode to list-mode without redoing the entire event and cone construction chain.</p>
 <hr />
 <h2 id="13-diagnostics-logging-and-counters">13. Diagnostics, Logging, and Counters</h2>
 <p>Diagnostics are gated by <code>run.diagnostic_level</code>:</p>
@@ -2636,55 +2696,79 @@ class Cone:
 <li><code>1</code>: minimal messages indicating:</li>
 <li>Stage entry/exit (hits/events/cones/images).</li>
 <li>Counts (e.g., number of events, cones).</li>
-<li>Summary statistics at the end.</li>
+<li><strong>Per-stage runtimes</strong> (e.g., “hits stage took 0.42 s”, “imaging stage took 3.1 s”).</li>
+<li>A final counter summary at the end of the run.</li>
 <li><code>2</code>: verbose messages, including:</li>
 <li>Detailed adapter parsing notes.</li>
 <li>Filter statistics per stage.</li>
-<li>Timing information for profiling.</li>
+<li>Fine-grained timing information useful for profiling (sub-stage timers).</li>
 <li>These verbose lines should be indented with a leading tab (<code>\t</code>) to visually distinguish them from level-1 outputs.</li>
 </ul>
 <p>Example usage:</p>
-<pre><code class="language-python">if cfg.run.diagnostic_level &gt;= 1:
-    print(&quot;[pipeline] Loaded config&quot;, cfg_path)
+<pre><code class="language-python">t0 = time.perf_counter()
+# ... run hits stage ...
+t1 = time.perf_counter()
+
+if cfg.run.diagnostic_level &gt;= 1:
+    print(f&quot;[pipeline] hits stage completed in {t1 - t0:.3f} s&quot;)
 
 if cfg.run.diagnostic_level &gt;= 2:
-    print(&quot;\t[pipeline] Parsed&quot;, counters[&quot;raw_events_total&quot;], &quot;raw events&quot;)
+    print(f&quot;\t[pipeline] hits stage parsed {counters['hits_total']} hits&quot;)
 </code></pre>
+<p>This keeps level 1 useful for humans (you always see stage runtimes and the counter summary) and level 2 for more granular profiling noise.</p>
 <h3 id="131-counters">13.1. Counters</h3>
 <p>A shared <code>counters</code> dict is passed through the pipeline and used to record:</p>
 <ul>
-<li>Raw events:</li>
+<li>Raw events (type-agnostic):</li>
 <li><code>raw_events_total</code></li>
 <li><code>raw_events_rejected_unreconstructable</code></li>
 <li><code>raw_events_rejected_shaping</code></li>
-<li>Hits:</li>
+<li>Hits (per-particle where meaningful):</li>
 <li><code>hits_total</code></li>
+<li><code>hits_total_n</code>, <code>hits_total_g</code></li>
 <li><code>hits_rejected_threshold</code></li>
+<li><code>hits_rejected_threshold_n</code>, <code>hits_rejected_threshold_g</code></li>
 <li>Events:</li>
 <li><code>shaped_events_total</code></li>
+<li><code>shaped_events_n</code>, <code>shaped_events_g</code></li>
+<li><code>typed_events_total</code></li>
 <li><code>typed_events_n</code>, <code>typed_events_g</code></li>
-<li><code>events_rejected_time_window</code></li>
-<li><code>events_rejected_geometry</code></li>
-<li><code>events_passed</code></li>
+<li><code>events_rejected_time_window_total</code></li>
+<li><code>events_rejected_time_window_n</code>, <code>events_rejected_time_window_g</code></li>
+<li><code>events_rejected_geometry_total</code></li>
+<li><code>events_rejected_geometry_n</code>, <code>events_rejected_geometry_g</code></li>
+<li><code>events_passed_total</code></li>
+<li><code>events_passed_n</code>, <code>events_passed_g</code></li>
 <li>Cones:</li>
 <li><code>candidate_cones_total</code></li>
-<li><code>candidate_cones_rejected_filters</code></li>
+<li><code>candidate_cones_n</code>, <code>candidate_cones_g</code></li>
+<li><code>candidate_cones_rejected_filters_total</code></li>
+<li><code>candidate_cones_rejected_filters_n</code>, <code>candidate_cones_rejected_filters_g</code></li>
+<li><code>selected_cones_total</code></li>
 <li><code>selected_cones_n</code>, <code>selected_cones_g</code></li>
-<li><code>selected_cones_proton</code>, <code>selected_cones_carbon</code></li>
+<li><code>selected_cones_proton</code>, <code>selected_cones_carbon</code>  # neutron-only refinements</li>
 <li>Imaging:</li>
 <li><code>cones_imaged_total</code></li>
+<li><code>cones_imaged_n</code>, <code>cones_imaged_g</code></li>
 <li><code>sbp_pixels_touched_total</code></li>
+<li><code>sbp_pixels_touched_n</code>, <code>sbp_pixels_touched_g</code></li>
 <li><code>sbp_time_seconds</code></li>
+</ul>
+<p><strong>Pattern:</strong> wherever it is conceptually meaningful to separate by particle type, we maintain <strong>three</strong> counters:</p>
+<ul>
+<li>A <code>_total</code> counter (neutrons + gammas),</li>
+<li>A <code>_n</code> counter (neutrons only),</li>
+<li>A <code>_g</code> counter (gammas only).</li>
 </ul>
 <p>A summary of these counters should be:</p>
 <ul>
-<li>Printed at the end of the run (depending on diagnostic level).</li>
-<li>Stored under <code>/meta/counters</code> in the HDF5 output.</li>
+<li>Printed at the end of the run for <code>diagnostic_level &gt;= 1</code> (minimal and verbose).</li>
+<li>Stored under <code>/meta/counters</code> in the HDF5 output (for <strong>all</strong> diagnostic levels).</li>
 </ul>
 <p>This allows:</p>
 <ul>
-<li>Quick insight into where events are being rejected.</li>
-<li>Traceability of “N final events imaged out of M raw events” with breakdown by stage.</li>
+<li>Quick insight into where events are being rejected, separated by particle type.</li>
+<li>Traceability of “N final events imaged out of M raw events” with breakdown by stage and by neutron/gamma.</li>
 </ul>
 <hr />
 <h2 id="14-legacy-timing-and-future-proofing">14. Legacy Timing and Future-Proofing</h2>
@@ -2746,6 +2830,7 @@ if cfg.run.diagnostic_level &gt;= 2:
 <li>[ ] Make <code>shape_events_for_cones</code> the single entry point from raw-event hits to shaped events.</li>
 <li>[ ] Make <code>shaped_to_typed_events</code> the only path to <code>NeutronEvent</code>/<code>GammaEvent</code>.</li>
 <li>[ ] Guarantee that all event classes always carry their <code>Hit</code> lists and that indices in HDF5 allow round-tripping.</li>
+<li>[ ] Ensure counters at the hit and event levels follow the <code>_n</code> / <code>_g</code> / <code>_total</code> naming pattern where meaningful.</li>
 </ul>
 <h3 id="164-filters-priors-and-sequencing">16.4. Filters, Priors, and Sequencing</h3>
 <ul>
@@ -2768,15 +2853,17 @@ if cfg.run.diagnostic_level &gt;= 2:
 <li>[ ] Ensure <code>physics.cones</code> provides the canonical functions for building candidate cones from events.</li>
 <li>[ ] Confirm <code>imaging.sbp.reconstruct_sbp</code> works directly from the <code>Cone</code> dataclass and <code>Plane</code>.</li>
 <li>[ ] Implement optional per-cone sparse footprints used only when <code>run.list</code> is true.</li>
+<li>[ ] Ensure cone and imaging counters follow the <code>_n</code> / <code>_g</code> / <code>_total</code> naming pattern where meaningful, and that per-stage runtimes are recorded and reported.</li>
 </ul>
 <h3 id="167-unified-pipeline-and-cli">16.7. Unified Pipeline and CLI</h3>
 <ul>
 <li>[ ] Make <code>pipelines.core.run_pipeline</code> the central pipeline function.</li>
-<li>[ ] Deprecate/remove <code>pipelines.fastmode</code> and <code>pipelines.listmode</code> in favor of a single CLI that respects <code>run.fast</code> and <code>run.list</code> from config and CLI flags.</li>
+<li>[ ] Deprecate/remove <code>pipelines.fastmode</code> and <code>pipelines.listmode</code> in favor of a single CLI that respects <code>run.fast</code>, <code>run.list</code>, <code>run.use_neutrons</code>, and <code>run.use_gammas</code> from config and CLI flags.</li>
 <li>[ ] Implement CLI flags:</li>
 <li><code>--fast</code> / <code>--no-fast</code></li>
 <li><code>--list</code> / <code>--no-list</code></li>
 <li><code>--stop-stage</code></li>
+<li>optional convenience flags like <code>--neutrons-only</code> / <code>--gammas-only</code> mapped to <code>use_neutrons</code> / <code>use_gammas</code></li>
 <li>[ ] Implement <code>run.stop_stage</code> gating at the main stages and support resuming from ngimager HDF5 files (<code>input_format = "hdf5_ngimager"</code>).</li>
 </ul>
 <h3 id="168-hdf5-and-visualization">16.8. HDF5 and Visualization</h3>
@@ -2785,6 +2872,7 @@ if cfg.run.diagnostic_level &gt;= 2:
 <li>[ ] Ensure hits/events/cones/images store the necessary indices for full back-tracing.</li>
 <li>[ ] Ensure final HDF5 outputs (for full runs) contain only objects that survive all active filters, with counters and metadata describing what was rejected at each stage.</li>
 <li>[ ] Wrap PNG export in a clean CLI function that calls <code>vis.hdf.save_summed_png</code> driven by <code>[vis]</code>.</li>
+<li>[ ] Support imaging-only reruns from existing cones (ngimager HDF5 input) to generate list-mode per-cone images from previously non-list-mode outputs.</li>
 </ul>
 <h3 id="169-documentation-and-example-configs">16.9. Documentation and Example Configs</h3>
 <ul>
