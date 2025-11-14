@@ -1054,9 +1054,9 @@ This checklist tracks migration from the current state to the architecture descr
 
 ### 16.1. Cleanup and Deletion of Redundant Paths
 
-- [ ] Remove any parallel PHITS→Hit/Event paths; ensure `PHITSAdapter` + `dict_hits_to_Hit` is the **only** canonical route for PHITS.
-- [ ] Deprecate and remove `sim.*` from the active pipeline; if synthetic capabilities are retained, move them to examples/tests.
-- [ ] Ensure only one `Hit` class exists and is used everywhere.
+- [x] Remove any parallel PHITS→Hit/Event paths; ensure `PHITSAdapter` is the **only** canonical route for PHITS.
+- [x] Deprecate and remove `sim.*` from the active pipeline; if synthetic capabilities are retained, move them to examples/tests.
+- [x] Ensure only one `Hit` class exists and is used everywhere.
 
 ### 16.2. Adapters and Raw Events
 
@@ -1098,8 +1098,8 @@ This checklist tracks migration from the current state to the architecture descr
 
 ### 16.7. Unified Pipeline and CLI
 
-- [ ] Make `pipelines.core.run_pipeline` the central pipeline function.
-- [ ] Deprecate/remove `pipelines.fastmode` and `pipelines.listmode` in favor of a single CLI that respects `run.fast`, `run.list`, `run.use_neutrons`, and `run.use_gammas` from config and CLI flags.
+- [x] Make `pipelines.core.run_pipeline` the central pipeline function.
+- [x] Deprecate/remove `pipelines.fastmode` and `pipelines.listmode` in favor of a single CLI that respects `run.fast`, `run.list`, `run.use_neutrons`, and `run.use_gammas` from config and CLI flags.
 - [ ] Implement CLI flags:
     - `--fast` / `--no-fast`
     - `--list` / `--no-list`

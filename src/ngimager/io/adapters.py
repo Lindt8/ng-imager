@@ -34,7 +34,6 @@ unit_pos_is_mm = true
 time_units = "ns"             # "ns" | "ps"
 require_gamma_triples = false # keep filtering in pipeline by default
 default_material = "M600"     # tag assigned to all hits unless mapped
-# fieldmap = { x1="x1_custom", Elong1="ElongFirst", ... }
 
 """
 from __future__ import annotations
@@ -120,8 +119,6 @@ class ROOTAdapter(BaseAdapter):
       - "Joey" (default): tree key 'image_tree;1'
       - "Lena":           tree key 'ntuple_NCE_raw;1'
 
-    Field names can be overridden via `fieldmap` if your tree differs.
-
     Parameters
     ----------
     style : Literal['Joey','Lena']
@@ -132,8 +129,6 @@ class ROOTAdapter(BaseAdapter):
     keep_mevee : bool
         If True, use Elong* branches as 'L' (light-like) for Hit; else set L=0.0.
     time_branch_units : Literal['ns','ps']
-    fieldmap : Dict[str,str]
-        Override mapping from canonical keys (x1,y1,...) to your branch names.
     default_material : str
         Material tag to attach to hits (e.g., "M600").
     """
@@ -174,7 +169,6 @@ class ROOTAdapter(BaseAdapter):
         unit_pos_is_mm: bool = True,
         keep_mevee: bool = True,
         time_branch_units: Literal["ns", "ps"] = "ns",
-        fieldmap: Optional[Dict[str, str]] = None,
         default_material: str = "M600",
     ) -> None:
         if uproot is None:  # pragma: no cover
@@ -185,7 +179,6 @@ class ROOTAdapter(BaseAdapter):
         self.require_gamma_triples = require_gamma_triples
         self.time_scale = 0.001 if time_branch_units == "ps" else 1.0
         base = self._DEFAULT_KEYS_JOEY if style == "Joey" else self._DEFAULT_KEYS_LENA
-        self.keys: Dict[str, str] = {**base, **(fieldmap or {})}
         self.tree_key = "image_tree;1" if style == "Joey" else "ntuple_NCE_raw;1"
         self.default_material = default_material
 
@@ -416,7 +409,7 @@ class PHITSAdapter(BaseAdapter):
     Supported inputs: CSV (.csv), Parquet (.parquet/.pq), HDF (.h5/.hdf5).
 
     The adapter expects row-wise events. Each row is either a neutron double
-    or a gamma triple. You may supply a `fieldmap` describing your column names.
+    or a gamma triple. 
 
     Canonical field names (columns):
       - x1,y1,z1,t1 ; x2,y2,z2,t2 ; [x3,y3,z3,t3]
@@ -428,7 +421,6 @@ class PHITSAdapter(BaseAdapter):
 
     def __init__(
         self,
-        fieldmap: Optional[Dict[str, str]] = None,
         unit_pos_is_mm: bool = True,
         time_units: Literal["ns", "ps"] = "ns",
         default_material: str = "M600",
@@ -436,7 +428,6 @@ class PHITSAdapter(BaseAdapter):
     ) -> None:
         self.unit_pos_is_mm = unit_pos_is_mm
         self.time_scale = 0.001 if time_units == "ps" else 1.0
-        self.map = fieldmap or {}
         self.default_material = default_material
         #mat_map = kwargs.get("material_map", None)
         #default_mat = kwargs.get("default_material", "UNK")
@@ -452,7 +443,7 @@ class PHITSAdapter(BaseAdapter):
         # reading from custom [T-Userdefined] output: https://github.com/Lindt8/T-Userdefined/tree/main/multi-coincidence_ng
         if suffix == ".out":
             # route to the short-format reader; if it fails, raise with guidance
-            #return from_phits_usrdef(p) #, fieldmap=self.fieldmap)
+            #return from_phits_usrdef(p) #,
             raise ValueError("PHITS usrdef .out is ragged; iter_events() handles it directly.")
 
         if suffix in {".csv"}:
@@ -464,9 +455,6 @@ class PHITSAdapter(BaseAdapter):
         else:
             raise ValueError(f"Unrecognized PHITSAdapter input: {p.name} (expected .csv/.parquet/.h5 or usrdef .out)")
 
-        if self.fieldmap:
-            df = df.rename(columns=dict(self.fieldmap))
-        return df
     
     def iter_events(self, path: str) -> Iterable[NeutronEvent | GammaEvent]:
         """
@@ -514,7 +502,6 @@ def make_adapter(cfg: Dict) -> BaseAdapter:
       time_units: "ns" | "ps"
       require_gamma_triples: bool       (ROOT-only)
       default_material: str
-      fieldmap: { canonical -> actual }
     """
     typ = (cfg.get("type") or "root").lower()
 
@@ -525,13 +512,11 @@ def make_adapter(cfg: Dict) -> BaseAdapter:
             unit_pos_is_mm=bool(cfg.get("unit_pos_is_mm", True)),
             keep_mevee=bool(cfg.get("keep_mevee", True)),
             time_branch_units=cfg.get("time_units", "ns"),
-            fieldmap=cfg.get("fieldmap"),
             default_material=cfg.get("default_material", "M600"),
         )
 
     if typ == "phits":
         return PHITSAdapter(
-            fieldmap=cfg.get("fieldmap"),
             unit_pos_is_mm=bool(cfg.get("unit_pos_is_mm", True)),
             time_units=cfg.get("time_units", "ns"),
             default_material=cfg.get("default_material", "UNK"),

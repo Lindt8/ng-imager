@@ -1,35 +1,85 @@
+# ====================================================================
+# PHITS simple n+g source example
+#
+# This config drives the unified ngimager pipeline on:
+#   examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out
+#
+# It is intentionally simple and readable, and is meant to mirror
+# (approximately) the legacy image_settings.txt for this dataset.
+# ====================================================================
+
 [run]
-mode = "fast"                      # fast | list
-source_type = "phits"                 # cf252 | dt | proton_center | phits
-workers = 0 # "auto"
+# High-level data source context
+source_type = "phits"          # "cf252" | "dt" | "proton_center" | "phits"
+
+# Which species to process
+neutrons = true
+gammas   = true
+
+# Operational toggles (can also be overridden by CLI flags)
+fast = false                   # use more aggressive thresholds / cone caps
+list = false                   # also write list-mode per-cone sparse images
+
+# Execution / performance
+workers     = 0                # 0 = auto
 chunk_cones = "auto"
-jit = false
-progress = true
-diagnostics = true
+jit         = false
+progress    = true
+
+# Diagnostics verbosity
+# 0 = off, 1 = minimal (stage summaries + counters), 2 = verbose (per-stage details)
+diagnostics_level = 1
+
+# Safety cap for total imaged cones (after filtering and selection)
 max_cones = 3000
 
+
+[pipeline]
+# Where to stop the unified pipeline
+# "hits" | "events" | "cones" | "image"
+until = "image"
+
+
 [io]
-input = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out"
-output = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef_out.h5"
-# detector_map = "PLACEHOLDER/path/to/detectors_mnovo.json"
-source = "phits"  # "synth" | "root" | "phits"
+# Input PHITS usrdef tally and output HDF5 path
+input_path  = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out"
+input_format = "phits_usrdef"       # phits_usrdef | root_novo_ddaq | hdf5_ngimager
+output_path = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef_out.h5"
+hdf5_overwrite = true 
 
 [io.adapter]
-type = "phits"        # or "phits"
-style = "Joey"       # for ROOT from DDAQ-Tools
-unit_pos_is_mm = true
-time_units = "ns"    # or "ps"
+# PHITS usrdef adapter: stream tabular rows with normalized units
+type = "phits"          # factory key for PHITSAdapter
+style = "usrdef"        # make_adapter() can distinguish PHITS usrdef flavor if needed
+
+unit_pos_is_mm = false   # positions in input are mm; convert → cm
+time_units     = "ns"   # times in input are ns
 require_gamma_triples = true
 default_material = "UNK"
-# fieldmap = { x1="x1_custom", Elong1="ElongFirst", ... }
-material_map = { 200 = "OGS", 210 = "M600", 220 = "OGS", 230 = "M600", 240 = "OGS" }
+
+# NOTE: material-specific behavior (e.g. LUTs) is configured below in [detectors] and [energy].
+# If the adapter needs a per-detector material, it should ask cfg.detectors.
 
 [detectors]
-material_map = { 200 = "OGS", 210 = "M600", 220 = "OGS", 230 = "M600", 240 = "OGS" }
+# Default material to assume if a detector ID is missing from material_map
 default_material = "OGS"
 
+# Map detector IDs to materials used in this PHITS_simple example.
+[detectors.material_map]
+200 = "OGS"
+210 = "M600"
+220 = "OGS"
+230 = "M600"
+240 = "OGS"
+
+# Optional future extension (not yet required in code):
+# [detectors.geometry]
+# 200 = { center_cm = [-3.6, 16.5, 0.35],  normal = [0.0, -1.0, 0.0] }
+# 210 = { center_cm = [-3.4, 16.8, 0.59],  normal = [0.0, -1.0, 0.0] }
+# ...
+
 [plane]
-origin = [0.0, 15.0, 0.0]   # a point on the plane;  y ≈ face coordinate
+origin = [0.0, 15.0, 0.0]   # a point on the plane;  y ≈ detector face coordinate
 normal = [0.0, 1.0, 0.0]    # +y
 u_axis = [1.0, 0.0, 0.0]    # x runs horizontal
 v_axis = [0.0, 0.0, 1.0]    # z runs vertical
@@ -40,18 +90,35 @@ v_max =  20.0
 du = 0.1
 dv = 0.1
 
-[filters]
+# Filters are structured to allow future split into hit-level vs event-level.
+[filters.hits]
+# Universal hit-level cuts applied before event shaping
 min_light = 50.0
 max_light = 1.0e6
+bars_include      = []            # e.g. [200, 210, 220]
+materials_include = []            # e.g. ["M600", "OGS"]
+
+[filters.events.neutron]
+# Event-level cuts primary to neutron 2-hit events
+tof_window_ns = [0.0, 30.0]       # Δt12 for neutron events
+
+[filters.events.gamma]
+# Event-level cuts primary to gamma 3-hit events (placeholder for now)
 tof_window_ns = [0.0, 30.0]
-bars_include = []
-materials_include = []  # e.g. ["M600","OGS"]
 
 
 
 [energy]
-strategy = "ELUT"                  # ELUT | ToF | FixedEn
+# Neutron energy strategy:
+# - "ELUT": use E(L) LUTs for the first scatter (per material)
+# - "ToF":  use time-of-flight to estimate neutron energy change
+# - "FixedEn": use a fixed incident energy (e.g. DT source)
+strategy = "ELUT"                 # ELUT | ToF | FixedEn
+
+# Used only for strategy = "FixedEn"
 fixed_En_MeV = 14.1
+
+# LUT paths for any materials present. Extend freely for new materials.
 lut_paths.M600.proton = "data/lut/M600/lut_M600_proton_Birks.npz"
 lut_paths.M600.carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
 lut_paths.OGS.proton  = "data/lut/OGS/lut_OGS_proton_Birks.npz"
@@ -68,7 +135,7 @@ smearing = "thicken"
 sigma_doi_cm = 0.35
 sigma_transverse_cm = 0.346
 sigma_time_ns = 0.5
-use_lut_bands = false
+use_lut_bands = false  # if true, read E_lo/E_hi from LUTs where available
 
 [vis]
 export_png_on_write = true           # default true

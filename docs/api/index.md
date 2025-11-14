@@ -16,19 +16,13 @@ The modules are grouped roughly by how you use them in an imaging workflow:
 
 ## Pipelines
 
-High-level orchestration for running NOVO imaging in different modes.
+High-level orchestration for running NOVO imaging.
 
-### `ngimager.pipelines.fastmode`
+### `ngimager.pipelines.core`
 
-Fast, aggressively-cut imaging pipeline for quick “beam-time” feedback.
+::: ngimager.pipelines.core
 
-::: ngimager.pipelines.fastmode
 
-### `ngimager.pipelines.listmode`
-
-Full list-mode pipeline that preserves per-cone information for post-analysis.
-
-::: ngimager.pipelines.listmode
 
 ---
 
