@@ -22,64 +22,22 @@ from ngimager.physics.cones import build_cone_from_neutron
 from ngimager.physics.events import NeutronEvent, GammaEvent, Event
 from ngimager.physics.energy_strategies import make_energy_strategy
 from ngimager.physics.priors import make_prior, Prior
-from ngimager.sim.synth import synth_neutron_events_point_source
 from ngimager.vis.hdf import save_summed_png
 
 
 def _iter_source_events(cfg: Config) -> Iterable[Event]:
     """
-    Unified event source:
+    Unified event source for real data.
 
-    - cfg.run.source_type in {"dt", "cf252", "proton_center", "phits"} selects
-      how En0 / prior is handled (for now, we mostly use it for synthetic).
+    For now, all supported source types use the configured adapter to read
+    events from cfg.io.input. Synthetic / toy sources have been removed
+    from the production pipeline; use dedicated dev/test scripts instead.
+
+    - cfg.io.adapter.kind selects ROOT vs PHITS-style adapters.
     - cfg.io.input is passed to the adapter for real data.
     """
-    if cfg.run.source_type == "proton_center":
-        # # Synthetic point source, mainly for testing.
-        # lut_registry = build_lut_registry(cfg.energy.lut_paths)
-        # # crude choice: first proton LUT for M600
-        # lut_name = next(iter(lut_registry.keys()))
-        # lut = lut_registry[lut_name]
-        lut_registry = build_lut_registry(cfg.energy.lut_paths)
-        # Choose a material/species LUT:
-        #   - Prefer built-in M600/proton if present.
-        #   - Otherwise fall back to the first available material/species.
-        if "M600" in lut_registry and "proton" in lut_registry["M600"]:
-            material = "M600"
-            species = "proton"
-        else:
-            # Fallback: arbitrary first combo
-            material = next(iter(lut_registry.keys()))
-            species = next(iter(lut_registry[material].keys()))
-        lut = lut_registry[material][species]
-
-        source = np.array(cfg.prior.point, dtype=float)
-        plane = Plane.from_cfg(
-            cfg.plane.origin,
-            cfg.plane.normal,
-            cfg.plane.u_min,
-            cfg.plane.u_max,
-            cfg.plane.du,
-            cfg.plane.v_min,
-            cfg.plane.v_max,
-            cfg.plane.dv,
-        )
-
-        events = synth_neutron_events_point_source(
-            n_events=cfg.synth.n_events,
-            source_xyz_cm=source,
-            En0_MeV=cfg.energy.fixed_En_MeV,
-            lut=lut,
-            plane=plane,
-            #material="M600",
-            material=material,
-            s12_cm=10.0,
-        )
-        yield from events
-    else:
-        # Real data path (ROOT/PHITS etc.)
-        adapter = make_adapter(cfg.io.adapter)
-        yield from adapter.iter_events(cfg.io.input)
+    adapter = make_adapter(cfg.io.adapter)
+    return adapter.iter_events(str(cfg.io.input))
 
 
 def _build_cones_from_events(

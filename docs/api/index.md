@@ -148,13 +148,7 @@ Convenience functions for visualizing images stored in HDF5 output files.
 
 ## Simulation & Tools
 
-Synthetic data generation and developer utilities.
-
-### `ngimager.sim.synth`
-
-Simple synthetic / toy generators useful for testing the imaging chain.
-
-::: ngimager.sim.synth
+Developer utilities and LUT tools.
 
 ### `ngimager.tools.bundle_repo`
 
