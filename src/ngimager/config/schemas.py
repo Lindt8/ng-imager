@@ -26,18 +26,6 @@ class IOCfg(BaseModel):
     # default_material = "M600"
     adapter: Dict[str, Any] = Field(default_factory=dict)
 
-class SynthCfg(BaseModel):
-    """
-    Settings for synthetic (point-source) event generation.
-
-    Defaults are chosen so that proton_center tests work even without a [synth]
-    table in the TOML.
-    """
-    n_events: int = 10_000
-    # You can expand this later if you want, but they’re not required yet:
-    # source_xyz_cm: list[float] = [0.0, 0.0, 0.0]
-    # detector_xyz_cm: list[float] = [0.0, 0.0, 0.0]
-
 
 class PlaneCfg(BaseModel):
     origin: List[float]
@@ -87,5 +75,4 @@ class Config(BaseModel):
     energy: EnergyCfg
     prior: PriorCfg
     uncertainty: UncertaintyCfg | None = None
-    synth: SynthCfg = SynthCfg()
     vis: Optional[VisCfg] = None

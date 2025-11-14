@@ -11,7 +11,7 @@ max_cones = 3000
 [io]
 input = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out"
 output = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef_out.h5"
-detector_map = "PLACEHOLDER/path/to/detectors_mnovo.json"
+# detector_map = "PLACEHOLDER/path/to/detectors_mnovo.json"
 source = "phits"  # "synth" | "root" | "phits"
 
 [io.adapter]

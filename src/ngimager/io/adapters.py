@@ -266,20 +266,6 @@ class ROOTAdapter(BaseAdapter):
 # ---------------------------------------------------------------------------
 # PHITS adapter
 # ---------------------------------------------------------------------------
-def dict_hits_to_Hit(h: dict, default_material: str = "UNK") -> Hit:
-    r = np.array([h["x_cm"], h["y_cm"], h["z_cm"]], dtype=float)
-    extras = dict(h.get("__extras__", {}))
-    if "Edep_MeV" in h:
-        extras.setdefault("Edep_MeV", h["Edep_MeV"])
-    return Hit(
-        det_id=int(h.get("det_id", h.get("reg", 0))),
-        r=r,
-        t_ns=float(h["t_ns"]),
-        L=float(h.get("L", h.get("Edep_MeV", 0.0))),
-        material=default_material,
-        extras=extras,
-    )
-
 
 def parse_phits_usrdef_short(path: str | Path) -> List[Dict[str, Any]]:
     """
@@ -457,6 +443,9 @@ class PHITSAdapter(BaseAdapter):
         self._material_resolver = MaterialResolver.from_mapping(material_map, default=default_material)
 
     def _read_table(self, path: str):
+        '''
+        Generic table loader, used by future adapters; not currently used in the primary PHITS usrdef path
+        '''
         p = Path(path)
         suffix = p.suffix.lower()
         
@@ -478,42 +467,6 @@ class PHITSAdapter(BaseAdapter):
         if self.fieldmap:
             df = df.rename(columns=dict(self.fieldmap))
         return df
-
-    def _hit_from_row(self, r, which: str) -> Optional[Hit]:
-        keys = [f"x{which}", f"y{which}", f"z{which}", f"t{which}"]
-        if not all(k in r and pd.notna(r[k]) for k in keys):
-            return None
-
-        x, y, z, t = r[f"x{which}"], r[f"y{which}"], r[f"z{which}"], r[f"t{which}"]
-        if self.unit_pos_is_mm:
-            x, y, z = _mm_to_cm(float(x)), _mm_to_cm(float(y)), _mm_to_cm(float(z))
-
-        rvec = np.array([float(x), float(y), float(z)], dtype=float)
-        det = int(r.get(f"det{which}") or 0)
-
-        # Support either L* or elong* column names
-        L_val = r.get(f"L{which}")
-        if L_val is None:
-            L_val = r.get(f"elong{which}")
-        L = float(L_val) if (L_val is not None and pd.notna(L_val)) else 0.0
-
-        # Preserve any per-hit extras that exist in the row
-        extras: Dict[str, Any] = {}
-        for k in (f"dE{which}", f"psd{which}", f"elong{which}", f"L{which}"):
-            if k in r and pd.notna(r[k]):
-                try:
-                    extras[k] = float(r[k])
-                except Exception:
-                    extras[k] = r[k]
-
-        return Hit(
-            det_id=det,
-            r=rvec,
-            t_ns=float(t) * self.time_scale,
-            L=L,
-            material=self.default_material,
-            extras=extras,
-        )
     
     def iter_events(self, path: str) -> Iterable[NeutronEvent | GammaEvent]:
         """
@@ -540,39 +493,11 @@ class PHITSAdapter(BaseAdapter):
         df = self._read_table(path)
         for _, r in df.iterrows():
             # Your existing table-row → typed conversion logic stays as-is here.
-            # If the adapter previously yielded dicts here, keep that behavior.
             # Example (pseudocode placeholder; keep your real code):
             # ev = self._row_to_event(r)  # existing function
             # yield ev
             raise NotImplementedError("Table row→typed event conversion is unchanged; keep your existing code here.")
     
-    '''
-    def iter_events(self, path: str):
-        df = self._read_table(path)
-        # Apply field rename mapping once, if provided
-        if self.map:
-            keep = {dst: src for dst, src in self.map.items() if src in df.columns}
-            if keep:
-                df = df.rename(columns={v: k for k, v in keep.items()})
-
-        for idx, r in df.iterrows():
-            h1 = self._hit_from_row(r, "1")
-            h2 = self._hit_from_row(r, "2")
-            h3 = self._hit_from_row(r, "3")
-            if h1 is None or h2 is None:
-                continue
-
-            typ = r.get("type")
-            row_meta = {"source": "PHITS", "file": path, "row_index": int(idx)}
-
-            if (typ == "g") and (h3 is not None):
-                yield GammaEvent(h1=h1, h2=h2, h3=h3, meta=row_meta)
-            elif (typ is None) and (h3 is not None):
-                # permissive default if a third hit exists
-                yield GammaEvent(h1=h1, h2=h2, h3=h3, meta=row_meta)
-            else:
-                yield NeutronEvent(h1=h1, h2=h2, meta=row_meta)
-    '''
 
 # ---------------------------------------------------------------------------
 # Factory
