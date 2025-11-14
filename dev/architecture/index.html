@@ -2254,9 +2254,9 @@ The CLI always loads the config first, then applies overrides before calling <co
 <p>This checklist tracks migration from the current state to the architecture described here.</p>
 <h3 id="161-cleanup-and-deletion-of-redundant-paths">16.1. Cleanup and Deletion of Redundant Paths<a class="headerlink" href="#161-cleanup-and-deletion-of-redundant-paths" title="Permanent link">&para;</a></h3>
 <ul>
-<li>[ ] Remove any parallel PHITS→Hit/Event paths; ensure <code>PHITSAdapter</code> + <code>dict_hits_to_Hit</code> is the <strong>only</strong> canonical route for PHITS.</li>
-<li>[ ] Deprecate and remove <code>sim.*</code> from the active pipeline; if synthetic capabilities are retained, move them to examples/tests.</li>
-<li>[ ] Ensure only one <code>Hit</code> class exists and is used everywhere.</li>
+<li>[x] Remove any parallel PHITS→Hit/Event paths; ensure <code>PHITSAdapter</code> is the <strong>only</strong> canonical route for PHITS.</li>
+<li>[x] Deprecate and remove <code>sim.*</code> from the active pipeline; if synthetic capabilities are retained, move them to examples/tests.</li>
+<li>[x] Ensure only one <code>Hit</code> class exists and is used everywhere.</li>
 </ul>
 <h3 id="162-adapters-and-raw-events">16.2. Adapters and Raw Events<a class="headerlink" href="#162-adapters-and-raw-events" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2298,8 +2298,8 @@ The CLI always loads the config first, then applies overrides before calling <co
 </ul>
 <h3 id="167-unified-pipeline-and-cli">16.7. Unified Pipeline and CLI<a class="headerlink" href="#167-unified-pipeline-and-cli" title="Permanent link">&para;</a></h3>
 <ul>
-<li>[ ] Make <code>pipelines.core.run_pipeline</code> the central pipeline function.</li>
-<li>[ ] Deprecate/remove <code>pipelines.fastmode</code> and <code>pipelines.listmode</code> in favor of a single CLI that respects <code>run.fast</code>, <code>run.list</code>, <code>run.use_neutrons</code>, and <code>run.use_gammas</code> from config and CLI flags.</li>
+<li>[x] Make <code>pipelines.core.run_pipeline</code> the central pipeline function.</li>
+<li>[x] Deprecate/remove <code>pipelines.fastmode</code> and <code>pipelines.listmode</code> in favor of a single CLI that respects <code>run.fast</code>, <code>run.list</code>, <code>run.use_neutrons</code>, and <code>run.use_gammas</code> from config and CLI flags.</li>
 <li>[ ] Implement CLI flags:<ul>
 <li><code>--fast</code> / <code>--no-fast</code></li>
 <li><code>--list</code> / <code>--no-list</code></li>
