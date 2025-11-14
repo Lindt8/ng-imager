@@ -27,11 +27,3 @@ class Hit:
 
     # Preserve raw/source-specific fields for later filtering without polluting the core schema
     extras: Dict[str, Any] = field(default_factory=dict)
-
-def fake_hits(n: int = 2) -> list[Hit]:
-    """Generate placeholder hits for testing."""
-    hits = []
-    for i in range(n):
-        r = np.array([i * 2.0, 0.0, 0.0])
-        hits.append(Hit(det_id=i, r=r, t_ns=i * 5.0, L=500.0 + i*100.0, material="M600"))
-    return hits
