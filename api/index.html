@@ -611,18 +611,7 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ngimager.physics.hits.fake_hits" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        fake_hits
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="fake_hits">
+    <nav class="md-nav" aria-label="Hit">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2463,17 +2452,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#ngimager.physics.hits.fake_hits" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        fake_hits
-      
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -3442,43 +3420,6 @@ extras: arbitrary per-hit fields preserved from input (psd, dE_MeV, raw columns.
 
 </div>
 
-
-<div class="doc doc-object doc-function">
-
-
-<h2 id="ngimager.physics.hits.fake_hits" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">fake_hits</span>
-
-
-<a href="#ngimager.physics.hits.fake_hits" class="headerlink" title="Permanent link">&para;</a></h2>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">fake_hits</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Generate placeholder hits for testing.</p>
-
-
-            <details class="mkdocstrings-source">
-              <summary>Source code in <code>ngimager/physics/hits.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-31">31</a></span>
-<span class="normal"><a href="#__codelineno-0-32">32</a></span>
-<span class="normal"><a href="#__codelineno-0-33">33</a></span>
-<span class="normal"><a href="#__codelineno-0-34">34</a></span>
-<span class="normal"><a href="#__codelineno-0-35">35</a></span>
-<span class="normal"><a href="#__codelineno-0-36">36</a></span>
-<span class="normal"><a href="#__codelineno-0-37">37</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="k">def</span><span class="w"> </span><span class="nf">fake_hits</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Hit</span><span class="p">]:</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate placeholder hits for testing.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33"></a>    <span class="n">hits</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35"></a>        <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36"></a>        <span class="n">hits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Hit</span><span class="p">(</span><span class="n">det_id</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">t_ns</span><span class="o">=</span><span class="n">i</span> <span class="o">*</span> <span class="mf">5.0</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="mf">500.0</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s2">&quot;M600&quot;</span><span class="p">))</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37"></a>    <span class="k">return</span> <span class="n">hits</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
 
 
 
@@ -12783,43 +12724,6 @@ extras: arbitrary per-hit fields preserved from input (psd, dE_MeV, raw columns.
 
 </div>
 
-
-<div class="doc doc-object doc-function">
-
-
-<h5 id="ngimager.physics.hits.fake_hits" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">fake_hits</span>
-
-
-<a href="#ngimager.physics.hits.fake_hits" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">fake_hits</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Generate placeholder hits for testing.</p>
-
-
-            <details class="mkdocstrings-source">
-              <summary>Source code in <code>ngimager/physics/hits.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-31">31</a></span>
-<span class="normal"><a href="#__codelineno-0-32">32</a></span>
-<span class="normal"><a href="#__codelineno-0-33">33</a></span>
-<span class="normal"><a href="#__codelineno-0-34">34</a></span>
-<span class="normal"><a href="#__codelineno-0-35">35</a></span>
-<span class="normal"><a href="#__codelineno-0-36">36</a></span>
-<span class="normal"><a href="#__codelineno-0-37">37</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-31" name="__codelineno-0-31"></a><span class="k">def</span><span class="w"> </span><span class="nf">fake_hits</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Hit</span><span class="p">]:</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate placeholder hits for testing.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33"></a>    <span class="n">hits</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-<a id="__codelineno-0-35" name="__codelineno-0-35"></a>        <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36"></a>        <span class="n">hits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Hit</span><span class="p">(</span><span class="n">det_id</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">t_ns</span><span class="o">=</span><span class="n">i</span> <span class="o">*</span> <span class="mf">5.0</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="mf">500.0</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s2">&quot;M600&quot;</span><span class="p">))</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37"></a>    <span class="k">return</span> <span class="n">hits</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
 
 
 
