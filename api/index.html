@@ -10782,8 +10782,9 @@ counters are incremented.</p>
 
         <p>Shape raw coincidence windows into candidate 2-hit neutron and 3-hit gamma events.</p>
 <p>Inputs:
-  raw_events: iterable of dicts, each with at least 'hits' and optional 'event_type'.
-              hits may be dicts or Hit objects.
+  raw_events: iterable of dicts, each with at least a 'hits' key.
+              'hits' must be a sequence of canonical physics.hits.Hit objects.
+              (Adapters and/or canonicalization are responsible for constructing Hits.)
   cfg: ShapeConfig controlling policies and caps.</p>
 <p>Outputs:
   shaped: list of shaped event dicts with:
@@ -10795,7 +10796,30 @@ counters are incremented.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ngimager/filters/shapers.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-172">172</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-149">149</a></span>
+<span class="normal"><a href="#__codelineno-0-150">150</a></span>
+<span class="normal"><a href="#__codelineno-0-151">151</a></span>
+<span class="normal"><a href="#__codelineno-0-152">152</a></span>
+<span class="normal"><a href="#__codelineno-0-153">153</a></span>
+<span class="normal"><a href="#__codelineno-0-154">154</a></span>
+<span class="normal"><a href="#__codelineno-0-155">155</a></span>
+<span class="normal"><a href="#__codelineno-0-156">156</a></span>
+<span class="normal"><a href="#__codelineno-0-157">157</a></span>
+<span class="normal"><a href="#__codelineno-0-158">158</a></span>
+<span class="normal"><a href="#__codelineno-0-159">159</a></span>
+<span class="normal"><a href="#__codelineno-0-160">160</a></span>
+<span class="normal"><a href="#__codelineno-0-161">161</a></span>
+<span class="normal"><a href="#__codelineno-0-162">162</a></span>
+<span class="normal"><a href="#__codelineno-0-163">163</a></span>
+<span class="normal"><a href="#__codelineno-0-164">164</a></span>
+<span class="normal"><a href="#__codelineno-0-165">165</a></span>
+<span class="normal"><a href="#__codelineno-0-166">166</a></span>
+<span class="normal"><a href="#__codelineno-0-167">167</a></span>
+<span class="normal"><a href="#__codelineno-0-168">168</a></span>
+<span class="normal"><a href="#__codelineno-0-169">169</a></span>
+<span class="normal"><a href="#__codelineno-0-170">170</a></span>
+<span class="normal"><a href="#__codelineno-0-171">171</a></span>
+<span class="normal"><a href="#__codelineno-0-172">172</a></span>
 <span class="normal"><a href="#__codelineno-0-173">173</a></span>
 <span class="normal"><a href="#__codelineno-0-174">174</a></span>
 <span class="normal"><a href="#__codelineno-0-175">175</a></span>
@@ -10850,110 +10874,85 @@ counters are incremented.</p>
 <span class="normal"><a href="#__codelineno-0-224">224</a></span>
 <span class="normal"><a href="#__codelineno-0-225">225</a></span>
 <span class="normal"><a href="#__codelineno-0-226">226</a></span>
-<span class="normal"><a href="#__codelineno-0-227">227</a></span>
-<span class="normal"><a href="#__codelineno-0-228">228</a></span>
-<span class="normal"><a href="#__codelineno-0-229">229</a></span>
-<span class="normal"><a href="#__codelineno-0-230">230</a></span>
-<span class="normal"><a href="#__codelineno-0-231">231</a></span>
-<span class="normal"><a href="#__codelineno-0-232">232</a></span>
-<span class="normal"><a href="#__codelineno-0-233">233</a></span>
-<span class="normal"><a href="#__codelineno-0-234">234</a></span>
-<span class="normal"><a href="#__codelineno-0-235">235</a></span>
-<span class="normal"><a href="#__codelineno-0-236">236</a></span>
-<span class="normal"><a href="#__codelineno-0-237">237</a></span>
-<span class="normal"><a href="#__codelineno-0-238">238</a></span>
-<span class="normal"><a href="#__codelineno-0-239">239</a></span>
-<span class="normal"><a href="#__codelineno-0-240">240</a></span>
-<span class="normal"><a href="#__codelineno-0-241">241</a></span>
-<span class="normal"><a href="#__codelineno-0-242">242</a></span>
-<span class="normal"><a href="#__codelineno-0-243">243</a></span>
-<span class="normal"><a href="#__codelineno-0-244">244</a></span>
-<span class="normal"><a href="#__codelineno-0-245">245</a></span>
-<span class="normal"><a href="#__codelineno-0-246">246</a></span>
-<span class="normal"><a href="#__codelineno-0-247">247</a></span>
-<span class="normal"><a href="#__codelineno-0-248">248</a></span>
-<span class="normal"><a href="#__codelineno-0-249">249</a></span>
-<span class="normal"><a href="#__codelineno-0-250">250</a></span>
-<span class="normal"><a href="#__codelineno-0-251">251</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-172" name="__codelineno-0-172"></a><span class="k">def</span><span class="w"> </span><span class="nf">shape_events_for_cones</span><span class="p">(</span>
-<a id="__codelineno-0-173" name="__codelineno-0-173"></a>    <span class="n">raw_events</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
-<a id="__codelineno-0-174" name="__codelineno-0-174"></a>    <span class="n">cfg</span><span class="p">:</span> <span class="n">ShapeConfig</span><span class="p">,</span>
-<a id="__codelineno-0-175" name="__codelineno-0-175"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">ShapeDiagnostics</span><span class="p">]:</span>
-<a id="__codelineno-0-176" name="__codelineno-0-176"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-177" name="__codelineno-0-177"></a><span class="sd">    Shape raw coincidence windows into candidate 2-hit neutron and 3-hit gamma events.</span>
+<span class="normal"><a href="#__codelineno-0-227">227</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-149" name="__codelineno-0-149"></a><span class="k">def</span><span class="w"> </span><span class="nf">shape_events_for_cones</span><span class="p">(</span>
+<a id="__codelineno-0-150" name="__codelineno-0-150"></a>    <span class="n">raw_events</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+<a id="__codelineno-0-151" name="__codelineno-0-151"></a>    <span class="n">cfg</span><span class="p">:</span> <span class="n">ShapeConfig</span><span class="p">,</span>
+<a id="__codelineno-0-152" name="__codelineno-0-152"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">ShapeDiagnostics</span><span class="p">]:</span>
+<a id="__codelineno-0-153" name="__codelineno-0-153"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-154" name="__codelineno-0-154"></a><span class="sd">    Shape raw coincidence windows into candidate 2-hit neutron and 3-hit gamma events.</span>
+<a id="__codelineno-0-155" name="__codelineno-0-155"></a>
+<a id="__codelineno-0-156" name="__codelineno-0-156"></a><span class="sd">    Inputs:</span>
+<a id="__codelineno-0-157" name="__codelineno-0-157"></a><span class="sd">      raw_events: iterable of dicts, each with at least a &#39;hits&#39; key.</span>
+<a id="__codelineno-0-158" name="__codelineno-0-158"></a><span class="sd">                  &#39;hits&#39; must be a sequence of canonical physics.hits.Hit objects.</span>
+<a id="__codelineno-0-159" name="__codelineno-0-159"></a><span class="sd">                  (Adapters and/or canonicalization are responsible for constructing Hits.)</span>
+<a id="__codelineno-0-160" name="__codelineno-0-160"></a><span class="sd">      cfg: ShapeConfig controlling policies and caps.</span>
+<a id="__codelineno-0-161" name="__codelineno-0-161"></a>
+<a id="__codelineno-0-162" name="__codelineno-0-162"></a><span class="sd">    Outputs:</span>
+<a id="__codelineno-0-163" name="__codelineno-0-163"></a><span class="sd">      shaped: list of shaped event dicts with:</span>
+<a id="__codelineno-0-164" name="__codelineno-0-164"></a><span class="sd">                - &#39;event_type&#39;: &#39;n&#39; or &#39;g&#39;</span>
+<a id="__codelineno-0-165" name="__codelineno-0-165"></a><span class="sd">                - &#39;hits&#39;: list of hits (same objects as input)</span>
+<a id="__codelineno-0-166" name="__codelineno-0-166"></a><span class="sd">                - plus any original metadata keys preserved</span>
+<a id="__codelineno-0-167" name="__codelineno-0-167"></a><span class="sd">      diag:   ShapeDiagnostics with counters and reasons.</span>
+<a id="__codelineno-0-168" name="__codelineno-0-168"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-169" name="__codelineno-0-169"></a>    <span class="n">diag</span> <span class="o">=</span> <span class="n">ShapeDiagnostics</span><span class="p">()</span>
+<a id="__codelineno-0-170" name="__codelineno-0-170"></a>    <span class="n">shaped</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-171" name="__codelineno-0-171"></a>
+<a id="__codelineno-0-172" name="__codelineno-0-172"></a>    <span class="k">for</span> <span class="n">ev</span> <span class="ow">in</span> <span class="n">raw_events</span><span class="p">:</span>
+<a id="__codelineno-0-173" name="__codelineno-0-173"></a>        <span class="n">diag</span><span class="o">.</span><span class="n">total_events</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-0-174" name="__codelineno-0-174"></a>        <span class="n">hits</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ev</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+<a id="__codelineno-0-175" name="__codelineno-0-175"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">hits</span><span class="p">:</span>
+<a id="__codelineno-0-176" name="__codelineno-0-176"></a>            <span class="n">diag</span><span class="o">.</span><span class="n">inc</span><span class="p">(</span><span class="s2">&quot;no_hits&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-177" name="__codelineno-0-177"></a>            <span class="k">continue</span>
 <a id="__codelineno-0-178" name="__codelineno-0-178"></a>
-<a id="__codelineno-0-179" name="__codelineno-0-179"></a><span class="sd">    Inputs:</span>
-<a id="__codelineno-0-180" name="__codelineno-0-180"></a><span class="sd">      raw_events: iterable of dicts, each with at least &#39;hits&#39; and optional &#39;event_type&#39;.</span>
-<a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="sd">                  hits may be dicts or Hit objects.</span>
-<a id="__codelineno-0-182" name="__codelineno-0-182"></a><span class="sd">      cfg: ShapeConfig controlling policies and caps.</span>
-<a id="__codelineno-0-183" name="__codelineno-0-183"></a>
-<a id="__codelineno-0-184" name="__codelineno-0-184"></a><span class="sd">    Outputs:</span>
-<a id="__codelineno-0-185" name="__codelineno-0-185"></a><span class="sd">      shaped: list of shaped event dicts with:</span>
-<a id="__codelineno-0-186" name="__codelineno-0-186"></a><span class="sd">                - &#39;event_type&#39;: &#39;n&#39; or &#39;g&#39;</span>
-<a id="__codelineno-0-187" name="__codelineno-0-187"></a><span class="sd">                - &#39;hits&#39;: list of hits (same objects as input)</span>
-<a id="__codelineno-0-188" name="__codelineno-0-188"></a><span class="sd">                - plus any original metadata keys preserved</span>
-<a id="__codelineno-0-189" name="__codelineno-0-189"></a><span class="sd">      diag:   ShapeDiagnostics with counters and reasons.</span>
-<a id="__codelineno-0-190" name="__codelineno-0-190"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-191" name="__codelineno-0-191"></a>    <span class="n">diag</span> <span class="o">=</span> <span class="n">ShapeDiagnostics</span><span class="p">()</span>
-<a id="__codelineno-0-192" name="__codelineno-0-192"></a>    <span class="n">shaped</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-0-193" name="__codelineno-0-193"></a>
-<a id="__codelineno-0-194" name="__codelineno-0-194"></a>    <span class="k">for</span> <span class="n">ev</span> <span class="ow">in</span> <span class="n">raw_events</span><span class="p">:</span>
-<a id="__codelineno-0-195" name="__codelineno-0-195"></a>        <span class="n">diag</span><span class="o">.</span><span class="n">total_events</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-196" name="__codelineno-0-196"></a>        <span class="n">hits</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ev</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="p">[]))</span>
-<a id="__codelineno-0-197" name="__codelineno-0-197"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">hits</span><span class="p">:</span>
-<a id="__codelineno-0-198" name="__codelineno-0-198"></a>            <span class="n">diag</span><span class="o">.</span><span class="n">inc</span><span class="p">(</span><span class="s2">&quot;no_hits&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199"></a>            <span class="k">continue</span>
-<a id="__codelineno-0-200" name="__codelineno-0-200"></a>
-<a id="__codelineno-0-201" name="__codelineno-0-201"></a>        <span class="n">ev_type</span> <span class="o">=</span> <span class="n">ev</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;event_type&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-202" name="__codelineno-0-202"></a>
-<a id="__codelineno-0-203" name="__codelineno-0-203"></a>        <span class="c1"># Partition by species using Hit.type when available</span>
-<a id="__codelineno-0-204" name="__codelineno-0-204"></a>        <span class="n">n_hits</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-0-205" name="__codelineno-0-205"></a>        <span class="n">g_hits</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-0-206" name="__codelineno-0-206"></a>        <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">:</span>
-<a id="__codelineno-0-207" name="__codelineno-0-207"></a>            <span class="n">sp</span> <span class="o">=</span> <span class="n">_hit_species</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="n">ev_type</span><span class="p">)</span>
-<a id="__codelineno-0-208" name="__codelineno-0-208"></a>            <span class="k">if</span> <span class="n">sp</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-209" name="__codelineno-0-209"></a>                <span class="n">n_hits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-<a id="__codelineno-0-210" name="__codelineno-0-210"></a>            <span class="k">elif</span> <span class="n">sp</span> <span class="o">==</span> <span class="s2">&quot;g&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-211" name="__codelineno-0-211"></a>                <span class="n">g_hits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>            <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-213" name="__codelineno-0-213"></a>                <span class="c1"># Unknown species; currently ignore for shaping</span>
-<a id="__codelineno-0-214" name="__codelineno-0-214"></a>                <span class="n">diag</span><span class="o">.</span><span class="n">inc</span><span class="p">(</span><span class="s2">&quot;unknown_species_hit&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-215" name="__codelineno-0-215"></a>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>        <span class="k">if</span> <span class="n">n_hits</span><span class="p">:</span>
-<a id="__codelineno-0-217" name="__codelineno-0-217"></a>            <span class="n">diag</span><span class="o">.</span><span class="n">neutron_in</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-218" name="__codelineno-0-218"></a>            <span class="n">selected_n</span> <span class="o">=</span> <span class="n">_select_hits</span><span class="p">(</span>
-<a id="__codelineno-0-219" name="__codelineno-0-219"></a>                <span class="n">n_hits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-<a id="__codelineno-0-220" name="__codelineno-0-220"></a>                <span class="n">policy</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">neutron_policy</span><span class="p">,</span>
-<a id="__codelineno-0-221" name="__codelineno-0-221"></a>                <span class="n">max_combinations</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">max_combinations</span><span class="p">,</span>
-<a id="__codelineno-0-222" name="__codelineno-0-222"></a>                <span class="n">diag</span><span class="o">=</span><span class="n">diag</span><span class="p">,</span>
-<a id="__codelineno-0-223" name="__codelineno-0-223"></a>                <span class="n">species</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-224" name="__codelineno-0-224"></a>            <span class="p">)</span>
-<a id="__codelineno-0-225" name="__codelineno-0-225"></a>            <span class="k">for</span> <span class="n">hs</span> <span class="ow">in</span> <span class="n">selected_n</span><span class="p">:</span>
-<a id="__codelineno-0-226" name="__codelineno-0-226"></a>                <span class="n">ev_out</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ev</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="s2">&quot;event_type&quot;</span><span class="p">)}</span>
-<a id="__codelineno-0-227" name="__codelineno-0-227"></a>                <span class="n">ev_out</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;n&quot;</span>
-<a id="__codelineno-0-228" name="__codelineno-0-228"></a>                <span class="n">ev_out</span><span class="p">[</span><span class="s2">&quot;hits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hs</span>
-<a id="__codelineno-0-229" name="__codelineno-0-229"></a>                <span class="n">shaped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ev_out</span><span class="p">)</span>
-<a id="__codelineno-0-230" name="__codelineno-0-230"></a>                <span class="n">diag</span><span class="o">.</span><span class="n">shaped_neutron</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-231" name="__codelineno-0-231"></a>
-<a id="__codelineno-0-232" name="__codelineno-0-232"></a>        <span class="k">if</span> <span class="n">g_hits</span><span class="p">:</span>
-<a id="__codelineno-0-233" name="__codelineno-0-233"></a>            <span class="n">diag</span><span class="o">.</span><span class="n">gamma_in</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-234" name="__codelineno-0-234"></a>            <span class="n">selected_g</span> <span class="o">=</span> <span class="n">_select_hits</span><span class="p">(</span>
-<a id="__codelineno-0-235" name="__codelineno-0-235"></a>                <span class="n">g_hits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<a id="__codelineno-0-236" name="__codelineno-0-236"></a>                <span class="n">policy</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">gamma_policy</span><span class="p">,</span>
-<a id="__codelineno-0-237" name="__codelineno-0-237"></a>                <span class="n">max_combinations</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">max_combinations</span><span class="p">,</span>
-<a id="__codelineno-0-238" name="__codelineno-0-238"></a>                <span class="n">diag</span><span class="o">=</span><span class="n">diag</span><span class="p">,</span>
-<a id="__codelineno-0-239" name="__codelineno-0-239"></a>                <span class="n">species</span><span class="o">=</span><span class="s2">&quot;g&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-240" name="__codelineno-0-240"></a>            <span class="p">)</span>
-<a id="__codelineno-0-241" name="__codelineno-0-241"></a>            <span class="k">for</span> <span class="n">hs</span> <span class="ow">in</span> <span class="n">selected_g</span><span class="p">:</span>
-<a id="__codelineno-0-242" name="__codelineno-0-242"></a>                <span class="n">ev_out</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ev</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="s2">&quot;event_type&quot;</span><span class="p">)}</span>
-<a id="__codelineno-0-243" name="__codelineno-0-243"></a>                <span class="n">ev_out</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;g&quot;</span>
-<a id="__codelineno-0-244" name="__codelineno-0-244"></a>                <span class="n">ev_out</span><span class="p">[</span><span class="s2">&quot;hits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hs</span>
-<a id="__codelineno-0-245" name="__codelineno-0-245"></a>                <span class="n">shaped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ev_out</span><span class="p">)</span>
-<a id="__codelineno-0-246" name="__codelineno-0-246"></a>                <span class="n">diag</span><span class="o">.</span><span class="n">shaped_gamma</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-247" name="__codelineno-0-247"></a>
-<a id="__codelineno-0-248" name="__codelineno-0-248"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">n_hits</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">g_hits</span><span class="p">:</span>
-<a id="__codelineno-0-249" name="__codelineno-0-249"></a>            <span class="n">diag</span><span class="o">.</span><span class="n">inc</span><span class="p">(</span><span class="s2">&quot;no_usable_species&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-250" name="__codelineno-0-250"></a>
-<a id="__codelineno-0-251" name="__codelineno-0-251"></a>    <span class="k">return</span> <span class="n">shaped</span><span class="p">,</span> <span class="n">diag</span>
+<a id="__codelineno-0-179" name="__codelineno-0-179"></a>        <span class="c1"># Partition by species using Hit.type when available</span>
+<a id="__codelineno-0-180" name="__codelineno-0-180"></a>        <span class="n">n_hits</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-181" name="__codelineno-0-181"></a>        <span class="n">g_hits</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-0-182" name="__codelineno-0-182"></a>        <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">:</span>
+<a id="__codelineno-0-183" name="__codelineno-0-183"></a>            <span class="n">sp</span> <span class="o">=</span> <span class="n">_hit_species</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<a id="__codelineno-0-184" name="__codelineno-0-184"></a>            <span class="k">if</span> <span class="n">sp</span> <span class="o">==</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-185" name="__codelineno-0-185"></a>                <span class="n">n_hits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<a id="__codelineno-0-186" name="__codelineno-0-186"></a>            <span class="k">elif</span> <span class="n">sp</span> <span class="o">==</span> <span class="s2">&quot;g&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-187" name="__codelineno-0-187"></a>                <span class="n">g_hits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+<a id="__codelineno-0-188" name="__codelineno-0-188"></a>            <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-189" name="__codelineno-0-189"></a>                <span class="c1"># Unknown species; currently ignore for shaping</span>
+<a id="__codelineno-0-190" name="__codelineno-0-190"></a>                <span class="n">diag</span><span class="o">.</span><span class="n">inc</span><span class="p">(</span><span class="s2">&quot;unknown_species_hit&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-191" name="__codelineno-0-191"></a>
+<a id="__codelineno-0-192" name="__codelineno-0-192"></a>        <span class="k">if</span> <span class="n">n_hits</span><span class="p">:</span>
+<a id="__codelineno-0-193" name="__codelineno-0-193"></a>            <span class="n">diag</span><span class="o">.</span><span class="n">neutron_in</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-0-194" name="__codelineno-0-194"></a>            <span class="n">selected_n</span> <span class="o">=</span> <span class="n">_select_hits</span><span class="p">(</span>
+<a id="__codelineno-0-195" name="__codelineno-0-195"></a>                <span class="n">n_hits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-0-196" name="__codelineno-0-196"></a>                <span class="n">policy</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">neutron_policy</span><span class="p">,</span>
+<a id="__codelineno-0-197" name="__codelineno-0-197"></a>                <span class="n">max_combinations</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">max_combinations</span><span class="p">,</span>
+<a id="__codelineno-0-198" name="__codelineno-0-198"></a>                <span class="n">diag</span><span class="o">=</span><span class="n">diag</span><span class="p">,</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a>                <span class="n">species</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-200" name="__codelineno-0-200"></a>            <span class="p">)</span>
+<a id="__codelineno-0-201" name="__codelineno-0-201"></a>            <span class="k">for</span> <span class="n">hs</span> <span class="ow">in</span> <span class="n">selected_n</span><span class="p">:</span>
+<a id="__codelineno-0-202" name="__codelineno-0-202"></a>                <span class="n">ev_out</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ev</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="s2">&quot;event_type&quot;</span><span class="p">)}</span>
+<a id="__codelineno-0-203" name="__codelineno-0-203"></a>                <span class="n">ev_out</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;n&quot;</span>
+<a id="__codelineno-0-204" name="__codelineno-0-204"></a>                <span class="n">ev_out</span><span class="p">[</span><span class="s2">&quot;hits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hs</span>
+<a id="__codelineno-0-205" name="__codelineno-0-205"></a>                <span class="n">shaped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ev_out</span><span class="p">)</span>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a>                <span class="n">diag</span><span class="o">.</span><span class="n">shaped_neutron</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-0-207" name="__codelineno-0-207"></a>
+<a id="__codelineno-0-208" name="__codelineno-0-208"></a>        <span class="k">if</span> <span class="n">g_hits</span><span class="p">:</span>
+<a id="__codelineno-0-209" name="__codelineno-0-209"></a>            <span class="n">diag</span><span class="o">.</span><span class="n">gamma_in</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-0-210" name="__codelineno-0-210"></a>            <span class="n">selected_g</span> <span class="o">=</span> <span class="n">_select_hits</span><span class="p">(</span>
+<a id="__codelineno-0-211" name="__codelineno-0-211"></a>                <span class="n">g_hits</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-0-212" name="__codelineno-0-212"></a>                <span class="n">policy</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">gamma_policy</span><span class="p">,</span>
+<a id="__codelineno-0-213" name="__codelineno-0-213"></a>                <span class="n">max_combinations</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">max_combinations</span><span class="p">,</span>
+<a id="__codelineno-0-214" name="__codelineno-0-214"></a>                <span class="n">diag</span><span class="o">=</span><span class="n">diag</span><span class="p">,</span>
+<a id="__codelineno-0-215" name="__codelineno-0-215"></a>                <span class="n">species</span><span class="o">=</span><span class="s2">&quot;g&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a>            <span class="p">)</span>
+<a id="__codelineno-0-217" name="__codelineno-0-217"></a>            <span class="k">for</span> <span class="n">hs</span> <span class="ow">in</span> <span class="n">selected_g</span><span class="p">:</span>
+<a id="__codelineno-0-218" name="__codelineno-0-218"></a>                <span class="n">ev_out</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ev</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="s2">&quot;event_type&quot;</span><span class="p">)}</span>
+<a id="__codelineno-0-219" name="__codelineno-0-219"></a>                <span class="n">ev_out</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;g&quot;</span>
+<a id="__codelineno-0-220" name="__codelineno-0-220"></a>                <span class="n">ev_out</span><span class="p">[</span><span class="s2">&quot;hits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hs</span>
+<a id="__codelineno-0-221" name="__codelineno-0-221"></a>                <span class="n">shaped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ev_out</span><span class="p">)</span>
+<a id="__codelineno-0-222" name="__codelineno-0-222"></a>                <span class="n">diag</span><span class="o">.</span><span class="n">shaped_gamma</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-0-223" name="__codelineno-0-223"></a>
+<a id="__codelineno-0-224" name="__codelineno-0-224"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">n_hits</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">g_hits</span><span class="p">:</span>
+<a id="__codelineno-0-225" name="__codelineno-0-225"></a>            <span class="n">diag</span><span class="o">.</span><span class="n">inc</span><span class="p">(</span><span class="s2">&quot;no_usable_species&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-226" name="__codelineno-0-226"></a>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a>    <span class="k">return</span> <span class="n">shaped</span><span class="p">,</span> <span class="n">diag</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
