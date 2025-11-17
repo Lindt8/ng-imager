@@ -40,7 +40,19 @@ def _iter_source_events(cfg: Config) -> Iterable[Event]:
     - cfg.io.adapter.kind selects ROOT vs PHITS-style adapters.
     - cfg.io.input_path is passed to the adapter for real data.
     """
-    adapter = make_adapter(cfg.io.adapter)
+    adapter_cfg: Dict[str, object] = dict(cfg.io.adapter)
+
+    det_cfg = getattr(cfg, "detectors", None)
+    if det_cfg is not None:
+        mat_map = getattr(det_cfg, "material_map", None)
+        if mat_map and "material_map" not in adapter_cfg:
+            adapter_cfg["material_map"] = mat_map
+
+        default_mat = getattr(det_cfg, "default_material", None)
+        if default_mat and "default_material" not in adapter_cfg:
+            adapter_cfg["default_material"] = default_mat
+
+    adapter = make_adapter(adapter_cfg)
     return adapter.iter_events(str(cfg.io.input_path))
 
 
@@ -186,7 +198,20 @@ def run_pipeline(
         if diag_level >= 1:
             print("[pipeline] Using staged PHITS path: raw events → hits → shaped → typed")
 
-        adapter = make_adapter(cfg.io.adapter)
+        # Build adapter config, injecting detector-level material info.
+        adapter_cfg: Dict[str, object] = dict(cfg.io.adapter)
+
+        det_cfg = getattr(cfg, "detectors", None)
+        if det_cfg is not None:
+            mat_map = getattr(det_cfg, "material_map", None)
+            if mat_map and "material_map" not in adapter_cfg:
+                adapter_cfg["material_map"] = mat_map
+
+            default_mat = getattr(det_cfg, "default_material", None)
+            if default_mat and "default_material" not in adapter_cfg:
+                adapter_cfg["default_material"] = default_mat
+
+        adapter = make_adapter(adapter_cfg)
 
         raw_events_after_filters = []
 
@@ -268,14 +293,31 @@ def run_pipeline(
             order_time=True,
         )
 
-        # Update typed-event counters (aligned with architecture §13.1)
-        counters["typed_events_total"] = counters.get("typed_events_total", 0) + len(events)
-        counters["typed_events_n"] = counters.get("typed_events_n", 0) + sum(
-            isinstance(ev, NeutronEvent) for ev in events
-        )
-        counters["typed_events_g"] = counters.get("typed_events_g", 0) + sum(
-            isinstance(ev, GammaEvent) for ev in events
-        )
+        # ---- Typed events diagnostics (Stage: hits → shaped → typed) ----
+        # Species breakdown based on the typed-event objects themselves.
+        # This does not assume any particular event-level filters yet.
+        from ngimager.physics.events import NeutronEvent, GammaEvent
+        n_n = sum(isinstance(ev, NeutronEvent) for ev in events)
+        n_g = sum(isinstance(ev, GammaEvent) for ev in events)
+        counters["events_typed_total"] = n_n + n_g
+        counters["events_typed_n"] = n_n
+        counters["events_typed_g"] = n_g
+        # Placeholder for future event-level rejections (event filters)
+        # so that a later filter stage can do:
+        #   counters["events_rejected_filters"] = ...
+        events_rejected = counters.get("events_rejected_filters", 0)
+
+        if diag_level >= 1:
+            print(
+                "[events] typed_total={total} "
+                "typed_n={n} typed_g={g} "
+                "events_rejected_filters={rej}".format(
+                    total=len(events),
+                    n=n_n,
+                    g=n_g,
+                    rej=events_rejected,
+                )
+            )
 
     else:
         # For non-PHITS sources, keep the existing direct typed-event path.
