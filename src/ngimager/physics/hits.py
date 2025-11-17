@@ -11,6 +11,7 @@ class Hit:
     r: position [cm]
     t_ns: time [ns]
     L: light-like measure (e.g., Elong) (dimensionless or MeVee-scale per your LUT)
+    type: particle tag for this hit (e.g., "n" for neutron, "g" for gamma, "UNK" if unknown)
     material: detector material tag (e.g., "M600")
     extras: arbitrary per-hit fields preserved from input (psd, dE_MeV, raw columns...)
     """
@@ -18,6 +19,7 @@ class Hit:
     r: np.ndarray  # shape (3,), dtype float
     t_ns: float
     L: float = 0.0
+    type: str = "UNK"
     material: str = "UNK"
 
     # Optional first-order uncertainties (hooks only; can be None/unused for now)

@@ -408,6 +408,14 @@ def from_phits_usrdef(path: str | Path, *, format_hint: Literal["short","auto"]=
     # Convert dict-hits → Hit objects (keep source fields in extras)
     for ev in events:
         hits_H: List[Hit] = []
+        ev_type = ev.get("event_type", "UNK") # event-level particle type from PHITS ("n" | "g")
+        # Normalize to our canonical one-letter codes
+        if ev_type.startswith("n"):
+            hit_type = "n"
+        elif ev_type.startswith("g"):
+            hit_type = "g"
+        else:
+            hit_type = "UNK"
         for h in ev["hits"]:
             det = int(h["det_id"]) if "det_id" in h else int(h.get("reg", 0))
             r = np.array([h["x_cm"], h["y_cm"], h["z_cm"]], dtype=float)
@@ -417,7 +425,7 @@ def from_phits_usrdef(path: str | Path, *, format_hint: Literal["short","auto"]=
                 extras.setdefault("Edep_MeV", h["Edep_MeV"])
             material = resolver.material_for(det)
             hits_H.append(Hit(det_id=det, r=r, t_ns=float(h["t_ns"]), L=float(h.get("L", extras.get("Edep_MeV", 0.0))),
-                              material=material, extras=extras))
+                              type=hit_type, material=material, extras=extras))
         ev["hits"] = hits_H
     return events
 
