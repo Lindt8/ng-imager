@@ -34,6 +34,14 @@ def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File
     meta.attrs["grid.dv"] = plane.dv
     meta.attrs["grid.nu"] = plane.nu
     meta.attrs["grid.nv"] = plane.nv
+
+    # Run configuration flags
+    # (we store these as simple attrs for quick inspection)
+    meta.attrs["run_fast"] = bool(getattr(cfg.run, "fast", False))
+    meta.attrs["run_list"] = bool(getattr(cfg.run, "list", False))
+    meta.attrs["run_neutron"] = bool(getattr(cfg.run, "neutrons", True))
+    meta.attrs["run_gamma"] = bool(getattr(cfg.run, "gammas", True))
+    meta.attrs["run_stop_stage"] = getattr(cfg.run, "stop_stage", "")
     return f
 
 
@@ -80,19 +88,40 @@ def write_cones(
     theta_rad : (N,) float (half-angle)
     """
     grp = f.require_group("cones")
-    if "cone_id" in grp:
-        del grp["cone_id"]
-    if "apex_xyz_cm" in grp:
-        del grp["apex_xyz_cm"]
-    if "axis_xyz" in grp:
-        del grp["axis_xyz"]
-    if "theta_rad" in grp:
-        del grp["theta_rad"]
+    for name in ("cone_id", "apex_xyz_cm", "axis_xyz", "theta_rad", "species"):
+        if name in grp:
+            del grp[name]
 
-    grp.create_dataset("cone_id", data=cone_ids.astype(np.uint32), compression="gzip")
-    grp.create_dataset("apex_xyz_cm", data=apex_xyz_cm.astype(np.float32), compression="gzip")
-    grp.create_dataset("axis_xyz", data=axis_xyz.astype(np.float32), compression="gzip")
-    grp.create_dataset("theta_rad", data=theta_rad.astype(np.float32), compression="gzip")
+    grp.create_dataset(
+        "cone_id",
+        data=cone_ids.astype(np.uint32),
+        compression="gzip",
+    )
+    grp.create_dataset(
+        "apex_xyz_cm",
+        data=apex_xyz_cm.astype(np.float32),
+        compression="gzip",
+    )
+    grp.create_dataset(
+        "axis_xyz",
+        data=axis_xyz.astype(np.float32),
+        compression="gzip",
+    )
+    grp.create_dataset(
+        "theta_rad",
+        data=theta_rad.astype(np.float32),
+        compression="gzip",
+    )
+
+    # Species: 0 = neutron, 1 = gamma.
+    # For now we only build neutron cones, so all entries are 0.
+    species = np.zeros_like(cone_ids, dtype=np.uint8)
+    grp.create_dataset(
+        "species",
+        data=species,
+        compression="gzip",
+    )
+
 
 
 def write_lm_indices(

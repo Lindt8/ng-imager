@@ -1,6 +1,6 @@
 from __future__ import annotations
 import numpy as np
-from typing import Literal
+from typing import Literal, Optional
 from .hits import Hit
 from ..io.lut import LUT
 
@@ -56,6 +56,28 @@ class EnergyFromFixedIncident(EnergyStrategy):
     def first_scatter_energy(self, h1, h2, material, species=None):
         return self.En, None
 
+class EnergyFromDeposited(EnergyStrategy):
+    """
+    Treat Hit.L as deposited energy (MeV) directly.
+
+    This is intended for synthetic/sim sources like PHITS where Hit.L has
+    already been filled from Edep_MeV in the adapter, so no E(L) inversion
+    or ToF logic is needed.
+    """
+    name = "Edep"
+
+    def first_scatter_energy(
+        self,
+        h1: Hit,
+        h2: Hit | None,
+        material: str,
+        species: Literal["proton", "carbon"] | None = "proton",
+    ) -> tuple[float, float | None]:
+        # By construction, h1.L is the deposited energy in MeV.
+        return float(h1.L), None
+
+
+
 # --- Factory ----------------------------------------------------------------
 
 def make_energy_strategy(cfg_energy, lut_registry=None) -> EnergyStrategy:
@@ -65,5 +87,7 @@ def make_energy_strategy(cfg_energy, lut_registry=None) -> EnergyStrategy:
         return EnergyFromToF()
     elif cfg_energy.strategy == "FixedEn":
         return EnergyFromFixedIncident(cfg_energy.fixed_En_MeV)
+    if cfg_energy.strategy == "Edep":
+        return EnergyFromDeposited()
     else:
         raise ValueError(f"Unknown strategy {cfg_energy.strategy}")

@@ -219,7 +219,12 @@ Optional: additional physics descriptors (density, Z, etc.) if needed later.
 Energy strategies for **neutron events**:
 
 ```toml
-strategy = "light_lut"  # or "tof" or "fixed_incident"
+# Neutron energy strategy:
+# - "ELUT": use E(L) LUTs for the first scatter (per material)
+# - "ToF":  use time-of-flight to estimate neutron energy change
+# - "FixedEn": use a fixed incident energy (e.g. DT source)
+# - "Edep": treat Hit.L as deposited energy directly (e.g. PHITS Edep_MeV)
+strategy = "Edep"                 # ELUT | ToF | FixedEn | Edep
 
 [energy.light_lut]
 default_material = "OGS"   # used when material-specific LUT selection is ambiguous
@@ -232,9 +237,10 @@ flight_path_cm  = 100.0
 En_MeV = 14.1
 ```
 
-- `light_lut` uses calibrated E(L) LUTs per material (the modern default).  
-- `tof` uses time-of-flight for incident neutron energy (legacy compatible).  
-- `fixed_incident` uses a constant incident energy (e.g. DT source).  
+- `ELUT` uses calibrated E(L) LUTs per material (the modern default).  
+- `ToF` uses time-of-flight for incident neutron energy (legacy compatible).  
+- `FixedEn` uses a constant incident energy (e.g. DT source).  
+- `Edep` assumes the provided `L` is actually energy deposition in MeV instead of light output in MeVee (as is the case for PHITS-scored energy deposion)
 
 These strategies are currently designed for **neutron kinematics**; gamma energy handling is much less critical for the present imaging method and may be added later if needed.
 
@@ -327,6 +333,8 @@ colormap            = "viridis"   # used by visualization, not core SBP
 
 Adapters translate source-specific raw data into a **canonical representation**.
 
+Material assignment is governed solely by `[detectors.material_map]` and `[detectors.default_material]`. The adapter layer must not accept a distinct default material from `[io.adapter]`; detector-level settings are authoritative.
+
 ### 4.1. Raw Events
 
 Adapters emit **raw events**:
@@ -359,7 +367,16 @@ From each raw event:
 
 1. Convert raw hits to canonical `Hit` objects through the adapter:
 
-    Raw hit dicts from the adapter are converted inside the adapter itself (e.g., `PHITSAdapter` or `ROOTAdapter`). Adapters must emit canonical `Hit` objects directly or provide an internal method ensuring all Hits follow the unified `physics.hits.Hit` structure.
+    - Raw hit dicts from the adapter are converted inside the adapter itself (e.g., `PHITSAdapter` or `ROOTAdapter`). Adapters must emit canonical `Hit` objects directly or provide an internal method ensuring all Hits follow the unified `physics.hits.Hit` structure.  
+    - All adapters must set:
+        - ```
+          Hit.type      ∈ {"n","g","UNK"}    # particle species
+          Hit.material  = scintillator name  # from [detectors.material_map]
+          ```
+    - The shaper, event typing, and cone-building stages rely exclusively on Hit.type. Legacy event-level “event_type” fields from raw adapters must not be used.
+
+The shaper, event typing, and cone-building stages rely exclusively on Hit.type.
+Legacy event-level “event_type” fields from raw adapters must not be used.
 
 2. Apply **universal hit-level cuts** (e.g. min light/energy):
 
@@ -437,7 +454,7 @@ Counters at this stage might include:
 - `shaped_events_g`
 - `raw_events_rejected_shaping` (if nothing usable can be formed)
 
-*(Implementation note: shaping and typed-event creation will replace the current direct PHITSAdapter → typed-event path. Until shaping is implemented, PHITSAdapter produces NeutronEvent/GammaEvent objects directly. This is acceptable during early pipeline prototyping.)*
+(Implementation note: Shaping and typed-event construction are implemented and used in the PHITS path. PHITSAdapter now emits canonical Hit objects, which pass through apply_hit_filters → is_reconstructable → shape_events_for_cones → shaped_to_typed_events to produce NeutronEvent and GammaEvent instances exactly as described here.)
 
 
 ### 5.2. Typed Events
@@ -808,35 +825,53 @@ The HDF5 format is the primary output, and it should support:
 - **Resuming** from partially processed data.
 - **Consistent views** of what survived all active filters at each stage.
 
-### 12.1. HDF5 Layout (Suggested)
+### 12.1. HDF5 Layout (Canonical, as implemented)
 
-- `/meta`
-    - `config_toml`
-    - `git_commit`
-    - `ngimager_version`
-    - `run_timestamp`
-    - `run_fast` (bool), `run_list` (bool)
-    - `run_stop_stage`
-    - `counters` (group or JSON blob with pipeline counts)
-- `/hits/n`, `/hits/g`
-    - Ragged or structured datasets:
-        - `det_id`, `t_ns`, `L`, `x_cm`, `y_cm`, `z_cm`, `material`, etc.
-- `/events/n`, `/events/g`
-    - Event datasets:
-        - References (indices) into `/hits/*`.
-        - Per-event energies, timing deltas, sequencing choices, etc.
-- `/cones/n`, `/cones/g`
-    - Cone datasets:
-        - `r0` (3 floats), `k_hat` (3 floats), `theta` (1 float).
-        - Index into events.
-        - Particle type and candidate type.
-- `/images/summed/n`, `/images/summed/g`
-    - Main SBP images (2D arrays).
-- `/images/listmode/n`, `/images/listmode/g` (optional)
-    - Per-cone sparse footprints:
-        - For each cone index K:
-            - `pixel_indices` (1D int array)
-            - `weights` (1D float array)
+`ngimager` writes a complete snapshot of the reconstruction state into a single HDF5 file with the following groups:
+
+```
+  /meta
+      config_toml              # raw config
+      git_commit               # optional
+      ngimager_version         # optional
+      counters                 # JSON-encoded or dataset of pipeline counters
+      run_timestamp
+      run_fast, run_list
+      run_neutron, run_gamma
+      run_stop_stage
+
+  /cones
+      cone_id          [C]
+      apex_xyz_cm      [C,3]
+      axis_xyz         [C,3]
+      theta_rad        [C]
+      event_index      [C]
+      species          [C]              # 0=n, 1=g
+
+  /lm
+      materials/labels    [M] string    # vocabulary of materials
+      event_type          [E] uint8     # 0=n, 1=g
+      event_meta_run_id   [E]
+      event_meta_file_ix  [E]
+      hit_pos_cm          [E,3,3]
+      hit_t_ns            [E,3]
+      hit_L_mevee         [E,3]
+      hit_det_id          [E,3]
+      hit_material_id     [E,3]
+
+      # Only when run.list = true:
+      # List-mode "images" are represented sparsely via indices on the same (H,W)
+      # grid as /images/summed.*. Each row encodes (cone_id, pixel_index).
+      indices/*  # per-cone sparse SBP footprint indices
+
+  /images/summed
+      n   [H,W]   # neutron summed SBP image
+      g   [H,W]   # gamma summed SBP image
+      all [H,W]   # n+g combined summed SBP image
+```
+
+This layout now accurately reflects the output of pipelines/core.py and must be
+treated as the canonical ngimager HDF5 schema moving forward.
 
 **Guarantees:**
 
@@ -1079,15 +1114,15 @@ This checklist tracks migration from the current state to the architecture descr
 
 ### 16.2. Adapters and Raw Events
 
-- [ ] Ensure `PHITSAdapter.iter_raw_events` returns raw events as collections of hit dicts.
+- [x] `PHITSAdapter.iter_raw_events` now returns canonical Hit objects grouped into raw coincidence windows as designed.
 - [ ] Implement/clean up `ROOTAdapter.iter_raw_events` with `input_format = "root_novo_ddaq"` for the current acquisition system.
 - [ ] Implement the early `is_reconstructable` logic after hit-level filtering to discard unviable raw events, with appropriate counters.
 
 ### 16.3. Shaper and Typed Events
 
-- [ ] Make `shape_events_for_cones` the single entry point from raw-event hits to shaped events.
-- [ ] Make `shaped_to_typed_events` the only path to `NeutronEvent`/`GammaEvent`.
-- [ ] Guarantee that all event classes always carry their `Hit` lists and that indices in HDF5 allow round-tripping.
+- [x] Make `shape_events_for_cones` the single entry point from raw-event hits to shaped events.
+- [x] Make `shaped_to_typed_events` the only path to `NeutronEvent`/`GammaEvent`.
+- [x] Typed events now always carry canonical `Hit` objects, and HDF5 round-trip storage is implemented.
 - [ ] Ensure counters at the hit and event levels follow the `_n` / `_g` / `_total` naming pattern where meaningful.
 
 
@@ -1113,6 +1148,8 @@ This checklist tracks migration from the current state to the architecture descr
 - [ ] Confirm `imaging.sbp.reconstruct_sbp` works directly from the `Cone` dataclass and `Plane`.
 - [ ] Implement optional per-cone sparse footprints used only when `run.list` is true.
 - [ ] Ensure cone and imaging counters follow the `_n` / `_g` / `_total` naming pattern where meaningful, and that per-stage runtimes are recorded and reported.
+- [ ] Gamma cone-building pending.
+- [ ] Combined n/g/all SBP images pending.
 
 
 ### 16.7. Unified Pipeline and CLI
@@ -1129,8 +1166,9 @@ This checklist tracks migration from the current state to the architecture descr
 
 ### 16.8. HDF5 and Visualization
 
-- [ ] Finalize and document the HDF5 layout described above.
+- [x] Finalize and document the HDF5 layout described above.
 - [ ] Ensure hits/events/cones/images store the necessary indices for full back-tracing.
+- [ ] Implement species-separated and combined SBP images (`/images/summed/[n|g|all]`)
 - [ ] Ensure final HDF5 outputs (for full runs) contain only objects that survive all active filters, with counters and metadata describing what was rejected at each stage.
 - [ ] Wrap PNG export in a clean CLI function that calls `vis.hdf.save_summed_png` driven by `[vis]`.
 - [ ] Support imaging-only reruns from existing cones (ngimager HDF5 input) to generate list-mode per-cone images from previously non-list-mode outputs.

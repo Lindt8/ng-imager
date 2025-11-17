@@ -112,7 +112,8 @@ tof_window_ns = [0.0, 30.0]
 # - "ELUT": use E(L) LUTs for the first scatter (per material)
 # - "ToF":  use time-of-flight to estimate neutron energy change
 # - "FixedEn": use a fixed incident energy (e.g. DT source)
-strategy = "ELUT"                 # ELUT | ToF | FixedEn
+# - "Edep": treat Hit.L as deposited energy directly (e.g. PHITS Edep_MeV)
+strategy = "Edep"                 # ELUT | ToF | FixedEn | Edep
 
 # Used only for strategy = "FixedEn"
 fixed_En_MeV = 14.1

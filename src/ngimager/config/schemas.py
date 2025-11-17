@@ -103,7 +103,7 @@ class FiltersCfg(BaseModel):
     materials_include: List[str] = []
 
 class EnergyCfg(BaseModel):
-    strategy: Literal["ELUT","ToF","FixedEn"] = "ELUT"
+    strategy: Literal["ELUT","ToF","FixedEn", "Edep"] = "ELUT"
     fixed_En_MeV: float = 14.1
     lut_paths: Dict[str, Dict[str, str]] = {}   # material -> species -> path
 
