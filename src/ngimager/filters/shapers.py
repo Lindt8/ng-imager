@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from itertools import combinations
 from typing import Dict, Iterable, List, Literal, Tuple, Any
 
+from ngimager.physics.hits import Hit
+
 Policy = Literal["time_asc", "energy_desc", "all_combinations"]
 
 @dataclass
@@ -28,29 +30,43 @@ class ShapeDiagnostics:
         self.reasons[reason] = self.reasons.get(reason, 0) + 1
 
 
-# --- Generic accessors so shapers work with either dict-hits or Hit objects ---
-def _hit_t_ns(h: Any) -> float:
-    # Hit object
-    if hasattr(h, "t_ns"):
-        return float(getattr(h, "t_ns"))
-    # dict-like
-    return float(h.get("t_ns", 0.0))
-
-def _hit_energy_desc_key(h: Any) -> float:
+# --- Generic accessors so shapers work with canonical Hit objects ---
+def _hit_t_ns(h: Hit) -> float:
     """
-    Sorting key for 'energy_desc' policy:
-      Prefer Hit.L (light-like), else dict['L'], else dict['Edep_MeV'], else 0.
+    Time key for sorting hits in ascending order.
+    Assumes canonical physics.hits.Hit with attribute t_ns.
     """
-    # Hit object: L is defined
-    if hasattr(h, "L"):
-        return float(getattr(h, "L") or 0.0)
-    # dict-like
-    if "L" in h:
-        return float(h["L"] or 0.0)
-    if "Edep_MeV" in h:
-        return float(h["Edep_MeV"] or 0.0)
-    return 0.0
+    return float(h.t_ns)
 
+
+def _hit_energy_desc_key(h: Hit) -> float:
+    """
+    Sorting key for 'energy_desc' policy.
+
+    For now we treat Hit.L as the “light-like” energy surrogate.
+    If L is not set or zero, this simply returns 0.0.
+    """
+    # L is always present on Hit; treat None/0 as 0.0
+    return float(getattr(h, "L", 0.0) or 0.0)
+
+def _hit_species(h: Hit) -> str | None:
+    """
+    Map a Hit.type string onto 'n' or 'g'.
+
+    Expected conventions:
+      - Hit.type starting with 'n' => neutron
+      - Hit.type starting with 'g' => gamma
+      - 'UNK' or anything else => None (ignored for shaping)
+    """
+    s = str(getattr(h, "type", "") or "").strip().lower()
+    if not s:
+        return None
+
+    if s.startswith("n"):
+        return "n"
+    if s.startswith("g"):
+        return "g"
+    return None
 
 def _pair_indices(hits: List[Any], policy: Policy, max_combos: int) -> List[Tuple[int,int]]:
     n = len(hits)
@@ -88,53 +104,14 @@ def _triple_indices(hits: List[Any], policy: Policy, max_combos: int) -> List[Tu
             break
     return out
 
-def _hit_species(h: Any, fallback: str | None = None) -> str | None:
-    """
-    Return canonical species code "n" or "g" for a hit.
-
-    Preference order:
-      1) Hit.type     (if present and non-empty)
-      2) h["type"]    (if dict-like)
-      3) fallback     (typically the raw event's event_type)
-    """
-    # 1) Hit.type
-    if hasattr(h, "type"):
-        val = getattr(h, "type")
-        if val is not None:
-            s = str(val).lower()
-            if s.startswith("n"):
-                return "n"
-            if s.startswith("g"):
-                return "g"
-
-    # 2) dict["type"]
-    if isinstance(h, dict):
-        val = h.get("type")
-        if val is not None:
-            s = str(val).lower()
-            if s.startswith("n"):
-                return "n"
-            if s.startswith("g"):
-                return "g"
-
-    # 3) fallback event_type or numeric code
-    if fallback:
-        s = str(fallback).lower()
-        if s.startswith("n") or s == "1":
-            return "n"
-        if s.startswith("g") or s == "2":
-            return "g"
-
-    return None
-
 def _select_hits(
-    hits: List[Any],
+    hits: List[Hit],
     k: int,
     policy: Policy,
     max_combinations: int,
     diag: ShapeDiagnostics,
     species: str,
-) -> List[List[Any]]:
+) -> List[List[Hit]]:
     """
     Select hits for one species in a single raw event according to policy.
 
@@ -177,8 +154,9 @@ def shape_events_for_cones(
     Shape raw coincidence windows into candidate 2-hit neutron and 3-hit gamma events.
 
     Inputs:
-      raw_events: iterable of dicts, each with at least 'hits' and optional 'event_type'.
-                  hits may be dicts or Hit objects.
+      raw_events: iterable of dicts, each with at least a 'hits' key.
+                  'hits' must be a sequence of canonical physics.hits.Hit objects.
+                  (Adapters and/or canonicalization are responsible for constructing Hits.)
       cfg: ShapeConfig controlling policies and caps.
 
     Outputs:
@@ -198,13 +176,11 @@ def shape_events_for_cones(
             diag.inc("no_hits")
             continue
 
-        ev_type = ev.get("event_type")
-
         # Partition by species using Hit.type when available
         n_hits: List[Any] = []
         g_hits: List[Any] = []
         for h in hits:
-            sp = _hit_species(h, fallback=ev_type)
+            sp = _hit_species(h)
             if sp == "n":
                 n_hits.append(h)
             elif sp == "g":
