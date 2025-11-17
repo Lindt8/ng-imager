@@ -971,10 +971,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#121-hdf5-layout-suggested" class="md-nav__link">
+  <a href="#121-hdf5-layout-canonical-as-implemented" class="md-nav__link">
     <span class="md-ellipsis">
       
-        12.1. HDF5 Layout (Suggested)
+        12.1. HDF5 Layout (Canonical, as implemented)
       
     </span>
   </a>
@@ -1462,22 +1462,28 @@ The CLI always loads the config first, then applies overrides before calling <co
 <p>Optional: additional physics descriptors (density, Z, etc.) if needed later.</p>
 <h4 id="energy"><code>[energy]</code><a class="headerlink" href="#energy" title="Permanent link">&para;</a></h4>
 <p>Energy strategies for <strong>neutron events</strong>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;light_lut&quot;</span><span class="w">  </span><span class="c1"># or &quot;tof&quot; or &quot;fixed_incident&quot;</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">[energy.light_lut]</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">default_material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;OGS&quot;</span><span class="w">   </span><span class="c1"># used when material-specific LUT selection is ambiguous</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="k">[energy.tof]</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">start_detector</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;tagger&quot;</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">flight_path_cm</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">100.0</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="k">[energy.fixed_incident]</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">En_MeV</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">14.1</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Neutron energy strategy:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># - &quot;ELUT&quot;: use E(L) LUTs for the first scatter (per material)</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># - &quot;ToF&quot;:  use time-of-flight to estimate neutron energy change</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># - &quot;FixedEn&quot;: use a fixed incident energy (e.g. DT source)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># - &quot;Edep&quot;: treat Hit.L as deposited energy directly (e.g. PHITS Edep_MeV)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Edep&quot;</span><span class="w">                 </span><span class="c1"># ELUT | ToF | FixedEn | Edep</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="k">[energy.light_lut]</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">default_material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;OGS&quot;</span><span class="w">   </span><span class="c1"># used when material-specific LUT selection is ambiguous</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="k">[energy.tof]</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="n">start_detector</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;tagger&quot;</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="n">flight_path_cm</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">100.0</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="k">[energy.fixed_incident]</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="n">En_MeV</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">14.1</span>
 </code></pre></div>
 <ul>
-<li><code>light_lut</code> uses calibrated E(L) LUTs per material (the modern default).  </li>
-<li><code>tof</code> uses time-of-flight for incident neutron energy (legacy compatible).  </li>
-<li><code>fixed_incident</code> uses a constant incident energy (e.g. DT source).  </li>
+<li><code>ELUT</code> uses calibrated E(L) LUTs per material (the modern default).  </li>
+<li><code>ToF</code> uses time-of-flight for incident neutron energy (legacy compatible).  </li>
+<li><code>FixedEn</code> uses a constant incident energy (e.g. DT source).  </li>
+<li><code>Edep</code> assumes the provided <code>L</code> is actually energy deposition in MeV instead of light output in MeVee (as is the case for PHITS-scored energy deposion)</li>
 </ul>
 <p>These strategies are currently designed for <strong>neutron kinematics</strong>; gamma energy handling is much less critical for the present imaging method and may be added later if needed.</p>
 <h4 id="plane"><code>[plane]</code><a class="headerlink" href="#plane" title="Permanent link">&para;</a></h4>
@@ -1542,6 +1548,7 @@ The CLI always loads the config first, then applies overrides before calling <co
 <hr />
 <h2 id="4-input-adapters-raw-events-and-hits">4. Input Adapters: Raw Events and Hits<a class="headerlink" href="#4-input-adapters-raw-events-and-hits" title="Permanent link">&para;</a></h2>
 <p>Adapters translate source-specific raw data into a <strong>canonical representation</strong>.</p>
+<p>Material assignment is governed solely by <code>[detectors.material_map]</code> and <code>[detectors.default_material]</code>. The adapter layer must not accept a distinct default material from <code>[io.adapter]</code>; detector-level settings are authoritative.</p>
 <h3 id="41-raw-events">4.1. Raw Events<a class="headerlink" href="#41-raw-events" title="Permanent link">&para;</a></h3>
 <p>Adapters emit <strong>raw events</strong>:</p>
 <ul>
@@ -1570,8 +1577,20 @@ The CLI always loads the config first, then applies overrides before calling <co
 <ol>
 <li>
 <p>Convert raw hits to canonical <code>Hit</code> objects through the adapter:</p>
-<p>Raw hit dicts from the adapter are converted inside the adapter itself (e.g., <code>PHITSAdapter</code> or <code>ROOTAdapter</code>). Adapters must emit canonical <code>Hit</code> objects directly or provide an internal method ensuring all Hits follow the unified <code>physics.hits.Hit</code> structure.</p>
+<ul>
+<li>Raw hit dicts from the adapter are converted inside the adapter itself (e.g., <code>PHITSAdapter</code> or <code>ROOTAdapter</code>). Adapters must emit canonical <code>Hit</code> objects directly or provide an internal method ensuring all Hits follow the unified <code>physics.hits.Hit</code> structure.  </li>
+<li>All adapters must set:<ul>
+<li><code>Hit.type      ∈ {"n","g","UNK"}    # particle species
+  Hit.material  = scintillator name  # from [detectors.material_map]</code></li>
+</ul>
 </li>
+<li>The shaper, event typing, and cone-building stages rely exclusively on Hit.type. Legacy event-level “event_type” fields from raw adapters must not be used.</li>
+</ul>
+</li>
+</ol>
+<p>The shaper, event typing, and cone-building stages rely exclusively on Hit.type.
+Legacy event-level “event_type” fields from raw adapters must not be used.</p>
+<ol>
 <li>
 <p>Apply <strong>universal hit-level cuts</strong> (e.g. min light/energy):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># adapter already returns canonical Hit objects</span>
@@ -1642,7 +1661,7 @@ The CLI always loads the config first, then applies overrides before calling <co
 <li><code>shaped_events_g</code></li>
 <li><code>raw_events_rejected_shaping</code> (if nothing usable can be formed)</li>
 </ul>
-<p><em>(Implementation note: shaping and typed-event creation will replace the current direct PHITSAdapter → typed-event path. Until shaping is implemented, PHITSAdapter produces NeutronEvent/GammaEvent objects directly. This is acceptable during early pipeline prototyping.)</em></p>
+<p>(Implementation note: Shaping and typed-event construction are implemented and used in the PHITS path. PHITSAdapter now emits canonical Hit objects, which pass through apply_hit_filters → is_reconstructable → shape_events_for_cones → shaped_to_typed_events to produce NeutronEvent and GammaEvent instances exactly as described here.)</p>
 <h3 id="52-typed-events">5.2. Typed Events<a class="headerlink" href="#52-typed-events" title="Permanent link">&para;</a></h3>
 <p>Next, we convert <code>ShapedEvent</code> objects into physics-aware event classes:</p>
 <ul>
@@ -1986,63 +2005,54 @@ The CLI always loads the config first, then applies overrides before calling <co
 <li><strong>Resuming</strong> from partially processed data.</li>
 <li><strong>Consistent views</strong> of what survived all active filters at each stage.</li>
 </ul>
-<h3 id="121-hdf5-layout-suggested">12.1. HDF5 Layout (Suggested)<a class="headerlink" href="#121-hdf5-layout-suggested" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>/meta</code><ul>
-<li><code>config_toml</code></li>
-<li><code>git_commit</code></li>
-<li><code>ngimager_version</code></li>
-<li><code>run_timestamp</code></li>
-<li><code>run_fast</code> (bool), <code>run_list</code> (bool)</li>
-<li><code>run_stop_stage</code></li>
-<li><code>counters</code> (group or JSON blob with pipeline counts)</li>
-</ul>
-</li>
-<li><code>/hits/n</code>, <code>/hits/g</code><ul>
-<li>Ragged or structured datasets:<ul>
-<li><code>det_id</code>, <code>t_ns</code>, <code>L</code>, <code>x_cm</code>, <code>y_cm</code>, <code>z_cm</code>, <code>material</code>, etc.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><code>/events/n</code>, <code>/events/g</code><ul>
-<li>Event datasets:<ul>
-<li>References (indices) into <code>/hits/*</code>.</li>
-<li>Per-event energies, timing deltas, sequencing choices, etc.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><code>/cones/n</code>, <code>/cones/g</code><ul>
-<li>Cone datasets:<ul>
-<li><code>r0</code> (3 floats), <code>k_hat</code> (3 floats), <code>theta</code> (1 float).</li>
-<li>Index into events.</li>
-<li>Particle type and candidate type.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><code>/images/summed/n</code>, <code>/images/summed/g</code><ul>
-<li>Main SBP images (2D arrays).</li>
-</ul>
-</li>
-<li><code>/images/listmode/n</code>, <code>/images/listmode/g</code> (optional)<ul>
-<li>Per-cone sparse footprints:<ul>
-<li>For each cone index K:<ul>
-<li><code>pixel_indices</code> (1D int array)</li>
-<li><code>weights</code> (1D float array)</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+<h3 id="121-hdf5-layout-canonical-as-implemented">12.1. HDF5 Layout (Canonical, as implemented)<a class="headerlink" href="#121-hdf5-layout-canonical-as-implemented" title="Permanent link">&para;</a></h3>
+<p><code>ngimager</code> writes a complete snapshot of the reconstruction state into a single HDF5 file with the following groups:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>  /meta
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>      config_toml              # raw config
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>      git_commit               # optional
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>      ngimager_version         # optional
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>      counters                 # JSON-encoded or dataset of pipeline counters
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>      run_timestamp
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>      run_fast, run_list
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>      run_neutron, run_gamma
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>      run_stop_stage
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>  /cones
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>      cone_id          [C]
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a>      apex_xyz_cm      [C,3]
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>      axis_xyz         [C,3]
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a>      theta_rad        [C]
+<a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a>      event_index      [C]
+<a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a>      species          [C]              # 0=n, 1=g
+<a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a>
+<a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a>  /lm
+<a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a>      materials/labels    [M] string    # vocabulary of materials
+<a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a>      event_type          [E] uint8     # 0=n, 1=g
+<a id="__codelineno-23-22" name="__codelineno-23-22" href="#__codelineno-23-22"></a>      event_meta_run_id   [E]
+<a id="__codelineno-23-23" name="__codelineno-23-23" href="#__codelineno-23-23"></a>      event_meta_file_ix  [E]
+<a id="__codelineno-23-24" name="__codelineno-23-24" href="#__codelineno-23-24"></a>      hit_pos_cm          [E,3,3]
+<a id="__codelineno-23-25" name="__codelineno-23-25" href="#__codelineno-23-25"></a>      hit_t_ns            [E,3]
+<a id="__codelineno-23-26" name="__codelineno-23-26" href="#__codelineno-23-26"></a>      hit_L_mevee         [E,3]
+<a id="__codelineno-23-27" name="__codelineno-23-27" href="#__codelineno-23-27"></a>      hit_det_id          [E,3]
+<a id="__codelineno-23-28" name="__codelineno-23-28" href="#__codelineno-23-28"></a>      hit_material_id     [E,3]
+<a id="__codelineno-23-29" name="__codelineno-23-29" href="#__codelineno-23-29"></a>
+<a id="__codelineno-23-30" name="__codelineno-23-30" href="#__codelineno-23-30"></a>      # Only when run.list = true:
+<a id="__codelineno-23-31" name="__codelineno-23-31" href="#__codelineno-23-31"></a>      # List-mode &quot;images&quot; are represented sparsely via indices on the same (H,W)
+<a id="__codelineno-23-32" name="__codelineno-23-32" href="#__codelineno-23-32"></a>      # grid as /images/summed.*. Each row encodes (cone_id, pixel_index).
+<a id="__codelineno-23-33" name="__codelineno-23-33" href="#__codelineno-23-33"></a>      indices/*  # per-cone sparse SBP footprint indices
+<a id="__codelineno-23-34" name="__codelineno-23-34" href="#__codelineno-23-34"></a>
+<a id="__codelineno-23-35" name="__codelineno-23-35" href="#__codelineno-23-35"></a>  /images/summed
+<a id="__codelineno-23-36" name="__codelineno-23-36" href="#__codelineno-23-36"></a>      n   [H,W]   # neutron summed SBP image
+<a id="__codelineno-23-37" name="__codelineno-23-37" href="#__codelineno-23-37"></a>      g   [H,W]   # gamma summed SBP image
+<a id="__codelineno-23-38" name="__codelineno-23-38" href="#__codelineno-23-38"></a>      all [H,W]   # n+g combined summed SBP image
+</code></pre></div>
+<p>This layout now accurately reflects the output of pipelines/core.py and must be
+treated as the canonical ngimager HDF5 schema moving forward.</p>
 <p><strong>Guarantees:</strong></p>
 <ul>
 <li>It must always be possible to trace:</li>
 </ul>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>image pixel   → cone(s)   → event   → hits
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>image pixel   → cone(s)   → event   → hits
 </code></pre></div>
 <p>via indices and datasets, in all modes (default, fast, list).</p>
 <ul>
@@ -2143,15 +2153,15 @@ The CLI always loads the config first, then applies overrides before calling <co
 </li>
 </ul>
 <p>Example usage:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="c1"># ... run hits stage ...</span>
-<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>
-<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">diagnostic_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[pipeline] hits stage completed in </span><span class="si">{</span><span class="n">t1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> s&quot;</span><span class="p">)</span>
-<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>
-<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">diagnostic_level</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
-<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">[pipeline] hits stage parsed </span><span class="si">{</span><span class="n">counters</span><span class="p">[</span><span class="s1">&#39;hits_total&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> hits&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="c1"># ... run hits stage ...</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">diagnostic_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[pipeline] hits stage completed in </span><span class="si">{</span><span class="n">t1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> s&quot;</span><span class="p">)</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">diagnostic_level</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">[pipeline] hits stage parsed </span><span class="si">{</span><span class="n">counters</span><span class="p">[</span><span class="s1">&#39;hits_total&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> hits&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p>This keeps level 1 useful for humans (you always see stage runtimes and the counter summary) and level 2 for more granular profiling noise.</p>
 <h3 id="131-counters">13.1. Counters<a class="headerlink" href="#131-counters" title="Permanent link">&para;</a></h3>
@@ -2292,15 +2302,15 @@ The CLI always loads the config first, then applies overrides before calling <co
 </ul>
 <h3 id="162-adapters-and-raw-events">16.2. Adapters and Raw Events<a class="headerlink" href="#162-adapters-and-raw-events" title="Permanent link">&para;</a></h3>
 <ul>
-<li>[ ] Ensure <code>PHITSAdapter.iter_raw_events</code> returns raw events as collections of hit dicts.</li>
+<li>[x] <code>PHITSAdapter.iter_raw_events</code> now returns canonical Hit objects grouped into raw coincidence windows as designed.</li>
 <li>[ ] Implement/clean up <code>ROOTAdapter.iter_raw_events</code> with <code>input_format = "root_novo_ddaq"</code> for the current acquisition system.</li>
 <li>[ ] Implement the early <code>is_reconstructable</code> logic after hit-level filtering to discard unviable raw events, with appropriate counters.</li>
 </ul>
 <h3 id="163-shaper-and-typed-events">16.3. Shaper and Typed Events<a class="headerlink" href="#163-shaper-and-typed-events" title="Permanent link">&para;</a></h3>
 <ul>
-<li>[ ] Make <code>shape_events_for_cones</code> the single entry point from raw-event hits to shaped events.</li>
-<li>[ ] Make <code>shaped_to_typed_events</code> the only path to <code>NeutronEvent</code>/<code>GammaEvent</code>.</li>
-<li>[ ] Guarantee that all event classes always carry their <code>Hit</code> lists and that indices in HDF5 allow round-tripping.</li>
+<li>[x] Make <code>shape_events_for_cones</code> the single entry point from raw-event hits to shaped events.</li>
+<li>[x] Make <code>shaped_to_typed_events</code> the only path to <code>NeutronEvent</code>/<code>GammaEvent</code>.</li>
+<li>[x] Typed events now always carry canonical <code>Hit</code> objects, and HDF5 round-trip storage is implemented.</li>
 <li>[ ] Ensure counters at the hit and event levels follow the <code>_n</code> / <code>_g</code> / <code>_total</code> naming pattern where meaningful.</li>
 </ul>
 <h3 id="164-filters-priors-and-sequencing">16.4. Filters, Priors, and Sequencing<a class="headerlink" href="#164-filters-priors-and-sequencing" title="Permanent link">&para;</a></h3>
@@ -2327,6 +2337,8 @@ The CLI always loads the config first, then applies overrides before calling <co
 <li>[ ] Confirm <code>imaging.sbp.reconstruct_sbp</code> works directly from the <code>Cone</code> dataclass and <code>Plane</code>.</li>
 <li>[ ] Implement optional per-cone sparse footprints used only when <code>run.list</code> is true.</li>
 <li>[ ] Ensure cone and imaging counters follow the <code>_n</code> / <code>_g</code> / <code>_total</code> naming pattern where meaningful, and that per-stage runtimes are recorded and reported.</li>
+<li>[ ] Gamma cone-building pending.</li>
+<li>[ ] Combined n/g/all SBP images pending.</li>
 </ul>
 <h3 id="167-unified-pipeline-and-cli">16.7. Unified Pipeline and CLI<a class="headerlink" href="#167-unified-pipeline-and-cli" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2343,8 +2355,9 @@ The CLI always loads the config first, then applies overrides before calling <co
 </ul>
 <h3 id="168-hdf5-and-visualization">16.8. HDF5 and Visualization<a class="headerlink" href="#168-hdf5-and-visualization" title="Permanent link">&para;</a></h3>
 <ul>
-<li>[ ] Finalize and document the HDF5 layout described above.</li>
+<li>[x] Finalize and document the HDF5 layout described above.</li>
 <li>[ ] Ensure hits/events/cones/images store the necessary indices for full back-tracing.</li>
+<li>[ ] Implement species-separated and combined SBP images (<code>/images/summed/[n|g|all]</code>)</li>
 <li>[ ] Ensure final HDF5 outputs (for full runs) contain only objects that survive all active filters, with counters and metadata describing what was rejected at each stage.</li>
 <li>[ ] Wrap PNG export in a clean CLI function that calls <code>vis.hdf.save_summed_png</code> driven by <code>[vis]</code>.</li>
 <li>[ ] Support imaging-only reruns from existing cones (ngimager HDF5 input) to generate list-mode per-cone images from previously non-list-mode outputs.</li>
