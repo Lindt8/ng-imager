@@ -23,6 +23,9 @@ from ngimager.physics.cones import build_cone_from_neutron
 from ngimager.physics.events import NeutronEvent, GammaEvent, Event
 from ngimager.physics.energy_strategies import make_energy_strategy
 from ngimager.physics.priors import make_prior, Prior
+from ngimager.filters.shapers import shape_events_for_cones, ShapeConfig
+from ngimager.filters.to_typed_events import shaped_to_typed_events
+from ngimager.filters.hit_filters import apply_hit_filters, is_reconstructable
 from ngimager.vis.hdf import save_summed_png
 
 
@@ -233,6 +236,7 @@ def run_pipeline(
         shaped_events, shape_diag = shape_events_for_cones(
             raw_events_after_filters,
             ShapeConfig(),
+            counters=counters,
         )
 
         if diag_level >= 1:
@@ -245,10 +249,32 @@ def run_pipeline(
                 )
             )
 
+        if diag_level >= 2 and shaped_events:
+            print(f"[shaper] Example shaped events (up to first 3):")
+            for se in shaped_events[:3]:
+                ts = [h.t_ns for h in se.hits]
+                Ls = [h.L for h in se.hits]
+                types = [h.type for h in se.hits]
+                print(
+                    f"    species={se.species} "
+                    f"n_hits={len(se.hits)} "
+                    f"types={types} "
+                    f"t_ns={ts} "
+                    f"L={Ls}"
+                )
+
         events = shaped_to_typed_events(
             shaped_events,
-            default_material=getattr(adapter, "default_material", "UNK"),
             order_time=True,
+        )
+
+        # Update typed-event counters (aligned with architecture §13.1)
+        counters["typed_events_total"] = counters.get("typed_events_total", 0) + len(events)
+        counters["typed_events_n"] = counters.get("typed_events_n", 0) + sum(
+            isinstance(ev, NeutronEvent) for ev in events
+        )
+        counters["typed_events_g"] = counters.get("typed_events_g", 0) + sum(
+            isinstance(ev, GammaEvent) for ev in events
         )
 
     else:
@@ -270,6 +296,19 @@ def run_pipeline(
                 print(f"[pipeline] h1.r = {getattr(h1, 'r', None)}, t_ns={h1.t_ns}, L={h1.L}")
             if h2 is not None:
                 print(f"[pipeline] h2.r = {getattr(h2, 'r', None)}, t_ns={h2.t_ns}, L={h2.L}")
+            for ev in events[:3]:
+                species = "n" if isinstance(ev, NeutronEvent) else "g" if isinstance(ev, GammaEvent) else "?"
+                hlist = [getattr(ev, name) for name in ("h1", "h2", "h3") if hasattr(ev, name)]
+                ts = [h.t_ns for h in hlist]
+                Ls = [h.L for h in hlist]
+                types = [h.type for h in hlist]
+                print(
+                    f"    {species}-event "
+                    f"n_hits={len(hlist)} "
+                    f"types={types} "
+                    f"t_ns={ts} "
+                    f"L={Ls}"
+                )
 
     # Cones from events
     cone_ids, apex_xyz_cm, axis_xyz, theta_rad = _build_cones_from_events(cfg, events, plane)

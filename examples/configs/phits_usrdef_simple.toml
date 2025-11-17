@@ -28,7 +28,7 @@ progress    = true
 
 # Diagnostics verbosity
 # 0 = off, 1 = minimal (stage summaries + counters), 2 = verbose (per-stage details)
-diagnostics_level = 1
+diagnostics_level = 2
 
 # Safety cap for total imaged cones (after filtering and selection)
 max_cones = 3000

@@ -2,7 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from itertools import combinations
-from typing import Dict, Iterable, List, Literal, Tuple, Any
+from typing import Any, Dict, Iterable, List, Literal, Sequence, Tuple
 
 from ngimager.physics.hits import Hit
 
@@ -11,7 +11,7 @@ Policy = Literal["time_asc", "energy_desc", "all_combinations"]
 @dataclass
 class ShapeConfig:
     neutron_policy: Policy = "time_asc"
-    gamma_policy: Policy = "time_asc"
+    gamma_policy: Policy = "energy_desc"
     max_combinations: int = 5000  # safety for 'all_combinations'
 
 @dataclass
@@ -29,6 +29,18 @@ class ShapeDiagnostics:
     def inc(self, reason: str) -> None:
         self.reasons[reason] = self.reasons.get(reason, 0) + 1
 
+@dataclass
+class ShapedEvent:
+    """
+    Minimal shaped event used between hit-level filtering and typed events.
+
+    species: "n" or "g"
+    hits:    [Hit,...] of correct multiplicity (2 for n, 3 for g)
+    meta:    dict of event-level bookkeeping (iomp/batch/history/etc.)
+    """
+    species: Literal["n", "g"]
+    hits: List[Hit]
+    meta: Dict[str, Any] = field(default_factory=dict)
 
 # --- Generic accessors so shapers work with canonical Hit objects ---
 def _hit_t_ns(h: Hit) -> float:
@@ -146,12 +158,18 @@ def _select_hits(
         selected.append(list(combo))
     return selected
 
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
 def shape_events_for_cones(
     raw_events: Iterable[Dict[str, Any]],
     cfg: ShapeConfig,
-) -> Tuple[List[Dict[str, Any]], ShapeDiagnostics]:
+    counters: Dict[str, int] | None = None,
+) -> Tuple[List[ShapedEvent], ShapeDiagnostics]:
     """
-    Shape raw coincidence windows into candidate 2-hit neutron and 3-hit gamma events.
+    Shape raw coincidence windows / events (variable multiplicity, mixed species)
+    into candidate fixed-multiplicity ShapedEvents (2-hit neutron and 3-hit gamma events) suitable for cone building
 
     Inputs:
       raw_events: iterable of dicts, each with at least a 'hits' key.
@@ -167,7 +185,7 @@ def shape_events_for_cones(
       diag:   ShapeDiagnostics with counters and reasons.
     """
     diag = ShapeDiagnostics()
-    shaped: List[Dict[str, Any]] = []
+    shaped: List[ShapedEvent] = []
 
     for ev in raw_events:
         diag.total_events += 1
@@ -177,8 +195,8 @@ def shape_events_for_cones(
             continue
 
         # Partition by species using Hit.type when available
-        n_hits: List[Any] = []
-        g_hits: List[Any] = []
+        n_hits: List[Hit] = []
+        g_hits: List[Hit] = []
         for h in hits:
             sp = _hit_species(h)
             if sp == "n":
@@ -189,6 +207,8 @@ def shape_events_for_cones(
                 # Unknown species; currently ignore for shaping
                 diag.inc("unknown_species_hit")
 
+        meta = {k: v for k, v in ev.items() if k not in ("hits", "event_type")}
+        
         if n_hits:
             diag.neutron_in += 1
             selected_n = _select_hits(
@@ -198,12 +218,10 @@ def shape_events_for_cones(
                 diag=diag,
                 species="n",
             )
-            for hs in selected_n:
-                ev_out = {k: v for k, v in ev.items() if k not in ("hits", "event_type")}
-                ev_out["event_type"] = "n"
-                ev_out["hits"] = hs
-                shaped.append(ev_out)
-                diag.shaped_neutron += 1
+            if selected_n:
+                for hs in selected_n:
+                    shaped.append(ShapedEvent(species="n", hits=hs, meta=dict(meta)))
+                    diag.shaped_neutron += 1
 
         if g_hits:
             diag.gamma_in += 1
@@ -214,14 +232,19 @@ def shape_events_for_cones(
                 diag=diag,
                 species="g",
             )
-            for hs in selected_g:
-                ev_out = {k: v for k, v in ev.items() if k not in ("hits", "event_type")}
-                ev_out["event_type"] = "g"
-                ev_out["hits"] = hs
-                shaped.append(ev_out)
-                diag.shaped_gamma += 1
+            if selected_g:
+                for hs in selected_g:
+                    shaped.append(ShapedEvent(species="g", hits=hs, meta=dict(meta)))
+                    diag.shaped_gamma += 1
 
         if not n_hits and not g_hits:
             diag.inc("no_usable_species")
 
+    # Hook into shared counters if provided
+    if counters is not None:
+        total_shaped = diag.shaped_neutron + diag.shaped_gamma
+        counters["shaped_events_total"] = counters.get("shaped_events_total", 0) + total_shaped
+        counters["shaped_events_n"] = counters.get("shaped_events_n", 0) + diag.shaped_neutron
+        counters["shaped_events_g"] = counters.get("shaped_events_g", 0) + diag.shaped_gamma
+    
     return shaped, diag
