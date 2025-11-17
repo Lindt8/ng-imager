@@ -390,19 +390,19 @@ def run_pipeline(
     # Summed image
     img = recon.summed.astype(np.float32)
     write_summed(f, "n", img)
+    
+    # Per-cone geometry
+    write_cones(f, cone_ids, apex_xyz_cm, axis_xyz, theta_rad)
+    
+    # Per-event / per-hit physics (this links back via /lm/events dataset)
+    write_events_hits(f, events)
 
     # List-mode extras
     if cfg.run.list:
         # LM pixel indices
         lm_indices = recon.lm_indices or []
         write_lm_indices(f, lm_indices)
-
-        # Per-cone geometry
-        write_cones(f, cone_ids, apex_xyz_cm, axis_xyz, theta_rad)
-
-        # Per-event / per-hit physics (this links back via /lm/events dataset)
-        write_events_hits(f, events)
-
+        
     f.close()
 
     # Optional PNG export

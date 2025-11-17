@@ -254,20 +254,20 @@ def write_events_hits(
     """
     Store per-event and per-hit data for list-mode analysis.
 
-    Layout:
+    Layout (all under /lm):
 
-    /lm/event_type         (N_events,) uint8      0=neutron, 1=gamma
-    /lm/event_meta_run_id  (N_events,) int32      optional, -1 if missing
-    /lm/event_meta_file_ix (N_events,) int32      optional, -1 if missing
-
-    /lm/hit_pos_cm         (N_events, 3, 3) float32   [event, hit_index, xyz]
-    /lm/hit_t_ns           (N_events, 3)    float32
-    /lm/hit_L_mevee        (N_events, 3)    float32
-    /lm/hit_det_id         (N_events, 3)    int32
-    /lm/hit_material_id    (N_events, 3)    int16    (encoded from string labels)
+      /lm/materials/labels    : [M]  array of material strings
+      /lm/event_type          : [N]  uint8, 0=n, 1=g
+      /lm/event_meta_run_id   : [N]  int32 (optional meta)
+      /lm/event_meta_file_ix  : [N]  int32 (optional meta)
+      /lm/hit_pos_cm          : [N,3,3] float32 (event, hit_index, xyz)
+      /lm/hit_t_ns            : [N,3]   float32
+      /lm/hit_L_mevee         : [N,3]   float32
+      /lm/hit_det_id          : [N,3]   int32
+      /lm/hit_material_id     : [N,3]   int16
 
     Convention:
-      - Neutron events use hits [0,1], hit 2 is NaN / -1.
+      - Neutron events use hits [0,1] and leave slot 2 as NaN/-1.
       - Gamma events use hits [0,1,2].
     """
     if not events:
@@ -275,15 +275,29 @@ def write_events_hits(
 
     N = len(events)
 
+    # Helper: always return a list[Hit] in time order for any supported event
+    def _ordered_hits(ev: NeutronEvent | GammaEvent):
+        ev_ord = ev.ordered()
+        if isinstance(ev_ord, NeutronEvent):
+            return [ev_ord.h1, ev_ord.h2]
+        elif isinstance(ev_ord, GammaEvent):
+            return [ev_ord.h1, ev_ord.h2, ev_ord.h3]
+        else:
+            raise TypeError(f"Unsupported event type in write_events_hits: {type(ev_ord)!r}")
+
     # Gather materials to build a small vocabulary
     material_labels: set[str] = set()
     for ev in events:
-        for h in ev.ordered():
-            if h.material is not None:
-                material_labels.add(h.material)
+        for h in _ordered_hits(ev):
+            # Hit.material is a required field in our current design; we still
+            # defensively allow None just in case.
+            mat = getattr(h, "material", None)
+            if mat is not None:
+                material_labels.add(mat)
+
     material_list = sorted(material_labels)
     material_to_id = {m: i for i, m in enumerate(material_list)}
-    # small helper for encoding
+
     def mat_id(mat: str | None) -> int:
         if mat is None:
             return -1
@@ -302,12 +316,12 @@ def write_events_hits(
     ev_file_ix = np.full(N, -1, dtype=np.int32)
 
     for i, ev in enumerate(events):
-        ordered_hits = ev.ordered()
+        hits = _ordered_hits(ev)
         is_gamma = isinstance(ev, GammaEvent)
         ev_type[i] = 1 if is_gamma else 0
 
         # very generic meta → two common keys, everything else stays in ev.meta
-        if ev.meta:
+        if getattr(ev, "meta", None):
             if "run" in ev.meta:
                 try:
                     ev_run[i] = int(ev.meta["run"])
@@ -319,7 +333,7 @@ def write_events_hits(
                 except Exception:
                     pass
 
-        for j, h in enumerate(ordered_hits[:3]):
+        for j, h in enumerate(hits[:3]):
             r = np.asarray(h.r, dtype=float).reshape(3)
             hit_pos[i, j, :] = r
             hit_t[i, j] = float(h.t_ns)
@@ -334,7 +348,10 @@ def write_events_hits(
     # Clear existing
     for name in list(mats_grp.keys()):
         del mats_grp[name]
-    mats_grp.create_dataset("labels", data=np.array(material_list, dtype=h5py.string_dtype()))
+    mats_grp.create_dataset(
+        "labels",
+        data=np.array(material_list, dtype=h5py.string_dtype()),
+    )
 
     def _replace_or_create(name: str, data: np.ndarray):
         if name in lm_grp:
