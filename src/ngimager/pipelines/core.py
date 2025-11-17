@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, Sequence, Literal, Optional
+from typing import Iterable, Sequence, Literal, Optional, Dict
 import typer
 
 import numpy as np
@@ -171,8 +171,91 @@ def run_pipeline(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     f = write_init(str(out_path), cfg_path, cfg, plane)
 
-    # Events
-    events = list(_iter_source_events(cfg))
+    # Shared counters for this run
+    counters: Dict[str, int] = {}
+
+    # ---- Stage 1: adapter → raw events → hit-level filters → is_reconstructable ----
+    if cfg.io.input_format == "phits_usrdef":
+        from ngimager.filters.shapers import shape_events_for_cones, ShapeConfig
+        from ngimager.filters.to_typed_events import shaped_to_typed_events
+        from ngimager.filters.hit_filters import apply_hit_filters, is_reconstructable
+
+        if diag_level >= 1:
+            print("[pipeline] Using staged PHITS path: raw events → hits → shaped → typed")
+
+        adapter = make_adapter(cfg.io.adapter)
+
+        raw_events_after_filters = []
+
+        for ev in adapter.iter_raw_events(str(cfg.io.input_path)):
+            hits = list(ev.get("hits", []))
+
+            # Normalize event_type to 'n' / 'g' where possible
+            et_raw = str(ev.get("event_type", "")).lower()
+            if et_raw.startswith("n"):
+                et = "n"
+            elif et_raw.startswith("g"):
+                et = "g"
+            else:
+                et = None
+
+            counters["raw_events_total"] = counters.get("raw_events_total", 0) + 1
+
+            # Hit-level filters
+            filtered_hits = apply_hit_filters(hits, cfg.filters, counters, particle_type=et)
+
+            # Early reconstructability decision (also updates *_unreconstructable counters)
+            if not is_reconstructable(filtered_hits, cfg.filters, counters, event_type=et):
+                continue
+
+            if not filtered_hits:
+                # Should be caught by is_reconstructable, but guard anyway
+                continue
+
+            ev2 = dict(ev)
+            ev2["hits"] = filtered_hits
+            if et is not None:
+                ev2["event_type"] = et
+            raw_events_after_filters.append(ev2)
+
+        if diag_level >= 1:
+            print(
+                "[hits] raw_events_total={total} "
+                "raw_events_after_filters={surv} "
+                "raw_events_rejected_unreconstructable={rej}".format(
+                    total=counters.get("raw_events_total", 0),
+                    surv=len(raw_events_after_filters),
+                    rej=counters.get("raw_events_rejected_unreconstructable", 0),
+                )
+            )
+
+        # ---- Stage 2: Hits → shaped events → typed events ----
+        shaped_events, shape_diag = shape_events_for_cones(
+            raw_events_after_filters,
+            ShapeConfig(),
+        )
+
+        if diag_level >= 1:
+            print(
+                "[shaper] total_events_in={total} "
+                "shaped_n={sn} shaped_g={sg}".format(
+                    total=shape_diag.total_events,
+                    sn=shape_diag.shaped_neutron,
+                    sg=shape_diag.shaped_gamma,
+                )
+            )
+
+        events = shaped_to_typed_events(
+            shaped_events,
+            default_material=getattr(adapter, "default_material", "UNK"),
+            order_time=True,
+        )
+
+    else:
+        # For non-PHITS sources, keep the existing direct typed-event path.
+        events = list(_iter_source_events(cfg))
+
+    # Existing diagnostics on typed events
     if diag_level >= 1:
         print(f"[pipeline] Got {len(events)} events")
     if events:

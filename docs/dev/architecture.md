@@ -1064,9 +1064,6 @@ As of early development:
 
 The roadmap below details how the current early prototype will evolve into the full architecture described above.
 
----
-
-
 
 ---
 

@@ -103,7 +103,28 @@ class BaseAdapter:
     Yields physics-layer events normalized to cm/ns (and L if present).
     """
 
+    def iter_raw_events(self, path: str):
+        """
+        Yield 'raw' events as collections of canonical Hit objects.
+
+        Semantics:
+          - Each yielded item represents a single raw coincidence window.
+          - For PHITS usrdef, this is a dict with at least:
+                {
+                    "event_type": "n" | "g" | ...,
+                    "hits": [Hit, Hit, ...],
+                    ... (bookkeeping fields)
+                }
+          - Other adapters may choose a different raw representation, but
+            must include a 'hits' field with a sequence of Hit objects.
+        """
+        raise NotImplementedError
+
     def iter_events(self, path: str):
+        """
+        Yield fully-typed physics events (NeutronEvent / GammaEvent, etc.)
+        ready for cone building.
+        """
         raise NotImplementedError
 
 
@@ -432,7 +453,55 @@ class PHITSAdapter(BaseAdapter):
         #mat_map = kwargs.get("material_map", None)
         #default_mat = kwargs.get("default_material", "UNK")
         self._material_resolver = MaterialResolver.from_mapping(material_map, default=default_material)
+    
+    def iter_raw_events(self, path: str):
+        """
+        Yield PHITS 'raw' events as dicts whose 'hits' entry is a list of
+        canonical Hit objects.
 
+        For usrdef .out files this wraps `from_phits_usrdef`, which:
+          - parses the ragged usrdef text,
+          - canonicalizes hit fields to x_cm / y_cm / z_cm / t_ns / Edep_MeV / L,
+          - and converts each hit dict into a physics.hits.Hit, resolving the
+            material via this adapter's MaterialResolver.
+
+        For table-like PHITS exports (CSV/Parquet/HDF5) we currently don't have
+        a native raw-event representation, so we conservatively reconstruct a
+        minimal raw event around each typed event.
+        """
+        p = Path(path)
+        suffix = p.suffix.lower()
+
+        if suffix == ".out":
+            # `from_phits_usrdef` already returns a List[Dict] where
+            #   ev["hits"] : List[Hit]
+            # and event-level bookkeeping fields from the usrdef line.
+            events = from_phits_usrdef(p, resolver=self._material_resolver)
+            for ev in events:
+                yield ev
+            return
+
+        # Fallback: wrap typed events as single raw events (non-.out inputs).
+        from ngimager.physics.events import NeutronEvent, GammaEvent  # local import to avoid cycles
+
+        for ev in self.iter_events(path):
+            if isinstance(ev, NeutronEvent):
+                hits = [ev.h1, ev.h2]
+                ev_type = "n"
+            elif isinstance(ev, GammaEvent):
+                hits = [ev.h1, ev.h2, ev.h3]
+                ev_type = "g"
+            else:
+                # Unknown/unsupported event type; skip
+                continue
+
+            yield {
+                "event_type": ev_type,
+                "hits": hits,
+                "meta": getattr(ev, "meta", {}),
+            }
+
+    
     def _read_table(self, path: str):
         '''
         Generic table loader, used by future adapters; not currently used in the primary PHITS usrdef path
@@ -465,11 +534,11 @@ class PHITSAdapter(BaseAdapter):
         p = Path(path)
         if p.suffix.lower() == ".out":
             # 1) parse usrdef → Hit objects (your current helper)
-            #raw = from_phits_usrdef(p)     # returns list of dicts where 'hits' are Hit objects (as you implemented)
-            #raw = from_phits_usrdef(p, resolver=self._material_resolver)
-            events = from_phits_usrdef(p, resolver=self._material_resolver)
+            raw_events = self.iter_raw_events(path)
+            #events = from_phits_usrdef(p, resolver=self._material_resolver)
             # 2) shape variable multiplicity into pairs/triples (policy from config later; defaults okay now)
-            shaped, _diag = shape_events_for_cones(events, ShapeConfig())
+            shaped, _diag = shape_events_for_cones(raw_events, ShapeConfig())
+            #shaped, _diag = shape_events_for_cones(events, ShapeConfig())
             # 3) convert shaped → typed NeutronEvent/GammaEvent
             typed = shaped_to_typed_events(shaped, default_material=self.default_material, order_time=True)
             # 4) yield typed events to the pipeline
