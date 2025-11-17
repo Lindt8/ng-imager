@@ -42,8 +42,8 @@ until = "image"
 
 [io]
 # Input PHITS usrdef tally and output HDF5 path
-input_path  = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out"
 input_format = "phits_usrdef"       # phits_usrdef | root_novo_ddaq | hdf5_ngimager
+input_path  = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out"
 output_path = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef_out.h5"
 hdf5_overwrite = true 
 
@@ -55,7 +55,6 @@ style = "usrdef"        # make_adapter() can distinguish PHITS usrdef flavor if 
 unit_pos_is_mm = false   # positions in input are mm; convert → cm
 time_units     = "ns"   # times in input are ns
 require_gamma_triples = true
-default_material = "UNK"
 
 # NOTE: material-specific behavior (e.g. LUTs) is configured below in [detectors] and [energy].
 # If the adapter needs a per-detector material, it should ask cfg.detectors.
@@ -139,4 +138,4 @@ use_lut_bands = false  # if true, read E_lo/E_hi from LUTs where available
 
 [vis]
 export_png_on_write = true           # default true
-summed_dataset = "/images/summed"     # override if needed
+summed_dataset = "/images/summed/n"     # override if needed
