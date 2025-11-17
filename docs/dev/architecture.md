@@ -31,7 +31,7 @@ At a high level:
 1. **Load config** (`.toml`).
 2. **Select adapter** (PHITS / ROOT / HDF5) based on config.
 3. **Adapter emits raw events**: each raw event is a *set of correlated/coincident hits*.
-4. **Construct canonical Hits** and apply **universal hit-level filters**.
+4. **Apply universal hit-level filters**, using the adapter-emitted Hit objects.
 5. **Discard raw events** that no longer have enough hits to be kinematically reconstructable (e.g., fewer than 2 valid neutron hits or 3 valid gamma hits).
 6. **Shape hits into imaging-viable Events** (neutron 2-hit, gamma 3-hit, etc.).
 7. **Apply event-level filters**.
@@ -53,10 +53,7 @@ def run_pipeline(cfg: Config, input_path: Path) -> Path:
     # Stage 1: Raw events → Hits (with hit-level filtering)
     hits_by_raw_event = []
     for raw_event in raw_events:
-        hits = [
-            dict_hits_to_Hit(raw_hit, cfg)
-            for raw_hit in raw_event
-        ]
+        hits = list(raw_event.hits)
         hits = apply_hit_filters(hits, cfg.filters.hits, counters)
         if is_reconstructable(hits, cfg.filters):
             hits_by_raw_event.append(hits)
@@ -65,7 +62,7 @@ def run_pipeline(cfg: Config, input_path: Path) -> Path:
 
     write_hits_stage(hits_by_raw_event, cfg, counters)
 
-    if cfg.run.stop_stage == "hits":
+    if cfg.pipeline.until == "hits":
         finalize_stats_and_metadata(cfg, counters)
         return cfg.io.output_path
 
@@ -76,7 +73,7 @@ def run_pipeline(cfg: Config, input_path: Path) -> Path:
 
     write_events_stage(filtered_events, cfg, counters)
 
-    if cfg.run.stop_stage == "events":
+    if cfg.pipeline.until == "events":
         finalize_stats_and_metadata(cfg, counters)
         return cfg.io.output_path
 
@@ -94,7 +91,7 @@ def run_pipeline(cfg: Config, input_path: Path) -> Path:
 
     write_cones_stage(selected_cones, cfg, counters)
 
-    if cfg.run.stop_stage == "cones":
+    if cfg.pipeline.until == "cones":
         finalize_stats_and_metadata(cfg, counters)
         return cfg.io.output_path
 
@@ -142,12 +139,10 @@ General pipeline behavior, particle-type toggles, and diagnostics:
     - Use more aggressive thresholds and limits for speed. Modifies the default behavior; does not replace it.
 - `list = false`  
     - Enable list-mode image outputs (per-cone footprints). Also a modifier of the default behavior.
-- `use_neutrons = true`  
+- `neutrons = true`  
     - If `false`, neutron hits/events/cones/images are ignored and not produced. Allows gamma-only imaging.
-- `use_gammas = true`  
+- `gammas = true`  
     - If `false`, gamma hits/events/cones/images are ignored and not produced. Allows neutron-only imaging.
-- `stop_stage = "images"`  
-    - One of `"hits" | "events" | "cones" | "images"`. Controls how far the pipeline runs.
 - `max_events = 0`  
     - 0 means no limit; otherwise, stop after this many (typed) events (after particle-type toggles are applied).
 - `max_cones = 0`  
@@ -160,7 +155,7 @@ General pipeline behavior, particle-type toggles, and diagnostics:
 > **CLI overrides:**  
 > - `--fast` and `--no-fast` override `run.fast`.  
 > - `--list` and `--no-list` override `run.list`.  
-> - `--stop-stage` can override `run.stop_stage`.  
+> - `--stop-stage` can override `pipeline.until`.  
 > - Future CLI flags like `--neutrons-only` / `--gammas-only` may override `use_neutrons` / `use_gammas`.  
 > The CLI always loads the config first, then applies overrides before calling `run_pipeline`.
 
@@ -177,6 +172,14 @@ Input/output format and paths:
 If `input_format = "hdf5_ngimager"`, the pipeline can **resume** from partially processed ngimager output.
 
 The string `"root_novo_ddaq"` refers to the current NOVO acquisition system; future acquisition formats can be added as additional `input_format` values with new adapters.
+
+#### `[pipeline]`
+
+This is where pipeline-related settings, such as a premature stopping point (e.g., stop after building cones but before imaging) is specified. 
+
+- `until = "image"`  
+    - One of `"hits" | "events" | "cones" | "image"`. Controls how far the pipeline runs.
+
 
 #### `[detector]`
 
@@ -345,27 +348,25 @@ class BaseAdapter(ABC):
         ...
 ```
 
+*(Note: the current implementation uses `adapter.iter_events(...)` directly and returns typed `Event` objects. The `iter_raw_events` API above is the intended long-term interface and will replace direct event emission as the shaper and filters are completed.)*
+
+
 `PHITSAdapter` and `ROOTAdapter` implement this, hiding format quirks.
 
 ### 4.2. Hit Construction and Hit-Level Filters
 
 From each raw event:
 
-1. Convert raw hits to canonical `Hit` objects via a single function:
+1. Convert raw hits to canonical `Hit` objects through the adapter:
 
-    ```python
-    def dict_hits_to_Hit(raw: dict, cfg: Config) -> Hit:
-        """
-        Map raw fields (det_id, region, energy deposit, time, position, etc.)
-        to a canonical Hit, using cfg.detector and cfg.materials.
-        """
-        ...
-    ```
+    Raw hit dicts from the adapter are converted inside the adapter itself (e.g., `PHITSAdapter` or `ROOTAdapter`). Adapters must emit canonical `Hit` objects directly or provide an internal method ensuring all Hits follow the unified `physics.hits.Hit` structure.
 
 2. Apply **universal hit-level cuts** (e.g. min light/energy):
 
     ```python
-    hits = [dict_hits_to_Hit(r, cfg) for r in raw_event]
+    # adapter already returns canonical Hit objects
+    hits = list(raw_event)
+    # apply universal hit-level cuts
     hits = apply_hit_filters(hits, cfg.filters.hits, counters)
     ```
  
@@ -435,6 +436,9 @@ Counters at this stage might include:
 - `shaped_events_n`
 - `shaped_events_g`
 - `raw_events_rejected_shaping` (if nothing usable can be formed)
+
+*(Implementation note: shaping and typed-event creation will replace the current direct PHITSAdapter → typed-event path. Until shaping is implemented, PHITSAdapter produces NeutronEvent/GammaEvent objects directly. This is acceptable during early pipeline prototyping.)*
+
 
 ### 5.2. Typed Events
 
@@ -756,7 +760,7 @@ Counters for imaging might include:
 
 ---
 
-## 11. Fast vs List Mode: Modifiers of the Default Pipeline
+## 11. Fast and List options: Modifiers of the Default Pipeline
 
 There is a **single unified pipeline**. “Fast” and “list” are orthogonal **modifiers** of its behavior, not separate pipelines or modes that change control flow.
 
@@ -866,14 +870,14 @@ Recommended behavior:
 
 ### 12.3. Resuming from HDF5
 
-When `input_format = "hdf5_ngimager"`:
+When `input_format = "hdf5_ngimager"`, the pipeline interprets the contents of the HDF5 file and resumes *exactly* from the stage corresponding to `[pipeline].until`:
 
 - If `/cones/*` exists but `/images/*` does not:
     - Start at cones → images.
 - If `/events/*` exists but `/cones/*` does not:
     - Start at events → cones → images.
 - If only `/hits/*` exist:
-    - Start at events → cones → images.
+    - Start at hits → events → cones → images.
 
 This enables:
 
@@ -900,7 +904,7 @@ Two common workflows:
      - Start from an HDF5 file that already contains selected cones and summed images, but no list-mode images.
      - Re-run the pipeline with:
          - `input_format = "hdf5_ngimager"`
-         - `run.stop_stage = "images"`
+         - `pipeline.until = "image"`
          - `run.list = true`
      - The pipeline detects existing hits/events/cones, skips rebuilding them, and re-runs only the imaging stage, this time computing and writing per-cone sparse footprints into `/images/listmode/*`.
 
@@ -1048,6 +1052,24 @@ The aim is for someone familiar with the legacy script to be able to read this c
 
 ---
 
+## 15.5 Current Implementation Status (for developers)
+
+As of early development:
+
+- The unified pipeline (`pipelines.core.run_pipeline`) is active.
+- PHITSAdapter directly produces NeutronEvent objects; shaping and typed-event conversion are not yet implemented.
+- Energy strategies are stubbed but not yet applied to events.
+- Cone building exists but does not yet incorporate proton/carbon branching, gamma permutation logic, or prior-based selection.
+- SBP imaging is functional and accepts Cone objects built in the simplified path.
+
+The roadmap below details how the current early prototype will evolve into the full architecture described above.
+
+---
+
+
+
+---
+
 ## 16. Roadmap (Refactor and Implementation Checklist)
 
 This checklist tracks migration from the current state to the architecture described here.
@@ -1105,7 +1127,7 @@ This checklist tracks migration from the current state to the architecture descr
     - `--list` / `--no-list`
     - `--stop-stage`
     - optional convenience flags like `--neutrons-only` / `--gammas-only` mapped to `use_neutrons` / `use_gammas`
-- [ ] Implement `run.stop_stage` gating at the main stages and support resuming from ngimager HDF5 files (`input_format = "hdf5_ngimager"`).
+- [ ] Implement `pipeline.until` gating at the main stages and support resuming from ngimager HDF5 files (`input_format = "hdf5_ngimager"`).
 
 
 ### 16.8. HDF5 and Visualization
