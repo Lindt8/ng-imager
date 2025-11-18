@@ -184,9 +184,7 @@ def _plane_center(plane: Plane) -> np.ndarray:
     This mirrors the intuitive "center of FOV" default when no explicit prior
     is provided.
     """
-    u_c = 0.5 * (plane.u_min + plane.u_max)
-    v_c = 0.5 * (plane.v_min + plane.v_max)
-    return plane.plane_to_world(u_c, v_c)
+    return plane.center()
 
 
 def _prior_direction_vector(
