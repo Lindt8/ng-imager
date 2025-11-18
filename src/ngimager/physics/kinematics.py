@@ -8,7 +8,7 @@ C_CM_PER_NS = 29.9792458
 M_N_MEV = 939.565          # neutron
 M_P_MEV = 938.272          # proton
 M_C12_MEV = 12*931.494 - 6*0.511  # carbon-12 (nuclear mass approx)
-
+M_E_MEV = 0.511            # electron
 
 @dataclass(frozen=True)
 class Nucleus:
@@ -76,3 +76,73 @@ def neutron_theta_from_hits(
     A = mass_ratio_A(scatter_nucleus)
     theta = theta_lab_from_Erecoil_En(Edep1_MeV, En, A)
     return theta
+
+def compton_incident_energy_from_second_scatter(
+    dE1_MeV: float,
+    dE2_MeV: float,
+    theta2_rad: float,
+) -> float:
+    """
+    Incident gamma energy Eg [MeV] from:
+
+      - dE1: energy deposited at 1st scatter [MeV]
+      - dE2: energy deposited at 2nd scatter [MeV]
+      - theta2: angle between 1->2 and 2->3 baselines [rad]
+
+    This mirrors the NOVO primer / legacy implementation:
+
+        Eg = dE1 + 0.5 * ( dE2 + sqrt( dE2^2 + 4*dE2*me / (1 - cos(theta2)) ) )
+
+    Raises
+    ------
+    ValueError
+        If inputs are non-physical (negative energies, grazing angles, etc.).
+    """
+    if dE1_MeV <= 0.0 or dE2_MeV <= 0.0:
+        raise ValueError(f"Non-positive gamma deposits: dE1={dE1_MeV}, dE2={dE2_MeV}")
+
+    cos_t2 = float(np.cos(theta2_rad))
+    denom = 1.0 - cos_t2
+    if denom <= 0.0:
+        raise ValueError(f"Non-physical second-scatter angle theta2={theta2_rad} (denominator <= 0).")
+
+    radicand = dE2_MeV**2 + (4.0 * dE2_MeV * M_E_MEV / denom)
+    if radicand <= 0.0:
+        raise ValueError(f"Non-physical Compton radicand={radicand} for gamma cone.")
+
+    Eg = dE1_MeV + 0.5 * (dE2_MeV + float(np.sqrt(radicand)))
+    if not np.isfinite(Eg) or Eg <= 0.0:
+        raise ValueError(f"Non-physical incident gamma energy Eg={Eg}")
+
+    return Eg
+
+
+def compton_theta_from_energies(Eg_MeV: float, Egp_MeV: float) -> float:
+    """
+    First Compton scatter angle theta1 [rad] from:
+
+        Eg  : incident gamma energy [MeV]
+        Egp : post-first-scatter gamma energy [MeV]
+
+    Uses the standard Compton relation:
+
+        cos(theta) = 1 + me * (1/Eg - 1/Egp)
+
+    Raises
+    ------
+    ValueError
+        If energies are non-physical or the argument to arccos is out of [-1, 1].
+    """
+    if Eg_MeV <= 0.0 or Egp_MeV <= 0.0 or Egp_MeV >= Eg_MeV:
+        raise ValueError(f"Non-physical gamma energies Eg={Eg_MeV}, Eg'={Egp_MeV}")
+
+    arg = 1.0 + M_E_MEV * ((1.0 / Eg_MeV) - (1.0 / Egp_MeV))
+
+    # If we drift outside [-1, 1] more than a tiny epsilon, treat as non-physical
+    if arg < -1.0 - 1e-6 or arg > 1.0 + 1e-6:
+        raise ValueError(f"Compton argument out of domain: arg={arg}")
+
+    arg = float(np.clip(arg, -1.0, 1.0))
+    theta = float(np.arccos(arg))
+    return theta
+
