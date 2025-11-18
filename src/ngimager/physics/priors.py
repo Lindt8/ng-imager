@@ -71,7 +71,13 @@ def make_prior(cfg_prior: dict, plane: Plane) -> Optional[Prior]:
     if typ == "none":
         return None
     if typ == "point":
-        return PointPrior(np.asarray(cfg_prior["point"], dtype=float), strength=strength)
+        #return PointPrior(np.asarray(cfg_prior["point"], dtype=float), strength=strength)
+        if "point" in cfg_prior:
+            p = np.asarray(cfg_prior["point"], dtype=float)
+        else:
+            # default: center of imaging plane
+            p = plane.center  # or plane.origin() if we add such a helper
+        return PointPrior(p, strength=strength)
     if typ == "line":
         return LinePrior(
             np.asarray(cfg_prior["line_p0"], dtype=float),

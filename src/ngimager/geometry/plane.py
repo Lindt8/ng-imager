@@ -53,7 +53,25 @@ class Plane:
     @property
     def nv(self) -> int:
         return int(np.floor((self.v_max - self.v_min) / self.dv + 1e-9)) + 1
+    
+    def center(self) -> np.ndarray:
+        """
+        Return the world-space coordinates of the geometric center of the
+        imaging plane grid.
 
+        This is defined as the point corresponding to the midpoint in (u, v)
+        coordinates:
+
+            u_c = 0.5 * (u_min + u_max)
+            v_c = 0.5 * (v_min + v_max)
+
+        and mapped back to 3D via plane_to_world.
+        """
+        u_c = 0.5 * (self.u_min + self.u_max)
+        v_c = 0.5 * (self.v_min + self.v_max)
+        return self.plane_to_world(u_c, v_c)
+
+    
     def world_to_plane(self, X: np.ndarray) -> tuple[float, float]:
         d = X - self.P0
         return float(d @ self.eu), float(d @ self.ev)
