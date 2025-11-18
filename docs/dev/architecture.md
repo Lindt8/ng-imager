@@ -605,6 +605,9 @@ For **EnergyFromFixedIncident**:
 
 Currently, energy strategies are primarily designed for **neutron events**; gamma events for the SBP-style imaging do not require as detailed energy treatment for the existing reconstruction logic. If future gamma imaging methods require more detailed gamma energy estimation, extensions can be added to the energy strategy system.
 
+Currently, PHITS-based workflows typically use the `Edep` strategy so that `Hit.L` can be treated as deposited energy in MeV (e.g., PHITS `Edep_MeV`) for both neutron and gamma events. This keeps the PHITS path simple while allowing LUT-based and timing-based strategies for experiments using calibrated light outputs.
+
+
 All these energy strategies are encapsulated in `energy_strategies` and configured via `[energy]`, not scattered across the pipeline.
 
 ---
@@ -846,7 +849,13 @@ The HDF5 format is the primary output, and it should support:
       axis_xyz         [C,3]
       theta_rad        [C]
       event_index      [C]
-      species          [C]              # 0=n, 1=g
+      event_type       [C]              # 0=n, 1=g
+
+/images/summed
+    n   [H,W]   # neutron summed SBP image (currently implemented and used)
+    g   [H,W]   # gamma summed SBP image (planned)
+    all [H,W]   # n+g combined summed SBP image (planned)
+
 
   /lm
       materials/labels    [M] string    # vocabulary of materials
@@ -1089,15 +1098,57 @@ The aim is for someone familiar with the legacy script to be able to read this c
 
 ## 15.5 Current Implementation Status (for developers)
 
-As of early development:
+As of the current ngimager snapshot:
 
-- The unified pipeline (`pipelines.core.run_pipeline`) is active.
-- PHITSAdapter directly produces NeutronEvent objects; shaping and typed-event conversion are not yet implemented.
-- Energy strategies are stubbed but not yet applied to events.
-- Cone building exists but does not yet incorporate proton/carbon branching, gamma permutation logic, or prior-based selection.
-- SBP imaging is functional and accepts Cone objects built in the simplified path.
+- The unified pipeline (`pipelines.core.run_pipeline`) is active and is the only supported end-to-end entry point.
 
-The roadmap below details how the current early prototype will evolve into the full architecture described above.
+- The PHITS path follows the intended staged flow:
+
+  - `PHITSAdapter.iter_raw_events(...)` emits canonical `Hit` objects grouped into raw coincidence windows.
+  - Hit-level cuts are applied via `apply_hit_filters`, followed by an `is_reconstructable` check that can discard raw events early after hit filtering.
+  - Surviving hits are passed through `shape_events_for_cones` (shaper) and then `shaped_to_typed_events` to yield `NeutronEvent` and `GammaEvent` instances.
+  - Typed events always carry their constituent `Hit` objects.
+
+- Shaping and typed-event conversion are implemented for both neutrons and gammas:
+  - Neutron events are currently restricted to simple 2-hit topologies.
+  - Gamma events are currently restricted to 3-hit events; the default sequencing policy for PHITS data is time-ordered (`gamma_policy = "time_asc"`).
+
+- Hit-level filters and basic event-level filters are in place and plumbed through the PHITS path, with counters that distinguish neutrons vs gammas where meaningful. A full audit of counters against the `_total` / `_n` / `_g` naming convention is still pending.
+
+- Energy strategies are implemented in `physics.energy_strategies` and are used in the pipeline:
+  - `make_energy_strategy(cfg.energy, cfg.materials)` is called from the cones stage.
+  - The **Edep** strategy is used for PHITS workflows where `Hit.L` represents deposited energy (e.g. `Edep_MeV`), matching the current PHITS toy examples.
+  - LUT-based and ToF-based neutron strategies exist and are wired, but still need dedicated validation on real or legacy datasets.
+
+- Cone construction is handled in `physics.cones`:
+
+  - Neutron cones:
+    - Built from `NeutronEvent` plus the energy strategy, using the standard kinematics.
+    - Directionality tests based on cone–plane intersection (`t_int > 0`) are implemented for gamma cones and are planned for neutrons to ensure cones point toward the imaging plane.
+
+  - Gamma cones:
+    - Implemented for 3-hit Compton events following the NOVO primer:
+      - All 6 permutations of the 3 hits are tested.
+      - Kinematically impossible permutations are rejected (invalid Compton angle, etc.).
+      - For each viable permutation, a candidate cone is built.
+    - Candidate cones are scored using a prior-aware angle metric:
+      - Compute the estimated scatter angle θ_est from the prior (vector from apex to prior point).
+      - Compute the angle between the cone axis and the vector from apex to prior point.
+      - Use Δ = |θ_calc − θ_est| as the quality metric; the permutation with the smallest Δ is selected.
+      - When no explicit prior is configured, the imaging plane center is used as a reasonable default prior point.
+    - This gamma cone path is implemented and produces images for PHITS toy data, but full physics validation is still pending; current results for gammas are limited by uncertainty in the PHITS gamma tally configuration.
+
+- Priors (`physics.priors`) support both point and line priors and are constructed via `make_prior(cfg.prior)`. The same prior object is used for neutron and gamma cone selection, with a fallback to the imaging plane center when no prior is provided.
+
+- HDF5 output follows the unified layout described in §12:
+  - `/lm` stores event-level information, including `event_type` (0 = neutron, 1 = gamma).
+  - `/cones` stores cone parameters plus a `species` field (0 = neutron, 1 = gamma).
+  - Indices allow tracing cones back to events and hits.
+  - At present, summed images are written to `/images/summed/n`. Species-split gamma images and combined `/images/summed/g` and `/images/summed/all` are planned but not yet implemented.
+
+- SBP imaging (`imaging.sbp.reconstruct_sbp`) is functional and operates directly on the `Cone` dataclass and `Plane`. List-mode (per-cone sparse footprints) infrastructure exists but still needs a full pass of testing and documentation.
+
+Overall, the PHITS→hits→events→cones→SBP path is operational for both neutrons and gammas, with gamma imaging conceptually implemented but awaiting robust validation and improved diagnostics.
 
 
 ---
@@ -1116,40 +1167,77 @@ This checklist tracks migration from the current state to the architecture descr
 
 - [x] `PHITSAdapter.iter_raw_events` now returns canonical Hit objects grouped into raw coincidence windows as designed.
 - [ ] Implement/clean up `ROOTAdapter.iter_raw_events` with `input_format = "root_novo_ddaq"` for the current acquisition system.
-- [ ] Implement the early `is_reconstructable` logic after hit-level filtering to discard unviable raw events, with appropriate counters.
+- [x] Implement the early `is_reconstructable` logic after hit-level filtering to discard unviable raw events, with appropriate counters.
 
 ### 16.3. Shaper and Typed Events
 
 - [x] Make `shape_events_for_cones` the single entry point from raw-event hits to shaped events.
 - [x] Make `shaped_to_typed_events` the only path to `NeutronEvent`/`GammaEvent`.
 - [x] Typed events now always carry canonical `Hit` objects, and HDF5 round-trip storage is implemented.
-- [ ] Ensure counters at the hit and event levels follow the `_n` / `_g` / `_total` naming pattern where meaningful.
+- [ ] Ensure counters at the hit and event levels follow the `_n` / `_g` / `_total` naming pattern where meaningful, and audit existing counters for consistency.
 
 
 ### 16.4. Filters, Priors, and Sequencing
 
-- [ ] Centralize event and cone selection logic into `filters` modules, driven by `[filters]` config.
-- [ ] Ensure priors are only defined in `physics.priors` and configured via `[prior]`.
+### 16.4. Filters, Priors, and Sequencing
+
+- [ ] Centralize event and cone selection logic into `filters` modules, driven by `[filters]` config (currently, some selection and scoring logic still lives in `physics.cones` and `pipelines.core`).
+- [x] Ensure priors are only defined in `physics.priors` and configured via `[prior]`.
 - [ ] Implement `enumerate_candidate_cones` and `select_cones` so that:
-    - Multiple candidate cones per event (proton vs carbon, gamma permutations) are supported.
-    - At most one cone per event is ultimately selected.
+    - Multiple candidate cones per event (proton vs carbon, gamma permutations) are supported in a unified way.
+    - At most one cone per event is ultimately selected by a dedicated selector function (rather than ad-hoc selection inside the cone-building code).
 - [ ] Implement storage of gamma sequencing choice and neutron recoil interpretation in the event objects and HDF5.
+
 
 ### 16.5. Energy Strategy Integration
 
-- [ ] Wire `make_energy_strategy(cfg.energy, cfg.materials)` into the pipeline, with all neutron energy calculations happening via this interface.
-- [ ] Integrate E(L) LUTs for OGS and M600 via `io.lut.LUT`.
+- [x] Wire `make_energy_strategy(cfg.energy, cfg.materials)` into the pipeline, with all neutron energy calculations happening via this interface.
+- [x] Integrate E(L) LUTs for OGS and M600 via `io.lut.LUT`.
 - [ ] Validate `EnergyFromToF` and `EnergyFromFixedIncident` paths with simple tests.
 - [ ] Document the conceptual picture in code comments, referencing this document.
 
 ### 16.6. Cone Construction and Imaging
 
-- [ ] Ensure `physics.cones` provides the canonical functions for building candidate cones from events.
-- [ ] Confirm `imaging.sbp.reconstruct_sbp` works directly from the `Cone` dataclass and `Plane`.
-- [ ] Implement optional per-cone sparse footprints used only when `run.list` is true.
+- [x] Ensure `physics.cones` provides the canonical functions for building candidate cones from events (both neutrons and gammas).
+- [x] Confirm `imaging.sbp.reconstruct_sbp` works directly from the `Cone` dataclass and `Plane`.
+- [ ] Implement optional per-cone sparse footprints used only when `run.list` is true, and validate them end-to-end.
 - [ ] Ensure cone and imaging counters follow the `_n` / `_g` / `_total` naming pattern where meaningful, and that per-stage runtimes are recorded and reported.
-- [ ] Gamma cone-building pending.
-- [ ] Combined n/g/all SBP images pending.
+- [x] Implement initial gamma cone-building for 3-hit Compton events in `physics.cones`, including permutation testing and prior-based Δ = |θ_calc − θ_est| scoring; treat this path as “provisionally implemented” pending further validation and ROOT adapter integration.
+- [ ] Extend neutron cone construction to support explicit proton vs carbon candidate branches, including directionality checks analogous to the gamma `t_int > 0` test, and integrate this into the unified candidate/selection framework.
+- [ ] Implement combined n/g/all SBP images at the imaging stage (see §16.8 for `/images/summed/[n|g|all]`).
+
+### 16.6.1 Gamma Cone Status (Provisional)
+
+The gamma cone construction path described in §16.6 is now implemented in `physics.cones` and exercised through the unified pipeline:
+
+- Gamma events are restricted to 3-hit Compton triples.
+- All 3! permutations of the hit ordering are tested.
+- Kinematically invalid permutations (e.g. impossible Compton angle) are rejected.
+- Each viable candidate cone undergoes an axis-toward-plane check (`t_int > 0`) to ensure only physically meaningful half-cones are retained.
+- Candidate cones are scored using a prior-aware metric:
+
+    \[
+        \Delta = \left| \phi_{\text{prior}} - \theta_{\text{Compton}} \right|,
+    \]
+
+    where:
+    - \(\phi_{\text{prior}}\) is the angle between the cone axis and the vector from the relevant scatter point toward the prior location (point or line prior; defaults to the imaging-plane center),
+    - \(\theta_{\text{Compton}}\) is the scatter angle implied by the candidate ordering.
+
+- The candidate with minimal Δ is selected as the single "finalist" cone for that event.
+
+This constitutes a full first implementation of gamma Compton-cone building and selection consistent with the NOVO imaging primer and the legacy code’s behavior. However:
+
+**Status:**  
+Gamma images produced from PHITS simulations using custom user-defined tallies currently do not reproduce the expected spatial structure (e.g. a line source). Preliminary investigation indicates that this is likely due to issues in the PHITS tallying pipeline rather than in ngimager’s gamma-cone kinematics. The legacy code exhibits similar behavior when run on the same PHITS gamma dataset.
+
+**Implications for development:**  
+Gamma-cone construction is implemented and functional in code, but remains **provisionally validated** pending:
+- verification of gamma-hit ordering and deposited-energy correctness in the PHITS tally,
+- comparison with legacy gamma datasets generated through the established multi-tally PHITS workflow,
+- future validation against ROOT experimental data once the ROOT adapter is complete.
+
+Development on neutron imaging, event/candidate selection infrastructure, filters, and HDF5/species-resolved image generation can proceed independently while PHITS gamma tally diagnostics continue in parallel.
 
 
 ### 16.7. Unified Pipeline and CLI
@@ -1166,12 +1254,15 @@ This checklist tracks migration from the current state to the architecture descr
 
 ### 16.8. HDF5 and Visualization
 
-- [x] Finalize and document the HDF5 layout described above.
-- [ ] Ensure hits/events/cones/images store the necessary indices for full back-tracing.
-- [ ] Implement species-separated and combined SBP images (`/images/summed/[n|g|all]`)
+### 16.8. HDF5 and Visualization
+
+- [x] Finalize and document the HDF5 layout described above (including `/lm/event_type`, `/cones/event_type, and `/images/summed/*`).
+- [ ] Ensure hits/events/cones/images store the necessary indices for full back-tracing, and audit for off-by-one or length mismatches between `/lm` and `/cones` (one such mismatch has been observed in PHITS toy datasets).
+- [ ] Implement species-separated and combined SBP images (`/images/summed/n`, `/images/summed/g`, `/images/summed/all`) and wire `pipelines.core` plus `vis.hdf.save_summed_png` to use them consistently.
 - [ ] Ensure final HDF5 outputs (for full runs) contain only objects that survive all active filters, with counters and metadata describing what was rejected at each stage.
 - [ ] Wrap PNG export in a clean CLI function that calls `vis.hdf.save_summed_png` driven by `[vis]`.
 - [ ] Support imaging-only reruns from existing cones (ngimager HDF5 input) to generate list-mode per-cone images from previously non-list-mode outputs.
+
 
 
 ### 16.9. Documentation and Example Configs
