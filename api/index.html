@@ -936,6 +936,34 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ngimager.geometry.plane.Plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plane
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plane">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ngimager.geometry.plane.Plane.center" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        center
+      
+    </span>
+  </a>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#ngimagerimagingsbp" class="md-nav__link">
     <span class="md-ellipsis">
@@ -2101,6 +2129,68 @@
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ngimager.geometry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        geometry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="geometry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ngimager.geometry.plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        plane
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="plane">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ngimager.geometry.plane.Plane" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plane
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plane">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ngimager.geometry.plane.Plane.center" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        center
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -6077,7 +6167,13 @@ or ToF logic is needed.</p>
 <span class="normal"><a href="#__codelineno-0-78">78</a></span>
 <span class="normal"><a href="#__codelineno-0-79">79</a></span>
 <span class="normal"><a href="#__codelineno-0-80">80</a></span>
-<span class="normal"><a href="#__codelineno-0-81">81</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="k">def</span><span class="w"> </span><span class="nf">make_prior</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Prior</span><span class="p">]:</span>
+<span class="normal"><a href="#__codelineno-0-81">81</a></span>
+<span class="normal"><a href="#__codelineno-0-82">82</a></span>
+<span class="normal"><a href="#__codelineno-0-83">83</a></span>
+<span class="normal"><a href="#__codelineno-0-84">84</a></span>
+<span class="normal"><a href="#__codelineno-0-85">85</a></span>
+<span class="normal"><a href="#__codelineno-0-86">86</a></span>
+<span class="normal"><a href="#__codelineno-0-87">87</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="k">def</span><span class="w"> </span><span class="nf">make_prior</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Prior</span><span class="p">]:</span>
 <a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="sd">    Small factory used by pipelines.core; returns a Prior or None.</span>
 <a id="__codelineno-0-59" name="__codelineno-0-59"></a>
@@ -6095,14 +6191,20 @@ or ToF logic is needed.</p>
 <a id="__codelineno-0-71" name="__codelineno-0-71"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
 <a id="__codelineno-0-72" name="__codelineno-0-72"></a>        <span class="k">return</span> <span class="kc">None</span>
 <a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;point&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-74" name="__codelineno-0-74"></a>        <span class="k">return</span> <span class="n">PointPrior</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;point&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span>
-<a id="__codelineno-0-75" name="__codelineno-0-75"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;line&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-76" name="__codelineno-0-76"></a>        <span class="k">return</span> <span class="n">LinePrior</span><span class="p">(</span>
-<a id="__codelineno-0-77" name="__codelineno-0-77"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-<a id="__codelineno-0-78" name="__codelineno-0-78"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p1&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-<a id="__codelineno-0-79" name="__codelineno-0-79"></a>            <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">,</span>
-<a id="__codelineno-0-80" name="__codelineno-0-80"></a>        <span class="p">)</span>
-<a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown prior.type=</span><span class="si">{</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-74" name="__codelineno-0-74"></a>        <span class="c1">#return PointPrior(np.asarray(cfg_prior[&quot;point&quot;], dtype=float), strength=strength)</span>
+<a id="__codelineno-0-75" name="__codelineno-0-75"></a>        <span class="k">if</span> <span class="s2">&quot;point&quot;</span> <span class="ow">in</span> <span class="n">cfg_prior</span><span class="p">:</span>
+<a id="__codelineno-0-76" name="__codelineno-0-76"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;point&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-77" name="__codelineno-0-77"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-78" name="__codelineno-0-78"></a>            <span class="c1"># default: center of imaging plane</span>
+<a id="__codelineno-0-79" name="__codelineno-0-79"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">center</span>  <span class="c1"># or plane.origin() if we add such a helper</span>
+<a id="__codelineno-0-80" name="__codelineno-0-80"></a>        <span class="k">return</span> <span class="n">PointPrior</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span>
+<a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;line&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-82" name="__codelineno-0-82"></a>        <span class="k">return</span> <span class="n">LinePrior</span><span class="p">(</span>
+<a id="__codelineno-0-83" name="__codelineno-0-83"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+<a id="__codelineno-0-84" name="__codelineno-0-84"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p1&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+<a id="__codelineno-0-85" name="__codelineno-0-85"></a>            <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">,</span>
+<a id="__codelineno-0-86" name="__codelineno-0-86"></a>        <span class="p">)</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown prior.type=</span><span class="si">{</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -6147,6 +6249,117 @@ or ToF logic is needed.</p>
 
 
 
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="ngimager.geometry.plane.Plane" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">Plane</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#ngimager.geometry.plane.Plane" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">Plane</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">eu</span><span class="p">,</span> <span class="n">ev</span><span class="p">,</span> <span class="n">u_min</span><span class="p">,</span> <span class="n">u_max</span><span class="p">,</span> <span class="n">du</span><span class="p">,</span> <span class="n">v_min</span><span class="p">,</span> <span class="n">v_max</span><span class="p">,</span> <span class="n">dv</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="ngimager.geometry.plane.Plane.center" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">center</span>
+
+
+<a href="#ngimager.geometry.plane.Plane.center" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">center</span><span class="p">()</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return the world-space coordinates of the geometric center of the
+imaging plane grid.</p>
+<p>This is defined as the point corresponding to the midpoint in (u, v)
+coordinates:</p>
+<div class="highlight"><pre><span></span><code>u_c = 0.5 * (u_min + u_max)
+v_c = 0.5 * (v_min + v_max)
+</code></pre></div>
+<p>and mapped back to 3D via plane_to_world.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>ngimager/geometry/plane.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-57">57</a></span>
+<span class="normal"><a href="#__codelineno-0-58">58</a></span>
+<span class="normal"><a href="#__codelineno-0-59">59</a></span>
+<span class="normal"><a href="#__codelineno-0-60">60</a></span>
+<span class="normal"><a href="#__codelineno-0-61">61</a></span>
+<span class="normal"><a href="#__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#__codelineno-0-65">65</a></span>
+<span class="normal"><a href="#__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#__codelineno-0-68">68</a></span>
+<span class="normal"><a href="#__codelineno-0-69">69</a></span>
+<span class="normal"><a href="#__codelineno-0-70">70</a></span>
+<span class="normal"><a href="#__codelineno-0-71">71</a></span>
+<span class="normal"><a href="#__codelineno-0-72">72</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="k">def</span><span class="w"> </span><span class="nf">center</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-59" name="__codelineno-0-59"></a><span class="sd">    Return the world-space coordinates of the geometric center of the</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">    imaging plane grid.</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61"></a>
+<a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">    This is defined as the point corresponding to the midpoint in (u, v)</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">    coordinates:</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64"></a>
+<a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="sd">        u_c = 0.5 * (u_min + u_max)</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">        v_c = 0.5 * (v_min + v_max)</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67"></a>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">    and mapped back to 3D via plane_to_world.</span>
+<a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-70" name="__codelineno-0-70"></a>    <span class="n">u_c</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_max</span><span class="p">)</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71"></a>    <span class="n">v_c</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">v_max</span><span class="p">)</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plane_to_world</span><span class="p">(</span><span class="n">u_c</span><span class="p">,</span> <span class="n">v_c</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
 
 
 
@@ -12050,6 +12263,197 @@ typed physics events (NeutronEvent / GammaEvent).</p>
 
 
 
+<h3 id="ngimager.geometry" class="doc doc-heading">
+            <span class="doc doc-object-name doc-module-name">geometry</span>
+
+
+<a href="#ngimager.geometry" class="headerlink" title="Permanent link">&para;</a></h3>
+
+    <div class="doc doc-contents ">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h4 id="ngimager.geometry.plane" class="doc doc-heading">
+            <span class="doc doc-object-name doc-module-name">plane</span>
+
+
+<a href="#ngimager.geometry.plane" class="headerlink" title="Permanent link">&para;</a></h4>
+
+    <div class="doc doc-contents ">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h5 id="ngimager.geometry.plane.Plane" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">Plane</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#ngimager.geometry.plane.Plane" class="headerlink" title="Permanent link">&para;</a></h5>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">Plane</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">eu</span><span class="p">,</span> <span class="n">ev</span><span class="p">,</span> <span class="n">u_min</span><span class="p">,</span> <span class="n">u_max</span><span class="p">,</span> <span class="n">du</span><span class="p">,</span> <span class="n">v_min</span><span class="p">,</span> <span class="n">v_max</span><span class="p">,</span> <span class="n">dv</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h6 id="ngimager.geometry.plane.Plane.center" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">center</span>
+
+
+<a href="#ngimager.geometry.plane.Plane.center" class="headerlink" title="Permanent link">&para;</a></h6>
+<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">center</span><span class="p">()</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return the world-space coordinates of the geometric center of the
+imaging plane grid.</p>
+<p>This is defined as the point corresponding to the midpoint in (u, v)
+coordinates:</p>
+<div class="highlight"><pre><span></span><code>u_c = 0.5 * (u_min + u_max)
+v_c = 0.5 * (v_min + v_max)
+</code></pre></div>
+<p>and mapped back to 3D via plane_to_world.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>ngimager/geometry/plane.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-57">57</a></span>
+<span class="normal"><a href="#__codelineno-0-58">58</a></span>
+<span class="normal"><a href="#__codelineno-0-59">59</a></span>
+<span class="normal"><a href="#__codelineno-0-60">60</a></span>
+<span class="normal"><a href="#__codelineno-0-61">61</a></span>
+<span class="normal"><a href="#__codelineno-0-62">62</a></span>
+<span class="normal"><a href="#__codelineno-0-63">63</a></span>
+<span class="normal"><a href="#__codelineno-0-64">64</a></span>
+<span class="normal"><a href="#__codelineno-0-65">65</a></span>
+<span class="normal"><a href="#__codelineno-0-66">66</a></span>
+<span class="normal"><a href="#__codelineno-0-67">67</a></span>
+<span class="normal"><a href="#__codelineno-0-68">68</a></span>
+<span class="normal"><a href="#__codelineno-0-69">69</a></span>
+<span class="normal"><a href="#__codelineno-0-70">70</a></span>
+<span class="normal"><a href="#__codelineno-0-71">71</a></span>
+<span class="normal"><a href="#__codelineno-0-72">72</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="k">def</span><span class="w"> </span><span class="nf">center</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-59" name="__codelineno-0-59"></a><span class="sd">    Return the world-space coordinates of the geometric center of the</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">    imaging plane grid.</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61"></a>
+<a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">    This is defined as the point corresponding to the midpoint in (u, v)</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">    coordinates:</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64"></a>
+<a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="sd">        u_c = 0.5 * (u_min + u_max)</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">        v_c = 0.5 * (v_min + v_max)</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67"></a>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">    and mapped back to 3D via plane_to_world.</span>
+<a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-70" name="__codelineno-0-70"></a>    <span class="n">u_c</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_max</span><span class="p">)</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71"></a>    <span class="n">v_c</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v_min</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">v_max</span><span class="p">)</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plane_to_world</span><span class="p">(</span><span class="n">u_c</span><span class="p">,</span> <span class="n">v_c</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
 <h3 id="ngimager.imaging" class="doc doc-heading">
             <span class="doc doc-object-name doc-module-name">imaging</span>
 
@@ -16512,7 +16916,13 @@ Follows primer equations for theta_CoM then lab mapping.</p>
 <span class="normal"><a href="#__codelineno-0-78">78</a></span>
 <span class="normal"><a href="#__codelineno-0-79">79</a></span>
 <span class="normal"><a href="#__codelineno-0-80">80</a></span>
-<span class="normal"><a href="#__codelineno-0-81">81</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="k">def</span><span class="w"> </span><span class="nf">make_prior</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Prior</span><span class="p">]:</span>
+<span class="normal"><a href="#__codelineno-0-81">81</a></span>
+<span class="normal"><a href="#__codelineno-0-82">82</a></span>
+<span class="normal"><a href="#__codelineno-0-83">83</a></span>
+<span class="normal"><a href="#__codelineno-0-84">84</a></span>
+<span class="normal"><a href="#__codelineno-0-85">85</a></span>
+<span class="normal"><a href="#__codelineno-0-86">86</a></span>
+<span class="normal"><a href="#__codelineno-0-87">87</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="k">def</span><span class="w"> </span><span class="nf">make_prior</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Prior</span><span class="p">]:</span>
 <a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="sd">    Small factory used by pipelines.core; returns a Prior or None.</span>
 <a id="__codelineno-0-59" name="__codelineno-0-59"></a>
@@ -16530,14 +16940,20 @@ Follows primer equations for theta_CoM then lab mapping.</p>
 <a id="__codelineno-0-71" name="__codelineno-0-71"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
 <a id="__codelineno-0-72" name="__codelineno-0-72"></a>        <span class="k">return</span> <span class="kc">None</span>
 <a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;point&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-74" name="__codelineno-0-74"></a>        <span class="k">return</span> <span class="n">PointPrior</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;point&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span>
-<a id="__codelineno-0-75" name="__codelineno-0-75"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;line&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-76" name="__codelineno-0-76"></a>        <span class="k">return</span> <span class="n">LinePrior</span><span class="p">(</span>
-<a id="__codelineno-0-77" name="__codelineno-0-77"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-<a id="__codelineno-0-78" name="__codelineno-0-78"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p1&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-<a id="__codelineno-0-79" name="__codelineno-0-79"></a>            <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">,</span>
-<a id="__codelineno-0-80" name="__codelineno-0-80"></a>        <span class="p">)</span>
-<a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown prior.type=</span><span class="si">{</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-74" name="__codelineno-0-74"></a>        <span class="c1">#return PointPrior(np.asarray(cfg_prior[&quot;point&quot;], dtype=float), strength=strength)</span>
+<a id="__codelineno-0-75" name="__codelineno-0-75"></a>        <span class="k">if</span> <span class="s2">&quot;point&quot;</span> <span class="ow">in</span> <span class="n">cfg_prior</span><span class="p">:</span>
+<a id="__codelineno-0-76" name="__codelineno-0-76"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;point&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-77" name="__codelineno-0-77"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-78" name="__codelineno-0-78"></a>            <span class="c1"># default: center of imaging plane</span>
+<a id="__codelineno-0-79" name="__codelineno-0-79"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">center</span>  <span class="c1"># or plane.origin() if we add such a helper</span>
+<a id="__codelineno-0-80" name="__codelineno-0-80"></a>        <span class="k">return</span> <span class="n">PointPrior</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span>
+<a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;line&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-82" name="__codelineno-0-82"></a>        <span class="k">return</span> <span class="n">LinePrior</span><span class="p">(</span>
+<a id="__codelineno-0-83" name="__codelineno-0-83"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+<a id="__codelineno-0-84" name="__codelineno-0-84"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p1&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+<a id="__codelineno-0-85" name="__codelineno-0-85"></a>            <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">,</span>
+<a id="__codelineno-0-86" name="__codelineno-0-86"></a>        <span class="p">)</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown prior.type=</span><span class="si">{</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
