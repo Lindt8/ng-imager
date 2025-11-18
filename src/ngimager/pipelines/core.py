@@ -1,3 +1,31 @@
+'''
+The CLI is implemented via Typer, so the script behaves like a simple one-argument command:
+
+    - argument = path to TOML config file
+
+The pipeline will:
+
+    - Load the TOML config
+    - Detect the adapter (PHITS, ROOT, HDF5 restart)
+    - Shape/validate hits → events
+    - Build cones (now neutron + gamma depending on run.neutrons, run.gammas)
+    - Run SBP imaging
+    - Write unified HDF5 output
+
+You can always show help via:
+
+    - `python -m ngimager.pipelines.core --help`
+
+Example run commands from project root:
+
+python -m ngimager.pipelines.core path/to/config.toml
+
+python -m ngimager.pipelines.core examples/configs/phits_usrdef_simple.toml
+
+python -m ngimager.pipelines.core .\examples\configs\phits_usrdef_simple.toml
+
+
+'''
 from __future__ import annotations
 
 from pathlib import Path
@@ -19,7 +47,7 @@ from ngimager.io.lm_store import (
 )
 from ngimager.io.lut import build_lut_registry
 from ngimager.imaging.sbp import reconstruct_sbp
-from ngimager.physics.cones import build_cone_from_neutron
+from ngimager.physics.cones import build_cone_from_neutron, build_cone_from_gamma
 from ngimager.physics.events import NeutronEvent, GammaEvent, Event
 from ngimager.physics.energy_strategies import make_energy_strategy
 from ngimager.physics.priors import make_prior, Prior
@@ -83,12 +111,30 @@ def _build_cones_from_events(
                 print(f"[cones] Skipping event {j} during ordered/validate: {exc}")
             continue
 
-        if not isinstance(ev, NeutronEvent):
-            # TODO: gamma cones to be implemented; for now we ignore gammas.
+        # ---- Species-aware cone building ----
+        # Respect run.neutrons / run.gammas toggles and choose the
+        # appropriate cone builder. For now each event yields at most
+        # one cone.
+        if isinstance(ev, NeutronEvent):
+            if not cfg.run.neutrons:
+                continue
+            species = "n"
+        elif isinstance(ev, GammaEvent):
+            if not cfg.run.gammas:
+                continue
+            species = "g"
+        else:
+            # Unknown event type – ignore for now
             continue
 
         try:
-            cone = build_cone_from_neutron(ev, energy_model, scatter_nucleus="H")
+            if species == "n":
+                cone = build_cone_from_neutron(ev, energy_model, scatter_nucleus="H")
+            else:
+                # Gammas: Compton-based cone construction (uses Hit.L
+                # as deposited energy; energy_model is passed for future
+                # gamma LUT support even if not used now).
+                cone = build_cone_from_gamma(ev, energy_model)
         except Exception as exc:
             if j < 5 and cfg.run.diagnostics_level >= 2:
                 print(f"[cones] Failed to build cone from event {j}: {exc}")
@@ -99,7 +145,7 @@ def _build_cones_from_events(
         # Fast-mode: optional conservative cap on number of cones
         if cfg.run.fast and (cfg.run.max_cones is not None):
             if len(cones) >= cfg.run.max_cones:
-                if cfg.run.diagnostics_level >= 1: 
+                if cfg.run.diagnostics_level >= 1:
                     print(f"[cones] Reached max_cones={cfg.run.max_cones}, stopping cone build.")
                 break
 

@@ -11,7 +11,7 @@ Policy = Literal["time_asc", "energy_desc", "all_combinations"]
 @dataclass
 class ShapeConfig:
     neutron_policy: Policy = "time_asc"
-    gamma_policy: Policy = "energy_desc"
+    gamma_policy: Policy = "time_asc" # "energy_desc"
     max_combinations: int = 5000  # safety for 'all_combinations'
 
 @dataclass
