@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import numpy as np
-from typing import Literal
+from typing import Literal, Optional
 import itertools
+from itertools import permutations
 
 from ngimager.physics.events import NeutronEvent, GammaEvent
 from ngimager.imaging.sbp import Cone
+from ngimager.geometry.plane import Plane
+from ngimager.physics.priors import Prior, PointPrior, LinePrior
 from ngimager.physics.energy_strategies import EnergyStrategy
 from ngimager.physics.kinematics import (
     neutron_theta_from_hits,
@@ -154,6 +157,95 @@ def _gamma_cone_from_ordered_hits(
 
     return Cone(apex, Dhat, float(theta1))
 
+def _axis_towards_plane(apex: np.ndarray, direction: np.ndarray, plane: Plane) -> bool:
+    """
+    Return True if the cone axis from `apex` along `direction` intersects the plane
+    in the positive t-direction (t_int > 0).
+
+    Axis ray: X(t) = apex + t * direction
+    Plane:   (X - P0) · n = 0
+
+    t_int = (P0 - apex) · n / (direction · n)
+    """
+    n = plane.n
+    denom = float(direction @ n)
+    if abs(denom) < 1e-9:
+        # Axis is (numerically) parallel to the plane: treat as not useful
+        return False
+
+    t_int = float((plane.P0 - apex) @ n / denom)
+    return t_int > 0.0
+
+
+def _plane_center(plane: Plane) -> np.ndarray:
+    """
+    Compute the geometric center of the finite imaging plane.
+
+    This mirrors the intuitive "center of FOV" default when no explicit prior
+    is provided.
+    """
+    u_c = 0.5 * (plane.u_min + plane.u_max)
+    v_c = 0.5 * (plane.v_min + plane.v_max)
+    return plane.plane_to_world(u_c, v_c)
+
+
+def _prior_direction_vector(
+    apex: np.ndarray,
+    plane: Plane,
+    prior: Optional[Prior],
+) -> Optional[np.ndarray]:
+    """
+    Unit vector from `apex` toward the effective prior target.
+
+    - If prior is None: use the imaging plane center.
+    - If prior is PointPrior: use its point.
+    - If prior is LinePrior: use the line midpoint (p0+p1)/2 for now.
+    """
+    if prior is None:
+        target = _plane_center(plane)
+    elif isinstance(prior, PointPrior):
+        target = np.asarray(prior.point, dtype=float)
+    elif isinstance(prior, LinePrior):
+        # Use line midpoint as requested; a "closest point" option can be added later.
+        target = 0.5 * (np.asarray(prior.p0, dtype=float) + np.asarray(prior.p1, dtype=float))
+    else:
+        # Fallback for any other Prior implementations: plane center
+        target = _plane_center(plane)
+
+    v = target - apex
+    norm = float(np.linalg.norm(v))
+    if norm <= 0.0:
+        return None
+    return v / norm
+
+
+def _score_cone_against_prior(
+    cone: Cone,
+    plane: Plane,
+    prior: Optional[Prior],
+) -> Optional[float]:
+    """
+    Compute Δ = |φ − θ| for a cone relative to the prior.
+
+    - φ is the angle between the cone axis and the direction from apex toward
+      the prior target.
+    - θ is the cone's opening half-angle.
+
+    Returns None if the prior direction is ill-defined (degenerate geometry).
+    """
+    d_prior = _prior_direction_vector(cone.apex, plane, prior)
+    if d_prior is None:
+        return None
+
+    # Angle φ between axis (cone.dir) and line to prior
+    cos_phi = float(np.clip(cone.dir @ d_prior, -1.0, 1.0))
+    phi = float(np.arccos(cos_phi))
+    theta = float(cone.theta)
+
+    return abs(phi - theta)
+
+
+
 def enumerate_gamma_cone_candidates(
     ev: GammaEvent,
 ) -> list[tuple[Cone, tuple[int, int, int]]]:
@@ -212,37 +304,87 @@ def enumerate_gamma_cone_candidates(
 def build_cone_from_gamma(
     ev: GammaEvent,
     energy_model: EnergyStrategy,
+    plane: Optional[Plane] = None,
+    prior: Optional[Prior] = None,
 ) -> Cone:
     """
     Build a Compton gamma cone from a three-hit GammaEvent.
 
-    Current behavior (PHITS-oriented):
-
+    Behavior without plane/prior (backwards-compatible, PHITS-oriented):
       - Use ev.ordered() so that h1, h2, h3 are in increasing time,
         which is physically the true order in PHITS data.
       - Attempt to build a cone from this ordered triplet using
         _gamma_cone_from_ordered_hits.
-      - If no physically valid cone exists for this ordering, raise
-        ValueError.
+      - If no physically valid cone exists for this ordering, raise ValueError.
+
+    Enhanced behavior when `plane` is provided:
+      - Generate all 3! permutations of (h1, h2, h3).
+      - For each ordering:
+          * call _gamma_cone_from_ordered_hits(h1, h2, h3),
+          * discard if it returns None (non-physical),
+          * discard if the cone axis does not point toward the plane
+            (t_int <= 0 via _axis_towards_plane),
+          * compute Δ = |φ − θ| using the configured prior or, if prior is None,
+            the plane center as an implicit prior.
+      - Select the candidate with minimal Δ.
+      - If no candidate survives, fall back to the ordered (time) triplet
+        as in the simple behavior; if that also fails, raise ValueError.
 
     Notes
     -----
     * For now, we do not use `energy_model` for gammas: Hit.L is already
       the deposited energy in MeV (Edep) from the adapter.
 
-    * enumerate_gamma_cone_candidates(ev) provides a kinematics-only
-      engine that tries all 3! permutations of (h1, h2, h3) and returns
-      all physically valid cones. Future stages (priors, selection) can
-      be built on top of that, while this function keeps the simple
-      "single-cone-or-ValueError" interface for the pipeline.
+    * This function is designed so that callers who do not yet pass a Plane
+      or Prior still get the old, simple behavior.
     """
     # Ensure we have a time-ordered GammaEvent (PHITS case)
     ev_ord = ev.ordered(copy=True)
+    hits = [ev_ord.h1, ev_ord.h2, ev_ord.h3]
 
-    cone = _gamma_cone_from_ordered_hits(ev_ord.h1, ev_ord.h2, ev_ord.h3)
-    if cone is None:
-        raise ValueError("GammaEvent cannot produce a physical Compton cone from ordered hits.")
+    # Backwards-compatible path: no plane provided → use only the ordered triplet
+    if plane is None:
+        cone = _gamma_cone_from_ordered_hits(*hits)
+        if cone is None:
+            raise ValueError(
+                "GammaEvent cannot produce a physical Compton cone from ordered hits."
+            )
+        return cone
 
-    return cone
+    # Full permutation + prior-aware scoring path
+    best_cone: Cone | None = None
+    best_score: float | None = None
+
+    for h1, h2, h3 in permutations(hits, 3):
+        c = _gamma_cone_from_ordered_hits(h1, h2, h3)
+        if c is None:
+            continue
+
+        # Reject cones whose axis does not point toward the imaging plane
+        if not _axis_towards_plane(c.apex, c.dir, plane):
+            continue
+
+        # Δ = |φ − θ| using explicit prior or implicit plane-center prior
+        score = _score_cone_against_prior(c, plane, prior)
+        if score is None:
+            # Degenerate prior geometry; treat as unusable candidate
+            continue
+
+        if best_cone is None or score < best_score:
+            best_cone = c
+            best_score = score
+
+    if best_cone is not None:
+        return best_cone
+
+    # If no candidate survived, fall back to the time-ordered triplet as a last resort
+    fallback = _gamma_cone_from_ordered_hits(*hits)
+    if fallback is None or not _axis_towards_plane(fallback.apex, fallback.dir, plane):
+        raise ValueError(
+            "GammaEvent cannot produce a physical Compton cone from any hit permutation."
+        )
+
+    return fallback
+
 
 
