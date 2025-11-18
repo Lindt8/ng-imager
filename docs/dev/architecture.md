@@ -1179,7 +1179,6 @@ This checklist tracks migration from the current state to the architecture descr
 
 ### 16.4. Filters, Priors, and Sequencing
 
-### 16.4. Filters, Priors, and Sequencing
 
 - [ ] Centralize event and cone selection logic into `filters` modules, driven by `[filters]` config (currently, some selection and scoring logic still lives in `physics.cones` and `pipelines.core`).
 - [x] Ensure priors are only defined in `physics.priors` and configured via `[prior]`.
