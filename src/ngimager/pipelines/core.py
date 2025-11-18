@@ -98,7 +98,12 @@ def _build_cones_from_events(
     """
     lut_registry = build_lut_registry(cfg.energy.lut_paths)
     energy_model = make_energy_strategy(cfg.energy, lut_registry=lut_registry)
+    # Prior for cone selection (especially important for gammas).
+    # make_prior will interpret cfg.prior and may fall back to the imaging
+    # plane center if the user hasn't supplied an explicit point.
     prior = make_prior(cfg.prior.model_dump(), plane)
+    # prior = make_prior(cfg.prior.dict(), plane) # In case of older Pydantic/Config semantics, fall back to dict()
+
 
     cones = []
     for j, ev in enumerate(events):
@@ -134,7 +139,9 @@ def _build_cones_from_events(
                 # Gammas: Compton-based cone construction (uses Hit.L
                 # as deposited energy; energy_model is passed for future
                 # gamma LUT support even if not used now).
-                cone = build_cone_from_gamma(ev, energy_model)
+                # Gamma cone construction with full permutation search,
+                # axis-towards-plane test, and Δ = |φ - θ| prior scoring.
+                cone = build_cone_from_gamma(ev, energy_model, plane=plane, prior=prior)
         except Exception as exc:
             if j < 5 and cfg.run.diagnostics_level >= 2:
                 print(f"[cones] Failed to build cone from event {j}: {exc}")
