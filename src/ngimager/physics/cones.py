@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 from typing import Literal
+import itertools
 
 from ngimager.physics.events import NeutronEvent, GammaEvent
 from ngimager.imaging.sbp import Cone
@@ -153,6 +154,60 @@ def _gamma_cone_from_ordered_hits(
 
     return Cone(apex, Dhat, float(theta1))
 
+def enumerate_gamma_cone_candidates(
+    ev: GammaEvent,
+) -> list[tuple[Cone, tuple[int, int, int]]]:
+    """
+    Enumerate all physically valid Compton cones for the 3! permutations
+    of a three-hit GammaEvent.
+
+    Parameters
+    ----------
+    ev:
+        A GammaEvent with exactly three hits (h1, h2, h3). The event is
+        assumed to be already validated for basic consistency.
+
+    Returns
+    -------
+    candidates:
+        List of (cone, perm) tuples where:
+
+          - cone is a Cone instance produced by _gamma_cone_from_ordered_hits
+          - perm is a tuple of indices (i0, i1, i2) into (h1, h2, h3),
+            describing which hit played the role of first/second/third
+            scatter in the kinematic construction.
+
+        Only permutations that yield a physically valid Compton cone
+        (non-negative energies, sensible angles, non-degenerate geometry)
+        are returned. If no permutation is viable, the list is empty.
+
+    Notes
+    -----
+    * This function is kinematics-only: it does NOT apply any priors
+      or scoring; it simply reports all physically allowed cones.
+
+    * Subsequent stages (e.g. in the pipeline) can:
+
+        - apply event- or cone-level filters to the candidates, and
+        - use spatial/energy priors to select a "best" cone for imaging.
+    """
+    # Access hits in a stable order; for now GammaEvent always has h1..h3.
+    hits = [ev.h1, ev.h2, ev.h3]
+    candidates: list[tuple[Cone, tuple[int, int, int]]] = []
+
+    # Enumerate all permutations of (0, 1, 2). For each permutation, treat
+    # hits[i0] as the first scatter, hits[i1] as the second, and hits[i2]
+    # as the "third" (used only for geometry).
+    for perm in itertools.permutations((0, 1, 2), 3):
+        i0, i1, i2 = perm
+        cone = _gamma_cone_from_ordered_hits(hits[i0], hits[i1], hits[i2])
+        if cone is None:
+            continue
+        candidates.append((cone, perm))
+
+    return candidates
+
+
 
 def build_cone_from_gamma(
     ev: GammaEvent,
@@ -167,19 +222,19 @@ def build_cone_from_gamma(
         which is physically the true order in PHITS data.
       - Attempt to build a cone from this ordered triplet using
         _gamma_cone_from_ordered_hits.
-      - If no physically valid cone exists for this ordering, raise ValueError.
+      - If no physically valid cone exists for this ordering, raise
+        ValueError.
 
     Notes
     -----
     * For now, we do not use `energy_model` for gammas: Hit.L is already
       the deposited energy in MeV (Edep) from the adapter.
 
-    * Future work:
-        - generate all 3! permutations of (h1, h2, h3),
-        - call _gamma_cone_from_ordered_hits on each,
-        - incorporate priors to choose a "best" cone candidate.
-      The external behavior (either returns a Cone or raises ValueError
-      for the event) can remain unchanged.
+    * enumerate_gamma_cone_candidates(ev) provides a kinematics-only
+      engine that tries all 3! permutations of (h1, h2, h3) and returns
+      all physically valid cones. Future stages (priors, selection) can
+      be built on top of that, while this function keeps the simple
+      "single-cone-or-ValueError" interface for the pipeline.
     """
     # Ensure we have a time-ordered GammaEvent (PHITS case)
     ev_ord = ev.ordered(copy=True)
