@@ -1,0 +1,151 @@
+# ====================================================================
+# PHITS simple n+g source example
+#
+# This config drives the unified ngimager pipeline on:
+#   examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out
+#
+# It is intentionally simple and readable, and is meant to mirror
+# (approximately) the legacy image_settings.txt for this dataset.
+# ====================================================================
+
+[run]
+# High-level data source context
+source_type = "phits"          # "cf252" | "dt" | "proton_center" | "phits"
+
+# Which species to process
+neutrons = true
+gammas   = true
+
+# Operational toggles (can also be overridden by CLI flags)
+fast = false                   # use more aggressive thresholds / cone caps
+list = false                   # also write list-mode per-cone sparse images
+
+# Execution / performance
+workers     = 0                # 0 = auto
+chunk_cones = "auto"
+jit         = false
+progress    = true
+
+# Diagnostics verbosity
+# 0 = off, 1 = minimal (stage summaries + counters), 2 = verbose (per-stage details)
+diagnostics_level = 2
+
+# Safety cap for total imaged cones (after filtering and selection)
+max_cones = 3000
+
+
+[pipeline]
+# Where to stop the unified pipeline
+# "hits" | "events" | "cones" | "image"
+until = "image"
+
+
+[io]
+# Input PHITS usrdef tally and output HDF5 path
+input_format = "phits_usrdef"       # phits_usrdef | root_novo_ddaq | hdf5_ngimager
+input_path  = "examples/imaging_datasets/PHITS_toy_line_source/usrdef.out"
+output_path = "examples/imaging_datasets/PHITS_toy_line_source/usrdef_out.h5"
+hdf5_overwrite = true 
+
+[io.adapter]
+# PHITS usrdef adapter: stream tabular rows with normalized units
+type = "phits"          # factory key for PHITSAdapter
+style = "usrdef"        # make_adapter() can distinguish PHITS usrdef flavor if needed
+
+unit_pos_is_mm = false   # positions in input are mm; convert → cm
+time_units     = "ns"   # times in input are ns
+require_gamma_triples = true
+
+# NOTE: material-specific behavior (e.g. LUTs) is configured below in [detectors] and [energy].
+# If the adapter needs a per-detector material, it should ask cfg.detectors.
+
+[detectors]
+# Default material to assume if a detector ID is missing from material_map
+default_material = "OGS"
+
+# Map detector IDs to materials used in this PHITS_simple example.
+# [detectors.material_map]
+# 11 = "OGS"
+# 12 = "OGS"
+# 13 = "OGS"
+# 21 = "OGS"
+# 22 = "OGS"
+# 23 = "OGS"
+
+# Optional future extension (not yet required in code):
+# [detectors.geometry]
+# 200 = { center_cm = [-3.6, 16.5, 0.35],  normal = [0.0, -1.0, 0.0] }
+# 210 = { center_cm = [-3.4, 16.8, 0.59],  normal = [0.0, -1.0, 0.0] }
+# ...
+
+[plane]
+origin = [0.0, 0.0, 0.0]   # a point on the plane;  y ≈ detector face coordinate
+normal = [1.0, 0.0, 0.0]    # +x
+u_axis = [0.0, 0.0, 1.0]    # z runs horizontal
+v_axis = [0.0, 1.0, 0.0]    # y runs vertical
+u_min = -15.0
+u_max =  15.0
+v_min = -15.0
+v_max =  15.0
+du = 0.2
+dv = 0.2
+
+# Filters are structured to allow future split into hit-level vs event-level.
+[filters.hits]
+# Universal hit-level cuts applied before event shaping
+min_light = 50.0
+max_light = 1.0e6
+bars_include      = []            # e.g. [200, 210, 220]
+materials_include = []            # e.g. ["M600", "OGS"]
+
+[filters.events.neutron]
+# Event-level cuts primary to neutron 2-hit events
+tof_window_ns = [0.0, 30.0]       # Δt12 for neutron events
+
+[filters.events.gamma]
+# Event-level cuts primary to gamma 3-hit events (placeholder for now)
+tof_window_ns = [0.0, 30.0]
+
+
+
+[energy]
+# Neutron energy strategy:
+# - "ELUT": use E(L) LUTs for the first scatter (per material)
+# - "ToF":  use time-of-flight to estimate neutron energy change
+# - "FixedEn": use a fixed incident energy (e.g. DT source)
+# - "Edep": treat Hit.L as deposited energy directly (e.g. PHITS Edep_MeV)
+strategy = "Edep"                 # ELUT | ToF | FixedEn | Edep
+
+# Used only for strategy = "FixedEn"
+fixed_En_MeV = 14.1
+
+# LUT paths for any materials present. Extend freely for new materials.
+lut_paths.M600.proton = "data/lut/M600/lut_M600_proton_Birks.npz"
+lut_paths.M600.carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
+lut_paths.OGS.proton  = "data/lut/OGS/lut_OGS_proton_Birks.npz"
+lut_paths.OGS.carbon  = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
+
+[prior]
+type = "line"
+# line_p0 = [0.0, -1.0, 4.0]  # works, but old syntax
+# line_p1 = [0.0,  7.0, 4.0]  # works, but old syntax
+strength = 1.0
+
+[prior.line]
+p0 = [0.0, -1.0, 4.0]
+p1 = [0.0,  7.0, 4.0]
+# OR 
+# r0        = [0.0, -1.0, 4.0]   # a point on the line
+# direction = [0.0,  8.0, 0.0]   # direction vector along the line
+
+[uncertainty]
+enabled = false
+smearing = "thicken"
+sigma_doi_cm = 0.35
+sigma_transverse_cm = 0.346
+sigma_time_ns = 0.5
+use_lut_bands = false  # if true, read E_lo/E_hi from LUTs where available
+
+[vis]
+export_png_on_write = true           # default true
+summed_dataset = "/images/summed/n"     # override if needed

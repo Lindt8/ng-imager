@@ -57,19 +57,37 @@ def make_prior(cfg_prior: dict, plane: Plane) -> Optional[Prior]:
     """
     Small factory used by pipelines.core; returns a Prior or None.
 
-    Expected cfg_prior schema (from TOML):
+    Expected cfg_prior schema (from TOML, after Pydantic):
+
       [prior]
       type = "none" | "point" | "line"
-      point = [x,y,z]         # for type="point"
-      line_p0 = [x,y,z]       # for type="line"
-      line_p1 = [x,y,z]
-      strength = 1.0          # optional
+      strength = 1.0
+
+      # Point prior:
+      # either:
+      #   point = [x, y, z]
+      # or (future) nested [prior.point] can be normalized upstream.
+
+      # Line prior (preferred, nested):
+      #   [prior.line]
+      #   p0 = [x0, y0, z0]
+      #   p1 = [x1, y1, z1]
+      # or:
+      #   [prior.line]
+      #   r0        = [x0, y0, z0]
+      #   direction = [dx, dy, dz]
+      #
+      # For backward compatibility we also accept flat:
+      #   line_p0 = [x0, y0, z0]
+      #   line_p1 = [x1, y1, z1]
     """
-    typ = (cfg_prior.get("type") or "none").lower()
+    #typ = (cfg_prior.get("type") or "none").lower()
+    typ = cfg_prior.get("type", "none")
     strength = float(cfg_prior.get("strength", 1.0))
 
     if typ == "none":
         return None
+    
     if typ == "point":
         #return PointPrior(np.asarray(cfg_prior["point"], dtype=float), strength=strength)
         if "point" in cfg_prior:
@@ -78,10 +96,37 @@ def make_prior(cfg_prior: dict, plane: Plane) -> Optional[Prior]:
             # default: center of imaging plane
             p = plane.center  # or plane.origin() if we add such a helper
         return PointPrior(p, strength=strength)
+
     if typ == "line":
-        return LinePrior(
-            np.asarray(cfg_prior["line_p0"], dtype=float),
-            np.asarray(cfg_prior["line_p1"], dtype=float),
-            strength=strength,
-        )
+        line_cfg = cfg_prior.get("line")
+        p0 = p1 = None
+
+        if line_cfg is not None:
+            # Preferred nested forms
+            if "p0" in line_cfg and "p1" in line_cfg:
+                p0 = np.asarray(line_cfg["p0"], dtype=float)
+                p1 = np.asarray(line_cfg["p1"], dtype=float)
+            elif "r0" in line_cfg and "direction" in line_cfg:
+                r0 = np.asarray(line_cfg["r0"], dtype=float)
+                direction = np.asarray(line_cfg["direction"], dtype=float)
+                p0 = r0
+                p1 = r0 + direction
+            else:
+                raise KeyError(
+                    "prior.line must define either p0/p1 or r0/direction "
+                    "(e.g. [prior.line] p0=[...] p1=[...] or r0=[...] direction=[...])"
+                )
+        else:
+            # Backwards-compatible flat keys (if someone ever used them)
+            if "line_p0" in cfg_prior and "line_p1" in cfg_prior:
+                p0 = np.asarray(cfg_prior["line_p0"], dtype=float)
+                p1 = np.asarray(cfg_prior["line_p1"], dtype=float)
+            else:
+                raise KeyError(
+                    "Line prior configured with type='line' but no usable "
+                    "line geometry found (expected [prior.line] or line_p0/line_p1)."
+                )
+
+        return LinePrior(p0, p1, strength=strength)
+    
     raise ValueError(f"Unknown prior.type={cfg_prior['type']!r}")

@@ -296,6 +296,9 @@ r0 = [x_cm, y_cm, z_cm]
 [prior.line]
 r0        = [x0_cm, y0_cm, z0_cm]
 direction = [dx, dy, dz]
+# or
+p0        = [x0_cm, y0_cm, z0_cm]
+p1        = [x1_cm, y1_cm, z1_cm]
 ```
 
 Extensible to more complex priors later (e.g. volumetric distributions, tabulated distributions).
