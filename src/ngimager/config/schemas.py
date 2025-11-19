@@ -103,9 +103,20 @@ class FiltersCfg(BaseModel):
     materials_include: List[str] = []
 
 class EnergyCfg(BaseModel):
+    """
+    Energy strategy configuration.
+
+    strategy:
+        "ELUT"       – invert light via E(L) LUTs (per-material, per-species)
+        "ToF"        – simple ToF-based estimate (placeholder)
+        "FixedEn"    – fixed incident neutron energy (e.g. 14.1 MeV source)
+        "Edep"       – direct deposited energy (PHITS-style adapters)
+    """
     strategy: Literal["ELUT","ToF","FixedEn", "Edep"] = "ELUT"
-    fixed_En_MeV: float = 14.1
+    #fixed_En_MeV: float = 14.1
+    fixed_En_MeV: float | None = None
     lut_paths: Dict[str, Dict[str, str]] = {}   # material -> species -> path
+    force_proton_recoils: bool = False
 
 class PriorCfg(BaseModel):
     type: Literal["point","line"] = "point"

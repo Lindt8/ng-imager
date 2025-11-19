@@ -115,6 +115,9 @@ tof_window_ns = [0.0, 30.0]
 # - "Edep": treat Hit.L as deposited energy directly (e.g. PHITS Edep_MeV)
 strategy = "Edep"                 # ELUT | ToF | FixedEn | Edep
 
+# For neutrons, assume recoils are always protons (true) or consider also carbon recoils (false)
+force_proton_recoils = false      # true | false
+
 # Used only for strategy = "FixedEn"
 fixed_En_MeV = 14.1
 
