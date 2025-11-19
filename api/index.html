@@ -6235,80 +6235,183 @@ or ToF logic is needed.</p>
     <div class="doc doc-contents ">
 
         <p>Small factory used by pipelines.core; returns a Prior or None.</p>
-<p>Expected cfg_prior schema (from TOML):
-  [prior]
+<p>Expected cfg_prior schema (from TOML, after Pydantic):</p>
+<p>[prior]
   type = "none" | "point" | "line"
-  point = [x,y,z]         # for type="point"
-  line_p0 = [x,y,z]       # for type="line"
-  line_p1 = [x,y,z]
-  strength = 1.0          # optional</p>
+  strength = 1.0</p>
+<p># Point prior:
+  # either:
+  #   point = [x, y, z]
+  # or (future) nested [prior.point] can be normalized upstream.</p>
+<p># Line prior (preferred, nested):
+  #   [prior.line]
+  #   p0 = [x0, y0, z0]
+  #   p1 = [x1, y1, z1]
+  # or:
+  #   [prior.line]
+  #   r0        = [x0, y0, z0]
+  #   direction = [dx, dy, dz]
+  #
+  # For backward compatibility we also accept flat:
+  #   line_p0 = [x0, y0, z0]
+  #   line_p1 = [x1, y1, z1]</p>
 
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ngimager/physics/priors.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-56">56</a></span>
-<span class="normal"><a href="#__codelineno-0-57">57</a></span>
-<span class="normal"><a href="#__codelineno-0-58">58</a></span>
-<span class="normal"><a href="#__codelineno-0-59">59</a></span>
-<span class="normal"><a href="#__codelineno-0-60">60</a></span>
-<span class="normal"><a href="#__codelineno-0-61">61</a></span>
-<span class="normal"><a href="#__codelineno-0-62">62</a></span>
-<span class="normal"><a href="#__codelineno-0-63">63</a></span>
-<span class="normal"><a href="#__codelineno-0-64">64</a></span>
-<span class="normal"><a href="#__codelineno-0-65">65</a></span>
-<span class="normal"><a href="#__codelineno-0-66">66</a></span>
-<span class="normal"><a href="#__codelineno-0-67">67</a></span>
-<span class="normal"><a href="#__codelineno-0-68">68</a></span>
-<span class="normal"><a href="#__codelineno-0-69">69</a></span>
-<span class="normal"><a href="#__codelineno-0-70">70</a></span>
-<span class="normal"><a href="#__codelineno-0-71">71</a></span>
-<span class="normal"><a href="#__codelineno-0-72">72</a></span>
-<span class="normal"><a href="#__codelineno-0-73">73</a></span>
-<span class="normal"><a href="#__codelineno-0-74">74</a></span>
-<span class="normal"><a href="#__codelineno-0-75">75</a></span>
-<span class="normal"><a href="#__codelineno-0-76">76</a></span>
-<span class="normal"><a href="#__codelineno-0-77">77</a></span>
-<span class="normal"><a href="#__codelineno-0-78">78</a></span>
-<span class="normal"><a href="#__codelineno-0-79">79</a></span>
-<span class="normal"><a href="#__codelineno-0-80">80</a></span>
-<span class="normal"><a href="#__codelineno-0-81">81</a></span>
-<span class="normal"><a href="#__codelineno-0-82">82</a></span>
-<span class="normal"><a href="#__codelineno-0-83">83</a></span>
-<span class="normal"><a href="#__codelineno-0-84">84</a></span>
-<span class="normal"><a href="#__codelineno-0-85">85</a></span>
-<span class="normal"><a href="#__codelineno-0-86">86</a></span>
-<span class="normal"><a href="#__codelineno-0-87">87</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="k">def</span><span class="w"> </span><span class="nf">make_prior</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Prior</span><span class="p">]:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-56"> 56</a></span>
+<span class="normal"><a href="#__codelineno-0-57"> 57</a></span>
+<span class="normal"><a href="#__codelineno-0-58"> 58</a></span>
+<span class="normal"><a href="#__codelineno-0-59"> 59</a></span>
+<span class="normal"><a href="#__codelineno-0-60"> 60</a></span>
+<span class="normal"><a href="#__codelineno-0-61"> 61</a></span>
+<span class="normal"><a href="#__codelineno-0-62"> 62</a></span>
+<span class="normal"><a href="#__codelineno-0-63"> 63</a></span>
+<span class="normal"><a href="#__codelineno-0-64"> 64</a></span>
+<span class="normal"><a href="#__codelineno-0-65"> 65</a></span>
+<span class="normal"><a href="#__codelineno-0-66"> 66</a></span>
+<span class="normal"><a href="#__codelineno-0-67"> 67</a></span>
+<span class="normal"><a href="#__codelineno-0-68"> 68</a></span>
+<span class="normal"><a href="#__codelineno-0-69"> 69</a></span>
+<span class="normal"><a href="#__codelineno-0-70"> 70</a></span>
+<span class="normal"><a href="#__codelineno-0-71"> 71</a></span>
+<span class="normal"><a href="#__codelineno-0-72"> 72</a></span>
+<span class="normal"><a href="#__codelineno-0-73"> 73</a></span>
+<span class="normal"><a href="#__codelineno-0-74"> 74</a></span>
+<span class="normal"><a href="#__codelineno-0-75"> 75</a></span>
+<span class="normal"><a href="#__codelineno-0-76"> 76</a></span>
+<span class="normal"><a href="#__codelineno-0-77"> 77</a></span>
+<span class="normal"><a href="#__codelineno-0-78"> 78</a></span>
+<span class="normal"><a href="#__codelineno-0-79"> 79</a></span>
+<span class="normal"><a href="#__codelineno-0-80"> 80</a></span>
+<span class="normal"><a href="#__codelineno-0-81"> 81</a></span>
+<span class="normal"><a href="#__codelineno-0-82"> 82</a></span>
+<span class="normal"><a href="#__codelineno-0-83"> 83</a></span>
+<span class="normal"><a href="#__codelineno-0-84"> 84</a></span>
+<span class="normal"><a href="#__codelineno-0-85"> 85</a></span>
+<span class="normal"><a href="#__codelineno-0-86"> 86</a></span>
+<span class="normal"><a href="#__codelineno-0-87"> 87</a></span>
+<span class="normal"><a href="#__codelineno-0-88"> 88</a></span>
+<span class="normal"><a href="#__codelineno-0-89"> 89</a></span>
+<span class="normal"><a href="#__codelineno-0-90"> 90</a></span>
+<span class="normal"><a href="#__codelineno-0-91"> 91</a></span>
+<span class="normal"><a href="#__codelineno-0-92"> 92</a></span>
+<span class="normal"><a href="#__codelineno-0-93"> 93</a></span>
+<span class="normal"><a href="#__codelineno-0-94"> 94</a></span>
+<span class="normal"><a href="#__codelineno-0-95"> 95</a></span>
+<span class="normal"><a href="#__codelineno-0-96"> 96</a></span>
+<span class="normal"><a href="#__codelineno-0-97"> 97</a></span>
+<span class="normal"><a href="#__codelineno-0-98"> 98</a></span>
+<span class="normal"><a href="#__codelineno-0-99"> 99</a></span>
+<span class="normal"><a href="#__codelineno-0-100">100</a></span>
+<span class="normal"><a href="#__codelineno-0-101">101</a></span>
+<span class="normal"><a href="#__codelineno-0-102">102</a></span>
+<span class="normal"><a href="#__codelineno-0-103">103</a></span>
+<span class="normal"><a href="#__codelineno-0-104">104</a></span>
+<span class="normal"><a href="#__codelineno-0-105">105</a></span>
+<span class="normal"><a href="#__codelineno-0-106">106</a></span>
+<span class="normal"><a href="#__codelineno-0-107">107</a></span>
+<span class="normal"><a href="#__codelineno-0-108">108</a></span>
+<span class="normal"><a href="#__codelineno-0-109">109</a></span>
+<span class="normal"><a href="#__codelineno-0-110">110</a></span>
+<span class="normal"><a href="#__codelineno-0-111">111</a></span>
+<span class="normal"><a href="#__codelineno-0-112">112</a></span>
+<span class="normal"><a href="#__codelineno-0-113">113</a></span>
+<span class="normal"><a href="#__codelineno-0-114">114</a></span>
+<span class="normal"><a href="#__codelineno-0-115">115</a></span>
+<span class="normal"><a href="#__codelineno-0-116">116</a></span>
+<span class="normal"><a href="#__codelineno-0-117">117</a></span>
+<span class="normal"><a href="#__codelineno-0-118">118</a></span>
+<span class="normal"><a href="#__codelineno-0-119">119</a></span>
+<span class="normal"><a href="#__codelineno-0-120">120</a></span>
+<span class="normal"><a href="#__codelineno-0-121">121</a></span>
+<span class="normal"><a href="#__codelineno-0-122">122</a></span>
+<span class="normal"><a href="#__codelineno-0-123">123</a></span>
+<span class="normal"><a href="#__codelineno-0-124">124</a></span>
+<span class="normal"><a href="#__codelineno-0-125">125</a></span>
+<span class="normal"><a href="#__codelineno-0-126">126</a></span>
+<span class="normal"><a href="#__codelineno-0-127">127</a></span>
+<span class="normal"><a href="#__codelineno-0-128">128</a></span>
+<span class="normal"><a href="#__codelineno-0-129">129</a></span>
+<span class="normal"><a href="#__codelineno-0-130">130</a></span>
+<span class="normal"><a href="#__codelineno-0-131">131</a></span>
+<span class="normal"><a href="#__codelineno-0-132">132</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="k">def</span><span class="w"> </span><span class="nf">make_prior</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Prior</span><span class="p">]:</span>
 <a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="sd">    Small factory used by pipelines.core; returns a Prior or None.</span>
 <a id="__codelineno-0-59" name="__codelineno-0-59"></a>
-<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">    Expected cfg_prior schema (from TOML):</span>
-<a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="sd">      [prior]</span>
-<a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">      type = &quot;none&quot; | &quot;point&quot; | &quot;line&quot;</span>
-<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">      point = [x,y,z]         # for type=&quot;point&quot;</span>
-<a id="__codelineno-0-64" name="__codelineno-0-64"></a><span class="sd">      line_p0 = [x,y,z]       # for type=&quot;line&quot;</span>
-<a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="sd">      line_p1 = [x,y,z]</span>
-<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">      strength = 1.0          # optional</span>
-<a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-68" name="__codelineno-0-68"></a>    <span class="n">typ</span> <span class="o">=</span> <span class="p">(</span><span class="n">cfg_prior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;none&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-<a id="__codelineno-0-69" name="__codelineno-0-69"></a>    <span class="n">strength</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cfg_prior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;strength&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">    Expected cfg_prior schema (from TOML, after Pydantic):</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61"></a>
+<a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">      [prior]</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">      type = &quot;none&quot; | &quot;point&quot; | &quot;line&quot;</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64"></a><span class="sd">      strength = 1.0</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65"></a>
+<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">      # Point prior:</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">      # either:</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">      #   point = [x, y, z]</span>
+<a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">      # or (future) nested [prior.point] can be normalized upstream.</span>
 <a id="__codelineno-0-70" name="__codelineno-0-70"></a>
-<a id="__codelineno-0-71" name="__codelineno-0-71"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-72" name="__codelineno-0-72"></a>        <span class="k">return</span> <span class="kc">None</span>
-<a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;point&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-74" name="__codelineno-0-74"></a>        <span class="c1">#return PointPrior(np.asarray(cfg_prior[&quot;point&quot;], dtype=float), strength=strength)</span>
-<a id="__codelineno-0-75" name="__codelineno-0-75"></a>        <span class="k">if</span> <span class="s2">&quot;point&quot;</span> <span class="ow">in</span> <span class="n">cfg_prior</span><span class="p">:</span>
-<a id="__codelineno-0-76" name="__codelineno-0-76"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;point&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-<a id="__codelineno-0-77" name="__codelineno-0-77"></a>        <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-78" name="__codelineno-0-78"></a>            <span class="c1"># default: center of imaging plane</span>
-<a id="__codelineno-0-79" name="__codelineno-0-79"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">center</span>  <span class="c1"># or plane.origin() if we add such a helper</span>
-<a id="__codelineno-0-80" name="__codelineno-0-80"></a>        <span class="k">return</span> <span class="n">PointPrior</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span>
-<a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;line&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-82" name="__codelineno-0-82"></a>        <span class="k">return</span> <span class="n">LinePrior</span><span class="p">(</span>
-<a id="__codelineno-0-83" name="__codelineno-0-83"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-<a id="__codelineno-0-84" name="__codelineno-0-84"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p1&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-<a id="__codelineno-0-85" name="__codelineno-0-85"></a>            <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">,</span>
-<a id="__codelineno-0-86" name="__codelineno-0-86"></a>        <span class="p">)</span>
-<a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown prior.type=</span><span class="si">{</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">      # Line prior (preferred, nested):</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="sd">      #   [prior.line]</span>
+<a id="__codelineno-0-73" name="__codelineno-0-73"></a><span class="sd">      #   p0 = [x0, y0, z0]</span>
+<a id="__codelineno-0-74" name="__codelineno-0-74"></a><span class="sd">      #   p1 = [x1, y1, z1]</span>
+<a id="__codelineno-0-75" name="__codelineno-0-75"></a><span class="sd">      # or:</span>
+<a id="__codelineno-0-76" name="__codelineno-0-76"></a><span class="sd">      #   [prior.line]</span>
+<a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="sd">      #   r0        = [x0, y0, z0]</span>
+<a id="__codelineno-0-78" name="__codelineno-0-78"></a><span class="sd">      #   direction = [dx, dy, dz]</span>
+<a id="__codelineno-0-79" name="__codelineno-0-79"></a><span class="sd">      #</span>
+<a id="__codelineno-0-80" name="__codelineno-0-80"></a><span class="sd">      # For backward compatibility we also accept flat:</span>
+<a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="sd">      #   line_p0 = [x0, y0, z0]</span>
+<a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="sd">      #   line_p1 = [x1, y1, z1]</span>
+<a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-84" name="__codelineno-0-84"></a>    <span class="c1">#typ = (cfg_prior.get(&quot;type&quot;) or &quot;none&quot;).lower()</span>
+<a id="__codelineno-0-85" name="__codelineno-0-85"></a>    <span class="n">typ</span> <span class="o">=</span> <span class="n">cfg_prior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="n">strength</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cfg_prior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;strength&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87"></a>
+<a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-89" name="__codelineno-0-89"></a>        <span class="k">return</span> <span class="kc">None</span>
+<a id="__codelineno-0-90" name="__codelineno-0-90"></a>
+<a id="__codelineno-0-91" name="__codelineno-0-91"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;point&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-92" name="__codelineno-0-92"></a>        <span class="c1">#return PointPrior(np.asarray(cfg_prior[&quot;point&quot;], dtype=float), strength=strength)</span>
+<a id="__codelineno-0-93" name="__codelineno-0-93"></a>        <span class="k">if</span> <span class="s2">&quot;point&quot;</span> <span class="ow">in</span> <span class="n">cfg_prior</span><span class="p">:</span>
+<a id="__codelineno-0-94" name="__codelineno-0-94"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;point&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-95" name="__codelineno-0-95"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-96" name="__codelineno-0-96"></a>            <span class="c1"># default: center of imaging plane</span>
+<a id="__codelineno-0-97" name="__codelineno-0-97"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">center</span>  <span class="c1"># or plane.origin() if we add such a helper</span>
+<a id="__codelineno-0-98" name="__codelineno-0-98"></a>        <span class="k">return</span> <span class="n">PointPrior</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span>
+<a id="__codelineno-0-99" name="__codelineno-0-99"></a>
+<a id="__codelineno-0-100" name="__codelineno-0-100"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;line&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-101" name="__codelineno-0-101"></a>        <span class="n">line_cfg</span> <span class="o">=</span> <span class="n">cfg_prior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;line&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-102" name="__codelineno-0-102"></a>        <span class="n">p0</span> <span class="o">=</span> <span class="n">p1</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-103" name="__codelineno-0-103"></a>
+<a id="__codelineno-0-104" name="__codelineno-0-104"></a>        <span class="k">if</span> <span class="n">line_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-105" name="__codelineno-0-105"></a>            <span class="c1"># Preferred nested forms</span>
+<a id="__codelineno-0-106" name="__codelineno-0-106"></a>            <span class="k">if</span> <span class="s2">&quot;p0&quot;</span> <span class="ow">in</span> <span class="n">line_cfg</span> <span class="ow">and</span> <span class="s2">&quot;p1&quot;</span> <span class="ow">in</span> <span class="n">line_cfg</span><span class="p">:</span>
+<a id="__codelineno-0-107" name="__codelineno-0-107"></a>                <span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">line_cfg</span><span class="p">[</span><span class="s2">&quot;p0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-108" name="__codelineno-0-108"></a>                <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">line_cfg</span><span class="p">[</span><span class="s2">&quot;p1&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-109" name="__codelineno-0-109"></a>            <span class="k">elif</span> <span class="s2">&quot;r0&quot;</span> <span class="ow">in</span> <span class="n">line_cfg</span> <span class="ow">and</span> <span class="s2">&quot;direction&quot;</span> <span class="ow">in</span> <span class="n">line_cfg</span><span class="p">:</span>
+<a id="__codelineno-0-110" name="__codelineno-0-110"></a>                <span class="n">r0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">line_cfg</span><span class="p">[</span><span class="s2">&quot;r0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-111" name="__codelineno-0-111"></a>                <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">line_cfg</span><span class="p">[</span><span class="s2">&quot;direction&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-112" name="__codelineno-0-112"></a>                <span class="n">p0</span> <span class="o">=</span> <span class="n">r0</span>
+<a id="__codelineno-0-113" name="__codelineno-0-113"></a>                <span class="n">p1</span> <span class="o">=</span> <span class="n">r0</span> <span class="o">+</span> <span class="n">direction</span>
+<a id="__codelineno-0-114" name="__codelineno-0-114"></a>            <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-115" name="__codelineno-0-115"></a>                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+<a id="__codelineno-0-116" name="__codelineno-0-116"></a>                    <span class="s2">&quot;prior.line must define either p0/p1 or r0/direction &quot;</span>
+<a id="__codelineno-0-117" name="__codelineno-0-117"></a>                    <span class="s2">&quot;(e.g. [prior.line] p0=[...] p1=[...] or r0=[...] direction=[...])&quot;</span>
+<a id="__codelineno-0-118" name="__codelineno-0-118"></a>                <span class="p">)</span>
+<a id="__codelineno-0-119" name="__codelineno-0-119"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-120" name="__codelineno-0-120"></a>            <span class="c1"># Backwards-compatible flat keys (if someone ever used them)</span>
+<a id="__codelineno-0-121" name="__codelineno-0-121"></a>            <span class="k">if</span> <span class="s2">&quot;line_p0&quot;</span> <span class="ow">in</span> <span class="n">cfg_prior</span> <span class="ow">and</span> <span class="s2">&quot;line_p1&quot;</span> <span class="ow">in</span> <span class="n">cfg_prior</span><span class="p">:</span>
+<a id="__codelineno-0-122" name="__codelineno-0-122"></a>                <span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-123" name="__codelineno-0-123"></a>                <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p1&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-124" name="__codelineno-0-124"></a>            <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-125" name="__codelineno-0-125"></a>                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+<a id="__codelineno-0-126" name="__codelineno-0-126"></a>                    <span class="s2">&quot;Line prior configured with type=&#39;line&#39; but no usable &quot;</span>
+<a id="__codelineno-0-127" name="__codelineno-0-127"></a>                    <span class="s2">&quot;line geometry found (expected [prior.line] or line_p0/line_p1).&quot;</span>
+<a id="__codelineno-0-128" name="__codelineno-0-128"></a>                <span class="p">)</span>
+<a id="__codelineno-0-129" name="__codelineno-0-129"></a>
+<a id="__codelineno-0-130" name="__codelineno-0-130"></a>        <span class="k">return</span> <span class="n">LinePrior</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span>
+<a id="__codelineno-0-131" name="__codelineno-0-131"></a>
+<a id="__codelineno-0-132" name="__codelineno-0-132"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown prior.type=</span><span class="si">{</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -17088,80 +17191,183 @@ Follows primer equations for theta_CoM then lab mapping.</p>
     <div class="doc doc-contents ">
 
         <p>Small factory used by pipelines.core; returns a Prior or None.</p>
-<p>Expected cfg_prior schema (from TOML):
-  [prior]
+<p>Expected cfg_prior schema (from TOML, after Pydantic):</p>
+<p>[prior]
   type = "none" | "point" | "line"
-  point = [x,y,z]         # for type="point"
-  line_p0 = [x,y,z]       # for type="line"
-  line_p1 = [x,y,z]
-  strength = 1.0          # optional</p>
+  strength = 1.0</p>
+<p># Point prior:
+  # either:
+  #   point = [x, y, z]
+  # or (future) nested [prior.point] can be normalized upstream.</p>
+<p># Line prior (preferred, nested):
+  #   [prior.line]
+  #   p0 = [x0, y0, z0]
+  #   p1 = [x1, y1, z1]
+  # or:
+  #   [prior.line]
+  #   r0        = [x0, y0, z0]
+  #   direction = [dx, dy, dz]
+  #
+  # For backward compatibility we also accept flat:
+  #   line_p0 = [x0, y0, z0]
+  #   line_p1 = [x1, y1, z1]</p>
 
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ngimager/physics/priors.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-56">56</a></span>
-<span class="normal"><a href="#__codelineno-0-57">57</a></span>
-<span class="normal"><a href="#__codelineno-0-58">58</a></span>
-<span class="normal"><a href="#__codelineno-0-59">59</a></span>
-<span class="normal"><a href="#__codelineno-0-60">60</a></span>
-<span class="normal"><a href="#__codelineno-0-61">61</a></span>
-<span class="normal"><a href="#__codelineno-0-62">62</a></span>
-<span class="normal"><a href="#__codelineno-0-63">63</a></span>
-<span class="normal"><a href="#__codelineno-0-64">64</a></span>
-<span class="normal"><a href="#__codelineno-0-65">65</a></span>
-<span class="normal"><a href="#__codelineno-0-66">66</a></span>
-<span class="normal"><a href="#__codelineno-0-67">67</a></span>
-<span class="normal"><a href="#__codelineno-0-68">68</a></span>
-<span class="normal"><a href="#__codelineno-0-69">69</a></span>
-<span class="normal"><a href="#__codelineno-0-70">70</a></span>
-<span class="normal"><a href="#__codelineno-0-71">71</a></span>
-<span class="normal"><a href="#__codelineno-0-72">72</a></span>
-<span class="normal"><a href="#__codelineno-0-73">73</a></span>
-<span class="normal"><a href="#__codelineno-0-74">74</a></span>
-<span class="normal"><a href="#__codelineno-0-75">75</a></span>
-<span class="normal"><a href="#__codelineno-0-76">76</a></span>
-<span class="normal"><a href="#__codelineno-0-77">77</a></span>
-<span class="normal"><a href="#__codelineno-0-78">78</a></span>
-<span class="normal"><a href="#__codelineno-0-79">79</a></span>
-<span class="normal"><a href="#__codelineno-0-80">80</a></span>
-<span class="normal"><a href="#__codelineno-0-81">81</a></span>
-<span class="normal"><a href="#__codelineno-0-82">82</a></span>
-<span class="normal"><a href="#__codelineno-0-83">83</a></span>
-<span class="normal"><a href="#__codelineno-0-84">84</a></span>
-<span class="normal"><a href="#__codelineno-0-85">85</a></span>
-<span class="normal"><a href="#__codelineno-0-86">86</a></span>
-<span class="normal"><a href="#__codelineno-0-87">87</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="k">def</span><span class="w"> </span><span class="nf">make_prior</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Prior</span><span class="p">]:</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-56"> 56</a></span>
+<span class="normal"><a href="#__codelineno-0-57"> 57</a></span>
+<span class="normal"><a href="#__codelineno-0-58"> 58</a></span>
+<span class="normal"><a href="#__codelineno-0-59"> 59</a></span>
+<span class="normal"><a href="#__codelineno-0-60"> 60</a></span>
+<span class="normal"><a href="#__codelineno-0-61"> 61</a></span>
+<span class="normal"><a href="#__codelineno-0-62"> 62</a></span>
+<span class="normal"><a href="#__codelineno-0-63"> 63</a></span>
+<span class="normal"><a href="#__codelineno-0-64"> 64</a></span>
+<span class="normal"><a href="#__codelineno-0-65"> 65</a></span>
+<span class="normal"><a href="#__codelineno-0-66"> 66</a></span>
+<span class="normal"><a href="#__codelineno-0-67"> 67</a></span>
+<span class="normal"><a href="#__codelineno-0-68"> 68</a></span>
+<span class="normal"><a href="#__codelineno-0-69"> 69</a></span>
+<span class="normal"><a href="#__codelineno-0-70"> 70</a></span>
+<span class="normal"><a href="#__codelineno-0-71"> 71</a></span>
+<span class="normal"><a href="#__codelineno-0-72"> 72</a></span>
+<span class="normal"><a href="#__codelineno-0-73"> 73</a></span>
+<span class="normal"><a href="#__codelineno-0-74"> 74</a></span>
+<span class="normal"><a href="#__codelineno-0-75"> 75</a></span>
+<span class="normal"><a href="#__codelineno-0-76"> 76</a></span>
+<span class="normal"><a href="#__codelineno-0-77"> 77</a></span>
+<span class="normal"><a href="#__codelineno-0-78"> 78</a></span>
+<span class="normal"><a href="#__codelineno-0-79"> 79</a></span>
+<span class="normal"><a href="#__codelineno-0-80"> 80</a></span>
+<span class="normal"><a href="#__codelineno-0-81"> 81</a></span>
+<span class="normal"><a href="#__codelineno-0-82"> 82</a></span>
+<span class="normal"><a href="#__codelineno-0-83"> 83</a></span>
+<span class="normal"><a href="#__codelineno-0-84"> 84</a></span>
+<span class="normal"><a href="#__codelineno-0-85"> 85</a></span>
+<span class="normal"><a href="#__codelineno-0-86"> 86</a></span>
+<span class="normal"><a href="#__codelineno-0-87"> 87</a></span>
+<span class="normal"><a href="#__codelineno-0-88"> 88</a></span>
+<span class="normal"><a href="#__codelineno-0-89"> 89</a></span>
+<span class="normal"><a href="#__codelineno-0-90"> 90</a></span>
+<span class="normal"><a href="#__codelineno-0-91"> 91</a></span>
+<span class="normal"><a href="#__codelineno-0-92"> 92</a></span>
+<span class="normal"><a href="#__codelineno-0-93"> 93</a></span>
+<span class="normal"><a href="#__codelineno-0-94"> 94</a></span>
+<span class="normal"><a href="#__codelineno-0-95"> 95</a></span>
+<span class="normal"><a href="#__codelineno-0-96"> 96</a></span>
+<span class="normal"><a href="#__codelineno-0-97"> 97</a></span>
+<span class="normal"><a href="#__codelineno-0-98"> 98</a></span>
+<span class="normal"><a href="#__codelineno-0-99"> 99</a></span>
+<span class="normal"><a href="#__codelineno-0-100">100</a></span>
+<span class="normal"><a href="#__codelineno-0-101">101</a></span>
+<span class="normal"><a href="#__codelineno-0-102">102</a></span>
+<span class="normal"><a href="#__codelineno-0-103">103</a></span>
+<span class="normal"><a href="#__codelineno-0-104">104</a></span>
+<span class="normal"><a href="#__codelineno-0-105">105</a></span>
+<span class="normal"><a href="#__codelineno-0-106">106</a></span>
+<span class="normal"><a href="#__codelineno-0-107">107</a></span>
+<span class="normal"><a href="#__codelineno-0-108">108</a></span>
+<span class="normal"><a href="#__codelineno-0-109">109</a></span>
+<span class="normal"><a href="#__codelineno-0-110">110</a></span>
+<span class="normal"><a href="#__codelineno-0-111">111</a></span>
+<span class="normal"><a href="#__codelineno-0-112">112</a></span>
+<span class="normal"><a href="#__codelineno-0-113">113</a></span>
+<span class="normal"><a href="#__codelineno-0-114">114</a></span>
+<span class="normal"><a href="#__codelineno-0-115">115</a></span>
+<span class="normal"><a href="#__codelineno-0-116">116</a></span>
+<span class="normal"><a href="#__codelineno-0-117">117</a></span>
+<span class="normal"><a href="#__codelineno-0-118">118</a></span>
+<span class="normal"><a href="#__codelineno-0-119">119</a></span>
+<span class="normal"><a href="#__codelineno-0-120">120</a></span>
+<span class="normal"><a href="#__codelineno-0-121">121</a></span>
+<span class="normal"><a href="#__codelineno-0-122">122</a></span>
+<span class="normal"><a href="#__codelineno-0-123">123</a></span>
+<span class="normal"><a href="#__codelineno-0-124">124</a></span>
+<span class="normal"><a href="#__codelineno-0-125">125</a></span>
+<span class="normal"><a href="#__codelineno-0-126">126</a></span>
+<span class="normal"><a href="#__codelineno-0-127">127</a></span>
+<span class="normal"><a href="#__codelineno-0-128">128</a></span>
+<span class="normal"><a href="#__codelineno-0-129">129</a></span>
+<span class="normal"><a href="#__codelineno-0-130">130</a></span>
+<span class="normal"><a href="#__codelineno-0-131">131</a></span>
+<span class="normal"><a href="#__codelineno-0-132">132</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-56" name="__codelineno-0-56"></a><span class="k">def</span><span class="w"> </span><span class="nf">make_prior</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Prior</span><span class="p">]:</span>
 <a id="__codelineno-0-57" name="__codelineno-0-57"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <a id="__codelineno-0-58" name="__codelineno-0-58"></a><span class="sd">    Small factory used by pipelines.core; returns a Prior or None.</span>
 <a id="__codelineno-0-59" name="__codelineno-0-59"></a>
-<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">    Expected cfg_prior schema (from TOML):</span>
-<a id="__codelineno-0-61" name="__codelineno-0-61"></a><span class="sd">      [prior]</span>
-<a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">      type = &quot;none&quot; | &quot;point&quot; | &quot;line&quot;</span>
-<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">      point = [x,y,z]         # for type=&quot;point&quot;</span>
-<a id="__codelineno-0-64" name="__codelineno-0-64"></a><span class="sd">      line_p0 = [x,y,z]       # for type=&quot;line&quot;</span>
-<a id="__codelineno-0-65" name="__codelineno-0-65"></a><span class="sd">      line_p1 = [x,y,z]</span>
-<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">      strength = 1.0          # optional</span>
-<a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-68" name="__codelineno-0-68"></a>    <span class="n">typ</span> <span class="o">=</span> <span class="p">(</span><span class="n">cfg_prior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;none&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-<a id="__codelineno-0-69" name="__codelineno-0-69"></a>    <span class="n">strength</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cfg_prior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;strength&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+<a id="__codelineno-0-60" name="__codelineno-0-60"></a><span class="sd">    Expected cfg_prior schema (from TOML, after Pydantic):</span>
+<a id="__codelineno-0-61" name="__codelineno-0-61"></a>
+<a id="__codelineno-0-62" name="__codelineno-0-62"></a><span class="sd">      [prior]</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63"></a><span class="sd">      type = &quot;none&quot; | &quot;point&quot; | &quot;line&quot;</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64"></a><span class="sd">      strength = 1.0</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65"></a>
+<a id="__codelineno-0-66" name="__codelineno-0-66"></a><span class="sd">      # Point prior:</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67"></a><span class="sd">      # either:</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68"></a><span class="sd">      #   point = [x, y, z]</span>
+<a id="__codelineno-0-69" name="__codelineno-0-69"></a><span class="sd">      # or (future) nested [prior.point] can be normalized upstream.</span>
 <a id="__codelineno-0-70" name="__codelineno-0-70"></a>
-<a id="__codelineno-0-71" name="__codelineno-0-71"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-72" name="__codelineno-0-72"></a>        <span class="k">return</span> <span class="kc">None</span>
-<a id="__codelineno-0-73" name="__codelineno-0-73"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;point&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-74" name="__codelineno-0-74"></a>        <span class="c1">#return PointPrior(np.asarray(cfg_prior[&quot;point&quot;], dtype=float), strength=strength)</span>
-<a id="__codelineno-0-75" name="__codelineno-0-75"></a>        <span class="k">if</span> <span class="s2">&quot;point&quot;</span> <span class="ow">in</span> <span class="n">cfg_prior</span><span class="p">:</span>
-<a id="__codelineno-0-76" name="__codelineno-0-76"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;point&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-<a id="__codelineno-0-77" name="__codelineno-0-77"></a>        <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-78" name="__codelineno-0-78"></a>            <span class="c1"># default: center of imaging plane</span>
-<a id="__codelineno-0-79" name="__codelineno-0-79"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">center</span>  <span class="c1"># or plane.origin() if we add such a helper</span>
-<a id="__codelineno-0-80" name="__codelineno-0-80"></a>        <span class="k">return</span> <span class="n">PointPrior</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span>
-<a id="__codelineno-0-81" name="__codelineno-0-81"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;line&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-82" name="__codelineno-0-82"></a>        <span class="k">return</span> <span class="n">LinePrior</span><span class="p">(</span>
-<a id="__codelineno-0-83" name="__codelineno-0-83"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-<a id="__codelineno-0-84" name="__codelineno-0-84"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p1&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
-<a id="__codelineno-0-85" name="__codelineno-0-85"></a>            <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">,</span>
-<a id="__codelineno-0-86" name="__codelineno-0-86"></a>        <span class="p">)</span>
-<a id="__codelineno-0-87" name="__codelineno-0-87"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown prior.type=</span><span class="si">{</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71"></a><span class="sd">      # Line prior (preferred, nested):</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72"></a><span class="sd">      #   [prior.line]</span>
+<a id="__codelineno-0-73" name="__codelineno-0-73"></a><span class="sd">      #   p0 = [x0, y0, z0]</span>
+<a id="__codelineno-0-74" name="__codelineno-0-74"></a><span class="sd">      #   p1 = [x1, y1, z1]</span>
+<a id="__codelineno-0-75" name="__codelineno-0-75"></a><span class="sd">      # or:</span>
+<a id="__codelineno-0-76" name="__codelineno-0-76"></a><span class="sd">      #   [prior.line]</span>
+<a id="__codelineno-0-77" name="__codelineno-0-77"></a><span class="sd">      #   r0        = [x0, y0, z0]</span>
+<a id="__codelineno-0-78" name="__codelineno-0-78"></a><span class="sd">      #   direction = [dx, dy, dz]</span>
+<a id="__codelineno-0-79" name="__codelineno-0-79"></a><span class="sd">      #</span>
+<a id="__codelineno-0-80" name="__codelineno-0-80"></a><span class="sd">      # For backward compatibility we also accept flat:</span>
+<a id="__codelineno-0-81" name="__codelineno-0-81"></a><span class="sd">      #   line_p0 = [x0, y0, z0]</span>
+<a id="__codelineno-0-82" name="__codelineno-0-82"></a><span class="sd">      #   line_p1 = [x1, y1, z1]</span>
+<a id="__codelineno-0-83" name="__codelineno-0-83"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-84" name="__codelineno-0-84"></a>    <span class="c1">#typ = (cfg_prior.get(&quot;type&quot;) or &quot;none&quot;).lower()</span>
+<a id="__codelineno-0-85" name="__codelineno-0-85"></a>    <span class="n">typ</span> <span class="o">=</span> <span class="n">cfg_prior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-86" name="__codelineno-0-86"></a>    <span class="n">strength</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cfg_prior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;strength&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87"></a>
+<a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-89" name="__codelineno-0-89"></a>        <span class="k">return</span> <span class="kc">None</span>
+<a id="__codelineno-0-90" name="__codelineno-0-90"></a>
+<a id="__codelineno-0-91" name="__codelineno-0-91"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;point&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-92" name="__codelineno-0-92"></a>        <span class="c1">#return PointPrior(np.asarray(cfg_prior[&quot;point&quot;], dtype=float), strength=strength)</span>
+<a id="__codelineno-0-93" name="__codelineno-0-93"></a>        <span class="k">if</span> <span class="s2">&quot;point&quot;</span> <span class="ow">in</span> <span class="n">cfg_prior</span><span class="p">:</span>
+<a id="__codelineno-0-94" name="__codelineno-0-94"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;point&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-95" name="__codelineno-0-95"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-96" name="__codelineno-0-96"></a>            <span class="c1"># default: center of imaging plane</span>
+<a id="__codelineno-0-97" name="__codelineno-0-97"></a>            <span class="n">p</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">center</span>  <span class="c1"># or plane.origin() if we add such a helper</span>
+<a id="__codelineno-0-98" name="__codelineno-0-98"></a>        <span class="k">return</span> <span class="n">PointPrior</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span>
+<a id="__codelineno-0-99" name="__codelineno-0-99"></a>
+<a id="__codelineno-0-100" name="__codelineno-0-100"></a>    <span class="k">if</span> <span class="n">typ</span> <span class="o">==</span> <span class="s2">&quot;line&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-101" name="__codelineno-0-101"></a>        <span class="n">line_cfg</span> <span class="o">=</span> <span class="n">cfg_prior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;line&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-102" name="__codelineno-0-102"></a>        <span class="n">p0</span> <span class="o">=</span> <span class="n">p1</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-0-103" name="__codelineno-0-103"></a>
+<a id="__codelineno-0-104" name="__codelineno-0-104"></a>        <span class="k">if</span> <span class="n">line_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-105" name="__codelineno-0-105"></a>            <span class="c1"># Preferred nested forms</span>
+<a id="__codelineno-0-106" name="__codelineno-0-106"></a>            <span class="k">if</span> <span class="s2">&quot;p0&quot;</span> <span class="ow">in</span> <span class="n">line_cfg</span> <span class="ow">and</span> <span class="s2">&quot;p1&quot;</span> <span class="ow">in</span> <span class="n">line_cfg</span><span class="p">:</span>
+<a id="__codelineno-0-107" name="__codelineno-0-107"></a>                <span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">line_cfg</span><span class="p">[</span><span class="s2">&quot;p0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-108" name="__codelineno-0-108"></a>                <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">line_cfg</span><span class="p">[</span><span class="s2">&quot;p1&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-109" name="__codelineno-0-109"></a>            <span class="k">elif</span> <span class="s2">&quot;r0&quot;</span> <span class="ow">in</span> <span class="n">line_cfg</span> <span class="ow">and</span> <span class="s2">&quot;direction&quot;</span> <span class="ow">in</span> <span class="n">line_cfg</span><span class="p">:</span>
+<a id="__codelineno-0-110" name="__codelineno-0-110"></a>                <span class="n">r0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">line_cfg</span><span class="p">[</span><span class="s2">&quot;r0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-111" name="__codelineno-0-111"></a>                <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">line_cfg</span><span class="p">[</span><span class="s2">&quot;direction&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-112" name="__codelineno-0-112"></a>                <span class="n">p0</span> <span class="o">=</span> <span class="n">r0</span>
+<a id="__codelineno-0-113" name="__codelineno-0-113"></a>                <span class="n">p1</span> <span class="o">=</span> <span class="n">r0</span> <span class="o">+</span> <span class="n">direction</span>
+<a id="__codelineno-0-114" name="__codelineno-0-114"></a>            <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-115" name="__codelineno-0-115"></a>                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+<a id="__codelineno-0-116" name="__codelineno-0-116"></a>                    <span class="s2">&quot;prior.line must define either p0/p1 or r0/direction &quot;</span>
+<a id="__codelineno-0-117" name="__codelineno-0-117"></a>                    <span class="s2">&quot;(e.g. [prior.line] p0=[...] p1=[...] or r0=[...] direction=[...])&quot;</span>
+<a id="__codelineno-0-118" name="__codelineno-0-118"></a>                <span class="p">)</span>
+<a id="__codelineno-0-119" name="__codelineno-0-119"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-120" name="__codelineno-0-120"></a>            <span class="c1"># Backwards-compatible flat keys (if someone ever used them)</span>
+<a id="__codelineno-0-121" name="__codelineno-0-121"></a>            <span class="k">if</span> <span class="s2">&quot;line_p0&quot;</span> <span class="ow">in</span> <span class="n">cfg_prior</span> <span class="ow">and</span> <span class="s2">&quot;line_p1&quot;</span> <span class="ow">in</span> <span class="n">cfg_prior</span><span class="p">:</span>
+<a id="__codelineno-0-122" name="__codelineno-0-122"></a>                <span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p0&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-123" name="__codelineno-0-123"></a>                <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s2">&quot;line_p1&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<a id="__codelineno-0-124" name="__codelineno-0-124"></a>            <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-125" name="__codelineno-0-125"></a>                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+<a id="__codelineno-0-126" name="__codelineno-0-126"></a>                    <span class="s2">&quot;Line prior configured with type=&#39;line&#39; but no usable &quot;</span>
+<a id="__codelineno-0-127" name="__codelineno-0-127"></a>                    <span class="s2">&quot;line geometry found (expected [prior.line] or line_p0/line_p1).&quot;</span>
+<a id="__codelineno-0-128" name="__codelineno-0-128"></a>                <span class="p">)</span>
+<a id="__codelineno-0-129" name="__codelineno-0-129"></a>
+<a id="__codelineno-0-130" name="__codelineno-0-130"></a>        <span class="k">return</span> <span class="n">LinePrior</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span>
+<a id="__codelineno-0-131" name="__codelineno-0-131"></a>
+<a id="__codelineno-0-132" name="__codelineno-0-132"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown prior.type=</span><span class="si">{</span><span class="n">cfg_prior</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
