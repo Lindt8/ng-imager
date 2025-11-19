@@ -216,7 +216,7 @@ Optional: additional physics descriptors (density, Z, etc.) if needed later.
 
 #### `[energy]`
 
-Energy strategies for **neutron events**:
+
 
 ```toml
 # Neutron energy strategy:
@@ -225,6 +225,10 @@ Energy strategies for **neutron events**:
 # - "FixedEn": use a fixed incident energy (e.g. DT source)
 # - "Edep": treat Hit.L as deposited energy directly (e.g. PHITS Edep_MeV)
 strategy = "Edep"                 # ELUT | ToF | FixedEn | Edep
+
+# For neutrons, assume recoils are always protons (true) 
+#     or consider also carbon recoils (false)
+force_proton_recoils = false      # true | false
 
 [energy.light_lut]
 default_material = "OGS"   # used when material-specific LUT selection is ambiguous
@@ -236,6 +240,7 @@ flight_path_cm  = 100.0
 [energy.fixed_incident]
 En_MeV = 14.1
 ```
+Energy strategies for **neutron events**:
 
 - `ELUT` uses calibrated E(L) LUTs per material (the modern default).  
 - `ToF` uses time-of-flight for incident neutron energy (legacy compatible).  
@@ -243,6 +248,21 @@ En_MeV = 14.1
 - `Edep` assumes the provided `L` is actually energy deposition in MeV instead of light output in MeVee (as is the case for PHITS-scored energy deposion)
 
 These strategies are currently designed for **neutron kinematics**; gamma energy handling is much less critical for the present imaging method and may be added later if needed.
+
+For neutron events there is an ambiguity between proton and carbon recoils in organic scintillators. When using strategies that can support species-specific recoil estimates (e.g. ELUT, PHITS Edep), the pipeline can construct both proton and carbon neutron candidate cones and choose between them using a prior-based angle-difference metric:
+
+    Δ = |θ_calc − θ_est|
+
+This behavior is controlled by the configuration key `force_proton_recoils`:
+
+- `force_proton_recoils = false` (default):
+    - For species-aware strategies (ELUT, Edep), the pipeline builds both proton and carbon neutron cones when a prior is available and selects between them using Δ.
+    - For legacy strategies (ToF, FixedEn), the deposited energy is effectively proton-like, but the H/C branch for scattering angle computation may still be evaluated if needed for comparison or reproduction of legacy behavior.
+
+- `force_proton_recoils = true`:
+    - Always assume proton recoils for neutrons.
+    - Bypasses H/C hypothesis testing and prior-based discrimination.
+    - Useful for strict legacy reproduction and debugging.
 
 #### `[plane]`
 
@@ -604,7 +624,25 @@ For **EnergyFromFixedIncident**:
   ```
   where `E_before_fixed` is a constant specified in the config.
 
-### 7.4. Current Scope and Gamma Events
+### 7.4. Proton vs carbon recoil hypotheses
+
+Elastic scattering of neutrons in organic scintillators can occur on hydrogen or carbon nuclei. To account for this:
+
+1. The first-scatter deposited energy E_dep,1 is interpreted under both recoil hypotheses.
+2. A scattering angle θ_calc is computed for each branch using CoM→lab mapping.
+3. θ_calc is compared against the prior-derived θ_est, and the branch with the smallest Δ = |θ_calc − θ_est| is selected when H/C inference is enabled.
+
+ELUT and PHITS Edep strategies provide species-resolved recoil estimates via per-species LUTs. ToF and FixedEn behave proton-like by legacy convention but may still evaluate both A=1 and A≈12 kinematic branches if required.
+
+The configuration key:
+
+    [energy]
+    force_proton_recoils = true|false
+
+controls whether proton-only reconstruction is enforced (legacy behavior) or whether H/C hypotheses are generated and later selected using priors and Δ.
+
+
+### 7.5. Current Scope and Gamma Events
 
 Currently, energy strategies are primarily designed for **neutron events**; gamma events for the SBP-style imaging do not require as detailed energy treatment for the existing reconstruction logic. If future gamma imaging methods require more detailed gamma energy estimation, extensions can be added to the energy strategy system.
 
@@ -655,7 +693,8 @@ For neutron events:
     - A proton-based candidate cone.
     - A carbon-based candidate cone.
 - Each candidate has different opening angles and orientations given the energy and kinematics.
-- Again, priors and kinematic consistency can be used to score these candidates.
+- Each candidate cone is scored against the prior using the Δ = |θ_calc − θ_est| metric. The cone selection stage chooses at most one branch per event (or none if both are non-physical or filtered out).
+- The selected recoil hypothesis is recorded in event- and cone-level metadata and ultimately written to HDF5 for downstream analysis.
 
 **Design approach:**
 
@@ -852,7 +891,8 @@ The HDF5 format is the primary output, and it should support:
       axis_xyz         [C,3]
       theta_rad        [C]
       event_index      [C]
-      event_type       [C]              # 0=n, 1=g
+      event_type       [C] uint8   # 0=n, 1=g
+      recoil_code      [C] uint8   # 0 = NA, 1 = H, 2 = C
 
 /images/summed
     n   [H,W]   # neutron summed SBP image (currently implemented and used)
@@ -870,6 +910,8 @@ The HDF5 format is the primary output, and it should support:
       hit_L_mevee         [E,3]
       hit_det_id          [E,3]
       hit_material_id     [E,3]
+      recoil_code         [E] uint8   # for neutrons only
+      recoil_labels       [R] string  # e.g. ["H", "C"]
 
       # Only when run.list = true:
       # List-mode "images" are represented sparsely via indices on the same (H,W)
@@ -1205,8 +1247,19 @@ This checklist tracks migration from the current state to the architecture descr
 - [ ] Implement optional per-cone sparse footprints used only when `run.list` is true, and validate them end-to-end.
 - [ ] Ensure cone and imaging counters follow the `_n` / `_g` / `_total` naming pattern where meaningful, and that per-stage runtimes are recorded and reported.
 - [x] Implement initial gamma cone-building for 3-hit Compton events in `physics.cones`, including permutation testing and prior-based Δ = |θ_calc − θ_est| scoring; treat this path as “provisionally implemented” pending further validation and ROOT adapter integration.
-- [ ] Extend neutron cone construction to support explicit proton vs carbon candidate branches, including directionality checks analogous to the gamma `t_int > 0` test, and integrate this into the unified candidate/selection framework.
+- [x] Extend neutron cone construction to support explicit proton vs carbon candidate branches, including directionality checks analogous to the gamma `t_int > 0` test, and integrate this into the unified candidate/selection framework.
 - [ ] Implement combined n/g/all SBP images at the imaging stage (see §16.8 for `/images/summed/[n|g|all]`).
+- [ ] Neutron proton vs carbon recoil hypothesis handling:
+    - [x] Adopt primer-consistent neutron cone geometry (apex at h1, axis from h2→h1).
+    - [x] Specify species-aware recoil interpretation tied to energy strategies (ELUT, Edep).
+    - [x] Define candidate-cone generation for H and C branches with Δ-based prior scoring.
+    - [ ] Integrate full H/C candidate enumeration and selection into the unified cone-candidate framework.
+    - [ ] Add complete HDF5 recoil metadata and ensure counters reflect per-species filtering.
+- [ ] Cone-level angle-difference filtering (Δθ):
+    - [ ] Add `max_angle_diff_deg` to `[filters.cones]` with species-specific overrides.
+    - [ ] Apply Δ = |θ_calc − θ_est| thresholds during cone selection.
+    - [ ] Add associated counters and expose the filtering results in `/meta/counters`.
+
 
 ### 16.6.1 Gamma Cone Status (Provisional)
 
@@ -1253,8 +1306,6 @@ Development on neutron imaging, event/candidate selection infrastructure, filter
     - optional convenience flags like `--neutrons-only` / `--gammas-only` mapped to `use_neutrons` / `use_gammas`
 - [ ] Implement `pipeline.until` gating at the main stages and support resuming from ngimager HDF5 files (`input_format = "hdf5_ngimager"`).
 
-
-### 16.8. HDF5 and Visualization
 
 ### 16.8. HDF5 and Visualization
 
