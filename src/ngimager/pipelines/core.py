@@ -134,7 +134,18 @@ def _build_cones_from_events(
 
         try:
             if species == "n":
-                cone = build_cone_from_neutron(ev, energy_model, scatter_nucleus="H")
+                # Neutrons: build proton vs carbon recoil hypotheses and, when
+                # a plane/prior are available, select the most plausible one
+                # using the same Δ = |φ − θ| scoring as for gammas.
+                # The [energy].force_proton_recoils flag bypasses this and
+                # treats all recoils as protons.
+                cone = build_cone_from_neutron(
+                    ev,
+                    energy_model,
+                    plane=plane,
+                    prior=prior,
+                    force_proton=cfg.energy.force_proton_recoils,
+                )
             else:
                 # Gammas: Compton-based cone construction (uses Hit.L
                 # as deposited energy; energy_model is passed for future

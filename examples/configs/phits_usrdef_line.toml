@@ -127,6 +127,8 @@ lut_paths.OGS.carbon  = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
 
 [prior]
 type = "line"
+# type = "point"
+# point = [0.0, 3.0, 4.0]
 # line_p0 = [0.0, -1.0, 4.0]  # works, but old syntax
 # line_p1 = [0.0,  7.0, 4.0]  # works, but old syntax
 strength = 1.0

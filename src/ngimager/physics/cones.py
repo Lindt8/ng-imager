@@ -20,69 +20,158 @@ from ngimager.physics.kinematics import (
 def build_cone_from_neutron(
     ev: NeutronEvent,
     energy_model: EnergyStrategy,
-    scatter_nucleus: Literal["H", "C"] = "H",
+    plane: Optional[Plane] = None,
+    prior: Optional[Prior] = None,
+    force_proton: bool = False,
 ) -> Cone:
     """
     Build a neutron cone using the NOVO imaging primer convention:
 
       - apex O = X1 (first hit position),
-      - axis D̂ = (X1 - X2) / ||X1 - X2|| (points from 2nd -> 1st hit),
-      - opening angle theta from kinematics using:
-          * Edep1 from the energy strategy (ELUT, Birks, etc.)
-          * E' from time-of-flight (via neutron_theta_from_hits).
+      - axis D = unit vector along the scattered neutron direction (X2 - X1),
+      - half-angle θ from elastic n–N kinematics in the lab frame.
 
-    Parameters
-    ----------
-    ev:
-        NeutronEvent with h1, h2 populated (positions in cm, times in ns).
-    energy_model:
-        EnergyStrategy instance (e.g. ELutEnergy, FixedEn, etc.) providing
-        Edep1 for the first scatter.
-    scatter_nucleus:
-        Target nucleus used in the kinematic model ("H" or "C").
+    Behavior (high level)
+    ---------------------
+    * The event is assumed to be time-ordered (h1 before h2); callers
+      should use ev.ordered() upstream, as the pipeline already does.
 
-    Returns
-    -------
-    Cone
-        Cone(apex=O, axis=D̂, theta_rad).
+    * We always use the full kinematic chain from kinematics.py:
+
+          E'   = E_n' from ToF between hits 1→2 (relativistic),
+          En   = E' + E_dep,1,
+          θ    = θ_lab(E_dep,1, En, A) with A = m_recoil / m_n,
+
+      where E_dep,1 is obtained from `energy_model.first_scatter_energy(...)`
+      and A is set by the assumed recoil nucleus ("H" or "C").
+
+    * If `force_proton` is True, or if `plane` is None, we build a single
+      proton-recoil hypothesis and return it (backwards-compatible path).
+
+    * Otherwise, we build both proton and carbon hypotheses, reject any
+      that are non-physical, enforce that the cone axis points toward
+      the imaging plane, and then score the survivors against the prior
+      using the same Δ = |φ − θ| metric used for gammas. The winner is
+      the hypothesis with the smallest Δ.
+
+      If both hypotheses fail scoring (e.g. degenerate prior geometry),
+      we fall back to the proton-only construction.
+
+    Notes
+    -----
+    * This function does not mutate the event or record which hypothesis
+      "won"; that bookkeeping can be added later via event metadata if
+      desired.
     """
-    # Basic sanity check
-    ev.validate()
+    # Basic sanity: caller should already have ordered() + validate(), but
+    # doing a light check here keeps this function robust for standalone use.
+    ev.validate(strict=False)
     h1, h2 = ev.h1, ev.h2
 
-    r1 = h1.r.astype(float)
-    r2 = h2.r.astype(float)
+    r1 = np.asarray(h1.r, dtype=float)
+    r2 = np.asarray(h2.r, dtype=float)
     t1 = float(h1.t_ns)
     t2 = float(h2.t_ns)
 
-    # Direction from 2nd -> 1st (matches primer convention)
+    # Axis: scattered neutron direction (h1 → h2), normalized
     D = r1 - r2
     L = np.linalg.norm(D)
-    if L <= 0:
-        raise ValueError("Zero baseline between hits in NeutronEvent.")
+    if not np.isfinite(L) or L <= 0.0:
+        raise ValueError("Zero or non-physical baseline between hits in NeutronEvent.")
+
     Dhat = D / L
     apex = r1.copy()
 
-    # E_dep at first scatter from the energy model.
-    # Use proton band by default for scintillator response.
-    Edep1_MeV, _ = energy_model.first_scatter_energy(
-        h1,
-        h2,
-        h1.material,
-        "proton",
-    )
+    # If we have an imaging plane, require that the scattered neutron
+    # direction actually points toward the plane (t_int > 0).
+    #if plane is not None and not _axis_towards_plane(apex, Dhat, plane):
+    #    raise ValueError("Neutron cone axis does not point toward imaging plane.")
 
-    # Kinematic opening angle
-    theta = neutron_theta_from_hits(
-        r1,
-        t1,
-        r2,
-        t2,
-        Edep1_MeV=Edep1_MeV,
-        scatter_nucleus=scatter_nucleus,
-    )
+    # Helper: construct a Cone for a given recoil nucleus label ("H" or "C")
+    # and return (cone, score) where score is Δ = |φ − θ| if a prior is
+    # available, otherwise None.
+    def _candidate_for_nucleus(
+        recoil_nucleus: str,
+    ) -> tuple[Optional[Cone], Optional[float]]:
+        # Decide which species key to use for the energy strategy.
+        # For ELUT, we have distinct proton/carbon bands; for other
+        # strategies (ToF, FixedEn, Edep) we keep proton-like behavior
+        # for E_dep,1 to remain compatible with legacy usage.
+        species_key = "proton"
+        if getattr(energy_model, "name", None) == "ELUT":
+            species_key = "proton" if recoil_nucleus == "H" else "carbon"
 
-    return Cone(apex, Dhat, float(theta))
+        # E_dep at first scatter from the energy model.
+        try:
+            Edep1_MeV, _ = energy_model.first_scatter_energy(
+                h1,
+                h2,
+                h1.material,
+                species=species_key,
+            )
+        except Exception:
+            return None, None
+
+        # Full COM → lab mapping using primer-consistent kinematics.
+        try:
+            theta = neutron_theta_from_hits(
+                r1, t1,
+                r2, t2,
+                Edep1_MeV,
+                scatter_nucleus=recoil_nucleus,
+            )
+        except Exception:
+            return None, None
+
+        # Reject clearly non-physical / degenerate angles
+        if (not np.isfinite(theta)) or (theta <= 0.0) or (theta >= np.pi):
+            return None, None
+
+        c = Cone(apex=apex, direction=Dhat, theta=float(theta))
+
+        # If we have a plane, enforce that the cone axis points toward it.
+        if plane is not None and (not _axis_towards_plane(apex, Dhat, plane)):
+            return None, None
+
+        # If we don't have a plane, we can't do prior-based scoring.
+        if plane is None:
+            return c, None
+
+        score = _score_cone_against_prior(c, plane, prior)
+        return c, score
+
+    # Proton-only path: either explicitly requested, or no plane available.
+    if force_proton or plane is None:
+        c_p, _ = _candidate_for_nucleus("H")
+        if c_p is None:
+            raise ValueError("NeutronEvent cannot produce a physical proton-recoil cone.")
+        return c_p
+
+    # Full proton vs carbon hypothesis test with prior-aware scoring.
+    candidates: list[tuple[float, Cone]] = []
+
+    for nuc in ("H", "C"):
+        c, score = _candidate_for_nucleus(nuc)
+        if c is None:
+            continue
+        # If scoring failed (e.g. degenerate prior geometry), skip from
+        # the prior-based comparison.
+        if score is None:
+            continue
+        candidates.append((score, c))
+
+    if candidates:
+        # Pick the cone with minimal Δ = |φ − θ|
+        candidates.sort(key=lambda sc: sc[0])
+        return candidates[0][1]
+
+    # If we got here, either both hypotheses were non-physical or prior
+    # scoring failed for both. Fall back to proton-only construction
+    # without using the prior.
+    c_p, _ = _candidate_for_nucleus("H")
+    if c_p is None:
+        raise ValueError("NeutronEvent cannot produce a physical cone (proton or carbon).")
+    return c_p
 
 
 def _gamma_cone_from_ordered_hits(
