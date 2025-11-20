@@ -659,35 +659,112 @@ def run_pipeline(
         for i in range(len(cone_ids))
     ]
 
-    recon = reconstruct_sbp(
-        cones=cones_for_sbp,
-        plane=plane,
-        workers=cfg.run.workers,
-        chunk_cones=cfg.run.chunk_cones,
-        list_mode=cfg.run.list,
-        # uncertainty_mode stays at default "off" for now
-        progress=cfg.run.progress,
-    )
+    # Partition cones by species for separate images
+    cones_n: list[Cone] = []
+    cones_g: list[Cone] = []
+    for c, s in zip(cones_for_sbp, cone_species):
+        if s == 0:
+            cones_n.append(c)
+        elif s == 1:
+            cones_g.append(c)
 
-    if diag_level >= 1:
-        print("[stage4] Recon summed image stats:",
-              "min=", float(recon.summed.min()),
-              "max=", float(recon.summed.max()),
-              "sum=", float(recon.summed.sum()),
-              "shape=", recon.summed.shape)
+    img_n = None
+    img_g = None
 
-    # Summed image
-    img = recon.summed.astype(np.float32)
-    write_summed(f, "n", img)
+    # --- 4a. Neutron-only image ---
+    if cones_n:
+        if diag_level >= 1:
+            print( "[stage4] Imaging neutrons...")
+        
+        recon_n = reconstruct_sbp(
+            cones=cones_n,
+            plane=plane,
+            workers=cfg.run.workers,
+            chunk_cones=cfg.run.chunk_cones,
+            list_mode=False,  # LM handled separately below
+            # uncertainty_mode stays at default "off" for now
+            progress=cfg.run.progress,
+        )
 
-    
-    
+        img_n = recon_n.summed.astype(np.float32)
+        write_summed(f, "n", img_n)
 
-    # List-mode extras
-    if cfg.run.list:
-        # LM pixel indices
-        lm_indices = recon.lm_indices or []
+        if diag_level >= 1:
+            print(
+                "[stage4] Recon summed image stats (n):",
+                "min=", float(img_n.min()),
+                "max=", float(img_n.max()),
+                "sum=", float(img_n.sum()),
+                "shape=", img_n.shape,
+            )
+
+    # --- 4b. Gamma-only image ---
+    if cones_g:
+        if diag_level >= 1:
+            print( "[stage4] Imaging gammas...")
+            
+        recon_g = reconstruct_sbp(
+            cones=cones_g,
+            plane=plane,
+            workers=cfg.run.workers,
+            chunk_cones=cfg.run.chunk_cones,
+            list_mode=False,  # LM handled separately below
+            progress=cfg.run.progress,
+        )
+
+        img_g = recon_g.summed.astype(np.float32)
+        write_summed(f, "g", img_g)
+
+        if diag_level >= 1:
+            print(
+                "[stage4] Recon summed image stats (g):",
+                "min=", float(img_g.min()),
+                "max=", float(img_g.max()),
+                "sum=", float(img_g.sum()),
+                "shape=", img_g.shape,
+            )
+
+    # --- 4c. "all" image = n + g (when both exist) ---
+    img_all = None
+    if img_n is not None and img_g is not None:
+        # Both species present: sum them
+        img_all = (img_n + img_g).astype(np.float32)
+    elif img_n is not None:
+        # Only neutrons present
+        img_all = img_n
+    elif img_g is not None:
+        # Only gammas present
+        img_all = img_g
+
+    if img_all is not None:
+        write_summed(f, "all", img_all)
+        if diag_level >= 1:
+            print(
+                "[stage4] SUMMED Recon summed image stats (all):",
+                "min=", float(img_all.min()),
+                "max=", float(img_all.max()),
+                "sum=", float(img_all.sum()),
+                "shape=", img_all.shape,
+            )
+
+    # --- 4d. List-mode extras (canonical LM mapping from all cones) ---
+    if cfg.run.list and len(cones_for_sbp) > 0:
+        if diag_level >= 1:
+            print( "[stage4] Repeating imaging for list-mode saving...")
+        # For LM we reconstruct once with all cones to build lm_indices.
+        # We don't use this reconstruction's summed image; "all" above is
+        # always defined from img_n/img_g sums for clarity.
+        recon_all_lm = reconstruct_sbp(
+            cones=cones_for_sbp,
+            plane=plane,
+            workers=cfg.run.workers,
+            chunk_cones=cfg.run.chunk_cones,
+            list_mode=True,
+            progress=cfg.run.progress,
+        )
+        lm_indices = recon_all_lm.lm_indices or []
         write_lm_indices(f, lm_indices)
+
 
     # Store counters into the HDF5 file for later inspection
     write_counters(f, counters)
