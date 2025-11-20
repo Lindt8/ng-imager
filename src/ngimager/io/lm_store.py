@@ -76,51 +76,83 @@ def write_cones(
     apex_xyz_cm: np.ndarray,
     axis_xyz: np.ndarray,
     theta_rad: np.ndarray,
+    species: np.ndarray | None = None,
+    recoil_code: np.ndarray | None = None,
 ) -> None:
     """
     Store per-cone geometric parameters under /cones.
 
     Parameters
     ----------
+    f : open h5py.File
     cone_ids : (N,) int
     apex_xyz_cm : (N,3) float
     axis_xyz : (N,3) float (unit vectors)
     theta_rad : (N,) float (half-angle)
+    species : (N,) uint8, optional
+        Particle species per cone:
+            0 = neutron, 1 = gamma.
+        If None, all zeros (neutrons) are stored.
+    recoil_code : (N,) uint8, optional
+        Recoil tagging per cone:
+            0 = unknown / not applicable
+            1 = proton recoil (for neutron cones)
+            2 = carbon recoil (for neutron cones)
+        If None, all zeros are stored.
     """
     grp = f.require_group("cones")
-    for name in ("cone_id", "apex_xyz_cm", "axis_xyz", "theta_rad", "species"):
+    for name in ("cone_id", "apex_xyz_cm", "axis_xyz", "theta_rad", "species", "recoil_code"):
         if name in grp:
             del grp[name]
 
+    cone_ids = cone_ids.astype(np.uint32)
+    apex_xyz_cm = apex_xyz_cm.astype(np.float32)
+    axis_xyz = axis_xyz.astype(np.float32)
+    theta_rad = theta_rad.astype(np.float32)
+
     grp.create_dataset(
         "cone_id",
-        data=cone_ids.astype(np.uint32),
+        data=cone_ids,
         compression="gzip",
     )
     grp.create_dataset(
         "apex_xyz_cm",
-        data=apex_xyz_cm.astype(np.float32),
+        data=apex_xyz_cm,
         compression="gzip",
     )
     grp.create_dataset(
         "axis_xyz",
-        data=axis_xyz.astype(np.float32),
+        data=axis_xyz,
         compression="gzip",
     )
     grp.create_dataset(
         "theta_rad",
-        data=theta_rad.astype(np.float32),
+        data=theta_rad,
         compression="gzip",
     )
 
     # Species: 0 = neutron, 1 = gamma.
-    # For now we only build neutron cones, so all entries are 0.
-    species = np.zeros_like(cone_ids, dtype=np.uint8)
+    if species is None:
+        species_arr = np.zeros_like(cone_ids, dtype=np.uint8)
+    else:
+        species_arr = np.asarray(species, dtype=np.uint8)
     grp.create_dataset(
         "species",
-        data=species,
+        data=species_arr,
         compression="gzip",
     )
+
+    # Recoil code: 0 = unknown / N/A, 1 = proton, 2 = carbon.
+    if recoil_code is None:
+        recoil_arr = np.zeros_like(cone_ids, dtype=np.uint8)
+    else:
+        recoil_arr = np.asarray(recoil_code, dtype=np.uint8)
+    grp.create_dataset(
+        "recoil_code",
+        data=recoil_arr,
+        compression="gzip",
+    )
+
 
 
 

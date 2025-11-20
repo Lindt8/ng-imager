@@ -54,7 +54,14 @@ from ngimager.physics.priors import make_prior, Prior
 from ngimager.filters.shapers import shape_events_for_cones, ShapeConfig
 from ngimager.filters.to_typed_events import shaped_to_typed_events
 from ngimager.filters.hit_filters import apply_hit_filters, is_reconstructable
+from ngimager.filters.cone_filters import passes_delta_theta_cut
 from ngimager.vis.hdf import save_summed_png
+
+def _inc(counters: Dict[str, int], key: str, delta: int = 1) -> None:
+    """
+    Increment a counter by delta, creating it if needed.
+    """
+    counters[key] = counters.get(key, 0) + delta
 
 
 def _iter_source_events(cfg: Config) -> Iterable[Event]:
@@ -88,102 +95,165 @@ def _build_cones_from_events(
     cfg: Config,
     events: Sequence[Event],
     plane: Plane,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    counters: Dict[str, int],
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Turn events into cone geometry arrays for SBP.
 
     Returns
     -------
-    cone_ids, apex_xyz_cm, axis_xyz, theta_rad
+    cone_ids : (N,) uint32
+    apex_xyz_cm : (N,3) float32
+    axis_xyz : (N,3) float32
+    theta_rad : (N,) float32
+    species : (N,) uint8
+        0 = neutron, 1 = gamma
+    recoil_code : (N,) uint8
+        0 = unknown / not applicable
+        1 = proton recoil (for neutron cones)
+        2 = carbon recoil (for neutron cones)
     """
     lut_registry = build_lut_registry(cfg.energy.lut_paths)
     energy_model = make_energy_strategy(cfg.energy, lut_registry=lut_registry)
-    # Prior for cone selection (especially important for gammas).
-    # make_prior will interpret cfg.prior and may fall back to the imaging
-    # plane center if the user hasn't supplied an explicit point.
+    # Prior for cone selection (especially important for gammas and neutron p/C).
     prior = make_prior(cfg.prior.model_dump(), plane)
-    # prior = make_prior(cfg.prior.dict(), plane) # In case of older Pydantic/Config semantics, fall back to dict()
+    # prior = make_prior(cfg.prior.dict(), plane)  # Fallback for older Pydantic
 
+    diag_level = cfg.run.diagnostics_level
 
-    cones = []
+    cones: list[Cone] = []
+    species_codes: list[int] = []
+    recoil_codes: list[int] = []
+
     for j, ev in enumerate(events):
         # enforce time ordering & sanity without crashing the whole run
         try:
             ev = ev.ordered()  # returns same type
             ev.validate(strict=False)
         except Exception as exc:
-            if j < 5 and cfg.run.diagnostics_level >= 2:
+            if j < 5 and diag_level >= 2:
                 print(f"[cones] Skipping event {j} during ordered/validate: {exc}")
             continue
 
         # ---- Species-aware cone building ----
-        # Respect run.neutrons / run.gammas toggles and choose the
-        # appropriate cone builder. For now each event yields at most
-        # one cone.
         if isinstance(ev, NeutronEvent):
             if not cfg.run.neutrons:
                 continue
-            species = "n"
+            species_char = "n"
+            species_code = 0  # 0 = neutron in HDF
         elif isinstance(ev, GammaEvent):
             if not cfg.run.gammas:
                 continue
-            species = "g"
+            species_char = "g"
+            species_code = 1  # 1 = gamma in HDF
         else:
             # Unknown event type – ignore for now
             continue
 
+        _inc(counters, "events_cone_build_attempted", 1)
+        if species_char == "n":
+            _inc(counters, "events_cone_build_attempted_n", 1)
+        elif species_char == "g":
+            _inc(counters, "events_cone_build_attempted_g", 1)
+
         try:
-            if species == "n":
-                # Neutrons: build proton vs carbon recoil hypotheses and, when
-                # a plane/prior are available, select the most plausible one
-                # using the same Δ = |φ − θ| scoring as for gammas.
-                # The [energy].force_proton_recoils flag bypasses this and
-                # treats all recoils as protons.
-                cone = build_cone_from_neutron(
+            if species_char == "n":
+                # Neutrons: build proton vs carbon recoil hypotheses and,
+                # when a plane/prior are available, select the most plausible one.
+                cone, recoil_code = build_cone_from_neutron(
                     ev,
                     energy_model,
                     plane=plane,
                     prior=prior,
                     force_proton=cfg.energy.force_proton_recoils,
+                    return_meta=True,
                 )
             else:
                 # Gammas: Compton-based cone construction (uses Hit.L
                 # as deposited energy; energy_model is passed for future
                 # gamma LUT support even if not used now).
-                # Gamma cone construction with full permutation search,
-                # axis-towards-plane test, and Δ = |φ - θ| prior scoring.
                 cone = build_cone_from_gamma(ev, energy_model, plane=plane, prior=prior)
+                recoil_code = 0  # not applicable for gammas
         except Exception as exc:
-            if j < 5 and cfg.run.diagnostics_level >= 2:
+            _inc(counters, "events_cone_build_failed", 1)
+            if species_char == "n":
+                _inc(counters, "events_cone_build_failed_n", 1)
+            elif species_char == "g":
+                _inc(counters, "events_cone_build_failed_g", 1)
+
+            if j < 5 and diag_level >= 2:
                 print(f"[cones] Failed to build cone from event {j}: {exc}")
             continue
 
+        # Δθ cone-level filter (optional; configured via [filters])
+        species_label = "neutron" if species_char == "n" else "gamma"
+        if not passes_delta_theta_cut(
+            cone=cone,
+            species=species_label,
+            plane=plane,
+            prior=prior,
+            filters=cfg.filters,
+            counters=counters,
+        ):
+            # This cone is rejected by the Δθ cut.
+            continue
+
+        # Success: keep this cone
+        _inc(counters, "events_cone_build_success", 1)
+        if species_char == "n":
+            _inc(counters, "events_cone_build_success_n", 1)
+        elif species_char == "g":
+            _inc(counters, "events_cone_build_success_g", 1)
+
         cones.append(cone)
+        species_codes.append(species_code)
+        recoil_codes.append(int(recoil_code))
 
         # Fast-mode: optional conservative cap on number of cones
         if cfg.run.fast and (cfg.run.max_cones is not None):
             if len(cones) >= cfg.run.max_cones:
-                if cfg.run.diagnostics_level >= 1:
+                if diag_level >= 1:
                     print(f"[cones] Reached max_cones={cfg.run.max_cones}, stopping cone build.")
                 break
 
     if not cones:
-        if cfg.run.diagnostics_level >= 1:
+        if diag_level >= 1:
             print("[cones] No cones were successfully built.")
         return (
             np.zeros(0, dtype=np.uint32),
             np.zeros((0, 3), dtype=np.float32),
             np.zeros((0, 3), dtype=np.float32),
             np.zeros(0, dtype=np.float32),
+            np.zeros(0, dtype=np.uint8),
+            np.zeros(0, dtype=np.uint8),
         )
 
     cone_ids = np.arange(len(cones), dtype=np.uint32)
     apex_xyz_cm = np.stack([c.apex for c in cones], axis=0).astype(np.float32)
     axis_xyz = np.stack([c.dir for c in cones], axis=0).astype(np.float32)
     theta_rad = np.array([c.theta for c in cones], dtype=np.float32)
-    if cfg.run.diagnostics_level >= 1:
-        print(f"[cones] Built {len(cones)} cones from {len(events)} events")
-    return cone_ids, apex_xyz_cm, axis_xyz, theta_rad
+    species_arr = np.array(species_codes, dtype=np.uint8)
+    recoil_arr = np.array(recoil_codes, dtype=np.uint8)
+
+    n_total = int(len(cones))
+    n_n = int(np.count_nonzero(species_arr == 0))
+    n_g = int(np.count_nonzero(species_arr == 1))
+    _inc(counters, "cones_kept", n_total)
+    _inc(counters, "cones_kept_n", n_n)
+    _inc(counters, "cones_kept_g", n_g)
+
+    if diag_level >= 1:
+        print(
+            "[cones] Built {total} cones from {n_ev} events "
+            "(neutron={n_n}, gamma={n_g})".format(
+                total=n_total,
+                n_ev=len(events),
+                n_n=n_n,
+                n_g=n_g,
+            )
+        )
+
+    return cone_ids, apex_xyz_cm, axis_xyz, theta_rad, species_arr, recoil_arr
 
 
 def run_pipeline(
@@ -416,15 +486,54 @@ def run_pipeline(
                     f"L={Ls}"
                 )
 
+    # ---- Stage 3: Typed events → candidate cones → selected cones ----
     # Cones from events
-    cone_ids, apex_xyz_cm, axis_xyz, theta_rad = _build_cones_from_events(cfg, events, plane)
+    (
+        cone_ids,
+        apex_xyz_cm,
+        axis_xyz,
+        theta_rad,
+        cone_species,
+        recoil_code,
+    ) = _build_cones_from_events(cfg, events, plane, counters)
+    
+    
+    # Counters and diagnostics for cones
+    n_cones = int(len(cone_ids))
+    n_n = int(np.count_nonzero(cone_species == 0))
+    n_g = int(np.count_nonzero(cone_species == 1))
+    # Neutron recoil breakdown
+    n_p = int(np.count_nonzero((cone_species == 0) & (recoil_code == 1)))
+    n_C = int(np.count_nonzero((cone_species == 0) & (recoil_code == 2)))
+    n_unknown = max(0, n_n - n_p - n_C)
+    _inc(counters, "cones_n_recoil_proton", n_p)
+    _inc(counters, "cones_n_recoil_carbon", n_C)
+    _inc(counters, "cones_n_recoil_unknown", n_unknown)
+    
     if diag_level >= 1:
-        print(f"[pipeline] Built {len(cone_ids)} cones")
-        if len(cone_ids) and diag_level >= 2:
+        print(
+            "[pipeline] Built {total} cones "
+            "(neutron={n_n}, gamma={n_g})".format(
+                total=n_cones,
+                n_n=n_n,
+                n_g=n_g,
+            )
+        )
+        if n_cones and diag_level >= 2:
             print("[pipeline] Example cone apex:", apex_xyz_cm[0])
             print("[pipeline] Example cone dir:", axis_xyz[0])
             print("[pipeline] Example cone theta[deg]:", np.degrees(theta_rad[0]))
+            print(
+                "[pipeline] Neutron recoil breakdown: "
+                f"proton={n_p}, carbon={n_C}, unknown={n_unknown}"
+            )
 
+            
+
+    
+    
+    
+    # ---- Stage 4: Cones → imaging/reconstruction (SPB) ----
     # SBP reconstruction
     from ngimager.imaging.sbp import reconstruct_sbp, Cone
 
@@ -454,9 +563,17 @@ def run_pipeline(
     # Summed image
     img = recon.summed.astype(np.float32)
     write_summed(f, "n", img)
-    
-    # Per-cone geometry
-    write_cones(f, cone_ids, apex_xyz_cm, axis_xyz, theta_rad)
+
+    # Per-cone geometry + classification
+    write_cones(
+        f,
+        cone_ids,
+        apex_xyz_cm,
+        axis_xyz,
+        theta_rad,
+        species=cone_species,
+        recoil_code=recoil_code,
+    )
     
     # Per-event / per-hit physics (this links back via /lm/events dataset)
     write_events_hits(f, events)

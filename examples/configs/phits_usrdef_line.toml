@@ -90,6 +90,13 @@ v_max =  15.0
 du = 0.2
 dv = 0.2
 
+[filters]
+min_light = 0.0
+max_light = 1e12
+cone_delta_theta_max_deg = 15.0
+cone_delta_theta_max_deg_neutron = 5.0
+cone_delta_theta_max_deg_gamma = 10.0
+
 # Filters are structured to allow future split into hit-level vs event-level.
 [filters.hits]
 # Universal hit-level cuts applied before event shaping

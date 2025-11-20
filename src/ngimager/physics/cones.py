@@ -23,7 +23,8 @@ def build_cone_from_neutron(
     plane: Optional[Plane] = None,
     prior: Optional[Prior] = None,
     force_proton: bool = False,
-) -> Cone:
+    return_meta: bool = False,
+) -> Cone | tuple[Cone, int]:
     """
     Build a neutron cone using the NOVO imaging primer convention:
 
@@ -57,11 +58,24 @@ def build_cone_from_neutron(
       If both hypotheses fail scoring (e.g. degenerate prior geometry),
       we fall back to the proton-only construction.
 
+    Metadata / return value
+    -----------------------
+    * By default (return_meta=False), the function returns only a Cone.
+
+    * If return_meta is True, it returns (cone, recoil_code) where:
+
+          recoil_code = 1  → proton recoil hypothesis ("H")
+          recoil_code = 2  → carbon recoil hypothesis ("C")
+
+      This is suitable for compact storage in HDF5. Callers that do not
+      care about the recoil species can continue to use the old,
+      cone-only behavior.
+
     Notes
     -----
     * This function does not mutate the event or record which hypothesis
-      "won"; that bookkeeping can be added later via event metadata if
-      desired.
+      "won"; that bookkeeping is left to callers via the returned
+      recoil_code.
     """
     # Basic sanity: caller should already have ordered() + validate(), but
     # doing a light check here keeps this function robust for standalone use.
@@ -82,17 +96,14 @@ def build_cone_from_neutron(
     Dhat = D / L
     apex = r1.copy()
 
-    # If we have an imaging plane, require that the scattered neutron
-    # direction actually points toward the plane (t_int > 0).
-    #if plane is not None and not _axis_towards_plane(apex, Dhat, plane):
-    #    raise ValueError("Neutron cone axis does not point toward imaging plane.")
-
-    # Helper: construct a Cone for a given recoil nucleus label ("H" or "C")
-    # and return (cone, score) where score is Δ = |φ − θ| if a prior is
-    # available, otherwise None.
     def _candidate_for_nucleus(
         recoil_nucleus: str,
     ) -> tuple[Optional[Cone], Optional[float]]:
+        """
+        Helper: construct a Cone for a given recoil nucleus label ("H" or "C")
+        and return (cone, score) where score is Δ = |φ − θ| if a prior is
+        available, otherwise None.
+        """
         # Decide which species key to use for the energy strategy.
         # For ELUT, we have distinct proton/carbon bands; for other
         # strategies (ToF, FixedEn, Edep) we keep proton-like behavior
@@ -145,10 +156,15 @@ def build_cone_from_neutron(
         c_p, _ = _candidate_for_nucleus("H")
         if c_p is None:
             raise ValueError("NeutronEvent cannot produce a physical proton-recoil cone.")
+
+        if return_meta:
+            # 1 = proton recoil
+            return c_p, 1
         return c_p
 
     # Full proton vs carbon hypothesis test with prior-aware scoring.
-    candidates: list[tuple[float, Cone]] = []
+    # Store tuples of (score, recoil_nucleus, cone).
+    candidates: list[tuple[float, str, Cone]] = []
 
     for nuc in ("H", "C"):
         c, score = _candidate_for_nucleus(nuc)
@@ -158,12 +174,17 @@ def build_cone_from_neutron(
         # the prior-based comparison.
         if score is None:
             continue
-        candidates.append((score, c))
+        candidates.append((score, nuc, c))
 
     if candidates:
         # Pick the cone with minimal Δ = |φ − θ|
-        candidates.sort(key=lambda sc: sc[0])
-        return candidates[0][1]
+        candidates.sort(key=lambda scn: scn[0])
+        best_score, best_nuc, best_cone = candidates[0]
+
+        if return_meta:
+            recoil_code = 1 if best_nuc == "H" else 2  # 1=proton, 2=carbon
+            return best_cone, recoil_code
+        return best_cone
 
     # If we got here, either both hypotheses were non-physical or prior
     # scoring failed for both. Fall back to proton-only construction
@@ -171,7 +192,12 @@ def build_cone_from_neutron(
     c_p, _ = _candidate_for_nucleus("H")
     if c_p is None:
         raise ValueError("NeutronEvent cannot produce a physical cone (proton or carbon).")
+
+    if return_meta:
+        # In this fallback, we default to proton-like tagging.
+        return c_p, 1
     return c_p
+
 
 
 def _gamma_cone_from_ordered_hits(

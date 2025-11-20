@@ -102,6 +102,14 @@ class FiltersCfg(BaseModel):
     bars_include: List[int] = []
     materials_include: List[str] = []
 
+    # Cone-level Δθ filters (in degrees).
+    # If cone_delta_theta_max_deg is set, it applies to all cones by default.
+    # The *_neutron / *_gamma variants override the universal value for each species.
+    cone_delta_theta_max_deg: Optional[float] = None
+    cone_delta_theta_max_deg_neutron: Optional[float] = None
+    cone_delta_theta_max_deg_gamma: Optional[float] = None
+
+
 class EnergyCfg(BaseModel):
     """
     Energy strategy configuration.
