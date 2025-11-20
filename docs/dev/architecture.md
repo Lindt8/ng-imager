@@ -43,67 +43,167 @@ At a high level:
 Depending on `run.use_neutrons` and `run.use_gammas`, only the chosen particle types are shaped into events, propagated into cones, and imaged; the other type is ignored at all stages.
 
 
-Conceptual pseudocode:
+### Conceptual pseudocode (current implementation)
+
+This reflects the four-stage design and the current `ngimager.pipelines.core.run_pipeline`:
 
 ```python
-def run_pipeline(cfg: Config, input_path: Path) -> Path:
-    adapter = make_adapter(cfg.io, cfg.detector, cfg.materials)
-    raw_events = adapter.iter_raw_events(input_path)
+def run_pipeline(cfg_path: str) -> Path:
+    # Load TOML → Config (pydantic)
+    cfg = load_config(cfg_path)
 
-    # Stage 1: Raw events → Hits (with hit-level filtering)
-    hits_by_raw_event = []
-    for raw_event in raw_events:
-        hits = list(raw_event.hits)
-        hits = apply_hit_filters(hits, cfg.filters.hits, counters)
-        if is_reconstructable(hits, cfg.filters):
-            hits_by_raw_event.append(hits)
-        else:
-            counters["raw_events_rejected_unreconstructable"] += 1
+    # CLI flags override [run] fields (fast, list, neutrons, gammas, ...)
+    apply_cli_overrides(cfg)
 
-    write_hits_stage(hits_by_raw_event, cfg, counters)
+    diag_level = cfg.run.diagnostics_level
+    plane = Plane.from_cfg(
+        cfg.plane.origin,
+        cfg.plane.normal,
+        cfg.plane.u_min, cfg.plane.u_max, cfg.plane.du,
+        cfg.plane.v_min, cfg.plane.v_max, cfg.plane.dv,
+    )
 
-    if cfg.pipeline.until == "hits":
-        finalize_stats_and_metadata(cfg, counters)
-        return cfg.io.output_path
+    # Create HDF5 and write /meta (geometry, run flags, config snapshot)
+    out_path = Path(cfg.io.output_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    f = write_init(str(out_path), cfg_path, cfg, plane)
 
-    # Stage 2: Hits → Shaped events → Typed events
-    shaped_events = shape_events_for_cones(hits_by_raw_event, cfg.filters, counters)
-    typed_events = shaped_to_typed_events(shaped_events, cfg.filters, counters)
-    filtered_events = list(filter_events(typed_events, cfg.filters, counters))
+    counters: dict[str, int] = {}
 
-    write_events_stage(filtered_events, cfg, counters)
+    # ------------------------------------------------------------------
+    # Stage 1: Raw events → hits (hit-level filters + reconstructability)
+    # ------------------------------------------------------------------
+    if cfg.io.input_format == "phits_usrdef":
+        adapter = make_adapter(_inject_detector_materials(cfg.io.adapter, cfg.detectors))
 
-    if cfg.pipeline.until == "events":
-        finalize_stats_and_metadata(cfg, counters)
-        return cfg.io.output_path
+        raw_events_after_filters: list[dict] = []
+        for ev in adapter.iter_raw_events(str(cfg.io.input_path)):
+            hits = list(ev.get("hits", []))
 
-    # Stage 3: Events → Candidate cones → Selected cones
-    energy_strategy = make_energy_strategy(cfg.energy, cfg.materials)
-    prior = make_prior(cfg.prior)
+            # Normalize event_type = 'n' / 'g' / None
+            et = normalize_event_type(ev.get("event_type", ""))
 
-    annotated_events = [
-        energy_strategy.annotate_event(e, counters)
-        for e in filtered_events
+            counters["raw_events_total"] = counters.get("raw_events_total", 0) + 1
+
+            # Hit-level filters (min/max light, bar/material whitelists, etc.)
+            hits = apply_hit_filters(
+                hits,
+                cfg.filters.hits,
+                counters,
+                particle_type=et,
+            )
+
+            # Early reconstructability decision (2 hits for n, 3 for g)
+            if not is_reconstructable(hits, cfg.filters.events, counters, event_type=et):
+                continue
+            if not hits:
+                continue
+
+            ev2 = dict(ev)
+            ev2["hits"] = hits
+            if et is not None:
+                ev2["event_type"] = et
+            raw_events_after_filters.append(ev2)
+
+        # Stage 2a: hits → shaped events → typed events (NeutronEvent / GammaEvent)
+        shaped_events, shape_diag = shape_events_for_cones(
+            raw_events_after_filters,
+            ShapeConfig(),
+            counters=counters,
+        )
+        events = shaped_to_typed_events(shaped_events, order_time=True)
+
+        # Stage 2b: event-level filters (ToF windows, L1/L2/any thresholds)
+        events = apply_event_filters(
+            events,
+            cfg.filters.events,
+            counters,
+        )
+
+    else:
+        # Non-PHITS adapters are expected to yield fully-typed Event objects
+        adapter = make_adapter(cfg.io.adapter)
+        events = list(adapter.iter_events(str(cfg.io.input_path)))
+        events = apply_event_filters(
+            events,
+            cfg.filters.events,
+            counters,
+        )
+
+    # Counters now reflect Stage 1–2 survival (events_typed_*, events_after_filters, ...)
+
+    # ------------------------------------------------------------------
+    # Stage 3: Events → cones (species-aware, with cone-level filters)
+    # ------------------------------------------------------------------
+    lut_registry = build_lut_registry(cfg.energy.lut_paths)
+    energy_model = make_energy_strategy(cfg.energy, lut_registry=lut_registry)
+    prior = make_prior(cfg.prior.model_dump(), plane)
+
+    (
+        cone_ids,
+        apex_xyz_cm,
+        axis_xyz,
+        theta_rad,
+        cone_species,
+        recoil_code,
+        incident_energy_MeV,
+    ) = _build_cones_from_events(cfg, events, plane, counters)
+
+    # Stage 3 includes:
+    #   - neutron vs gamma cone builders
+    #   - proton vs carbon hypothesis test for neutrons
+    #   - Δθ = |φ − θ| cuts via [filters.cones]
+    #   - max_incident_energy_MeV cuts via [filters.cones]
+    # Counters track attempted/successful cone builds and per-species rejections.
+
+    # ------------------------------------------------------------------
+    # Stage 4: cones → images (SBP + optional list-mode)
+    # ------------------------------------------------------------------
+    cones_for_sbp = [
+        Cone(apex=apex_xyz_cm[i], direction=axis_xyz[i], theta=float(theta_rad[i]))
+        for i in range(len(cone_ids))
     ]
 
-    candidate_cones = enumerate_candidate_cones(annotated_events, prior, counters)
-    selected_cones = select_cones(candidate_cones, prior, cfg.filters.cones, counters)
+    recon = reconstruct_sbp(
+        cones=cones_for_sbp,
+        plane=plane,
+        workers=cfg.run.workers,
+        chunk_cones=cfg.run.chunk_cones,
+        list_mode=cfg.run.list,
+        progress=cfg.run.progress,
+    )
 
-    write_cones_stage(selected_cones, cfg, counters)
+    # Species-separated summed images + combined "all"
+    write_summed(f, "n", recon.summed_n)
+    write_summed(f, "g", recon.summed_g)
+    if recon.summed_all is not None:
+        write_summed(f, "all", recon.summed_all)
 
-    if cfg.pipeline.until == "cones":
-        finalize_stats_and_metadata(cfg, counters)
-        return cfg.io.output_path
+    # Per-cone geometry + classification
+    write_cones(
+        f,
+        cone_ids,
+        apex_xyz_cm,
+        axis_xyz,
+        theta_rad,
+        species=cone_species,
+        recoil_code=recoil_code,
+        incident_energy_MeV=incident_energy_MeV,
+    )
 
-    # Stage 4: Cones → Images
-    plane = make_plane(cfg.plane)
-    images = image_cones(selected_cones, plane, cfg, counters)
+    # Per-event / per-hit physics
+    write_events_hits(f, events)
 
-    write_images_stage(images, cfg, counters)
+    # Optional list-mode extras: cone→pixel indices and survival mapping
+    if cfg.run.list:
+        write_lm_indices(f, recon.lm_indices, events, cone_ids)
 
-    finalize_stats_and_metadata(cfg, counters)
-    return cfg.io.output_path
-```
+    # Counters (for diagnostics and offline QA)
+    write_counters(f, counters)
+
+    f.close()
+    return out_path
+
 
 **Key points:**
 
@@ -283,25 +383,82 @@ This maps directly to `geometry.Plane`.
 
 #### `[filters]`
 
-Thresholds and cuts:
+Filtering is organized around the three physical objects in the pipeline plus the final imaging step:
+
+1. **Hits** — `[filters.hits]`
+2. **Events** — `[filters.events]`
+3. **Cones** — `[filters.cones]`
+4. **Images** — (implicit; mainly controlled by SBP settings and `run.fast`)
+
+Each of the three filter blocks supports:
+
+- **universal** parameters (apply to both species), and
+- **optional per-species overrides** under `.neutron` and `.gamma`.
+
+For example:
 
 ```toml
 [filters.hits]
-min_light_n = 0.5  # MeVee or equivalent
-min_light_g = 0.1
+min_light_MeVee = 50.0
+max_light_MeVee = 1.0e6
+bars_include = []
+bars_exclude = []
+materials_include = []
+materials_exclude = []
+
+[filters.hits.neutron]
+# overrides or tightens universal values for neutron hits only
+
+[filters.hits.gamma]
+# overrides / tightens for gamma hits only
 
 [filters.events]
-min_dt_ns_n = 0.0
-max_dt_ns_n = 50.0
-# gamma-specific cuts, etc.
+tof_window_ns  = [0.0, 30.0]
+min_L1_MeVee   = 0.0
+min_L2_MeVee   = 0.0
+min_L_any_MeVee = 0.0
+
+[filters.events.neutron]
+# e.g. more aggressive L1/L2 thresholds for neutron scatters
+
+[filters.events.gamma]
+# e.g. tighter ToF window for gamma triplets
 
 [filters.cones]
-min_opening_angle_deg = 5.0
-max_opening_angle_deg = 60.0
-# other cone-level quality metrics
+max_delta_theta_deg     = 5.0
+max_incident_energy_MeV = 20.0
+
+[filters.cones.neutron]
+max_delta_theta_deg     = 3.0
+max_incident_energy_MeV = 20.0   # e.g. DT source
+
+[filters.cones.gamma]
+max_delta_theta_deg     = 8.0
+max_incident_energy_MeV = 5.0
 ```
 
-Hit, event, and cone cuts are all driven from here; there should be **no hard-coded cuts** scattered across modules.
+At runtime the code resolves an *effective* value for each quantity by:
+
+1. checking the per-species override (if present),
+2. otherwise falling back to the universal value, and
+3. otherwise disabling that specific cut.
+
+Counters are maintained for each stage and, when relevant, per species (e.g. `hits_rejected_threshold_n`, `events_rejected_tof_window`, `cones_rejected_delta_theta_g`). These show up both in the CLI diagnostics and as datasets under `/meta/counters` in the HDF5 file.
+
+#### Fast mode
+
+Fast mode is enabled via:
+
+- `run.fast = true` in the TOML, or
+- the `--fast` CLI flag (which overrides the TOML).
+
+Fast mode does *not* change the physics; instead it switches to a set of more aggressive but reasonably safe defaults for:
+
+- hit and event-level light thresholds (higher `min_L1/2/any_MeVee`),
+- a cap on the total number of cones (`run.max_cones`), and
+- a coarser imaging plane (larger `du`, `dv`, and/or a smaller FOV).
+
+The exact heuristics live in `ngimager.config.schemas` and `ngimager.pipelines.core` and are intentionally minimal: the expectation is that most experiments will tune the base filters in the TOML and use `run.fast` as a “get an image quickly” toggle during setup.
 
 #### `[prior]`
 
@@ -870,78 +1027,73 @@ The HDF5 format is the primary output, and it should support:
 - **Resuming** from partially processed data.
 - **Consistent views** of what survived all active filters at each stage.
 
-### 12.1. HDF5 Layout (Canonical, as implemented)
+### 12.1. HDF5 layout and traceability
 
-`ngimager` writes a complete snapshot of the reconstruction state into a single HDF5 file with the following groups:
+The HDF5 format is designed so that you can trace everything:
 
-```
-  /meta
-      config_toml              # raw config
-      git_commit               # optional
-      ngimager_version         # optional
-      counters                 # JSON-encoded or dataset of pipeline counters
-      run_timestamp
-      run_fast, run_list
-      run_neutron, run_gamma
-      run_stop_stage
+> **hit → event → cone → pixels**
 
-  /cones
-      cone_id          [C]
-      apex_xyz_cm      [C,3]
-      axis_xyz         [C,3]
-      theta_rad        [C]
-      event_index      [C]
-      event_type       [C] uint8   # 0=n, 1=g
-      recoil_code      [C] uint8   # 0 = NA, 1 = H, 2 = C
+and back again.
 
-/images/summed
-    n   [H,W]   # neutron summed SBP image (currently implemented and used)
-    g   [H,W]   # gamma summed SBP image (planned)
-    all [H,W]   # n+g combined summed SBP image (planned)
+The main groups are:
+
+- `/meta` — geometry, run flags, config snapshot, counters, README
+- `/images/summed` — species-separated and combined SBP images
+- `/cones` — per-cone geometry + classification
+- `/lm` — list-mode per-event/per-hit data and mappings
+
+Key pieces:
+
+- `/meta/config_toml` — full TOML config text used for this run.
+- `/meta/readme` — a short README describing the layout and pointing to the online docs.
+- `/meta/counters/*` — one small dataset per counter (e.g. `s1_hits_after_filters`),
+  named with stage prefixes so HDFView sorts them roughly in pipeline order.
+
+Cones:
+
+- `/cones/cone_id`              : `[N_cones]` uint32
+- `/cones/apex_xyz_cm`          : `[N_cones, 3]` float32
+- `/cones/axis_xyz`             : `[N_cones, 3]` float32
+- `/cones/theta_rad`            : `[N_cones]` float32
+- `/cones/incident_energy_MeV`  : `[N_cones]` float32 (incident neutron or gamma energy
+                                  used in the kinematic calculation)
+- `/cones/species`              : `[N_cones]` uint8 (`0=neutron`, `1=gamma`)
+- `/cones/recoil_code`          : `[N_cones]` uint8 (`0=unknown/NA`, `1=proton`, `2=carbon`)
+- `/cones/event_index`          : `[N_cones]` uint32, row index into `/lm/...` arrays
+- `/cones/species_labels`       : string array legend for `species`
+- `/cones/recoil_code_labels`   : string array legend for `recoil_code`
+
+List mode and events:
+
+- `/lm/event_type`              : `[N_events]` uint8 (`0=neutron`, `1=gamma`)
+- `/lm/event_type_labels`       : legend array for `event_type`
+- `/lm/event_meta_run_id`       : `[N_events]` int32
+- `/lm/event_meta_file_ix`      : `[N_events]` int32
+- `/lm/hit_pos_cm`              : `[N_events, 3, 3]` float32
+- `/lm/hit_t_ns`                : `[N_events, 3]` float32
+- `/lm/hit_L_mevee`             : `[N_events, 3]` float32
+- `/lm/hit_det_id`              : `[N_events, 3]` int32
+- `/lm/hit_material_id`         : `[N_events, 3]` int16
+- `/lm/material_id_labels`      : string array mapping material IDs back to names
+
+In list-mode runs (`run.list = true`), SBP also produces per-cone pixel hits:
+
+- `/lm/cone_pixel_indices`      : `[K, 2]` uint32, each row `(cone_id, flat_pixel_index)`
+  mapping cone index → image pixel(s). The image is flattened with
+  `flat = v * nu + u`.
+
+To make debugging and post-processing easier, there is a small “survival table”:
+
+- `/lm/event_survival`          : `[N_events, 3]` int32, columns:
+  - `event_index`              — row in `/lm/...`
+  - `first_cone_index`         — cone index built from this event or `-1`
+  - `first_imaged_cone_index`  — cone index that actually intersected the plane or `-1`
+
+Together, `/lm/event_survival`, `/cones/event_index`, and `/lm/cone_pixel_indices` provide
+a complete map from any pixel in the list-mode image back to the exact cone, event,
+and hit data that generated it.
 
 
-  /lm
-      materials/labels    [M] string    # vocabulary of materials
-      event_type          [E] uint8     # 0=n, 1=g
-      event_meta_run_id   [E]
-      event_meta_file_ix  [E]
-      hit_pos_cm          [E,3,3]
-      hit_t_ns            [E,3]
-      hit_L_mevee         [E,3]
-      hit_det_id          [E,3]
-      hit_material_id     [E,3]
-      recoil_code         [E] uint8   # for neutrons only
-      recoil_labels       [R] string  # e.g. ["H", "C"]
-
-      # Only when run.list = true:
-      # List-mode "images" are represented sparsely via indices on the same (H,W)
-      # grid as /images/summed.*. Each row encodes (cone_id, pixel_index).
-      indices/*  # per-cone sparse SBP footprint indices
-
-  /images/summed
-      n   [H,W]   # neutron summed SBP image
-      g   [H,W]   # gamma summed SBP image
-      all [H,W]   # n+g combined summed SBP image
-```
-
-This layout now accurately reflects the output of pipelines/core.py and must be
-treated as the canonical ngimager HDF5 schema moving forward.
-
-**Guarantees:**
-
-- It must always be possible to trace:
-
-  ```text
-  image pixel   → cone(s)   → event   → hits
-  ```
-
-  via indices and datasets, in all modes (default, fast, list).
-
-- When the pipeline runs all the way to cones or images, the HDF5 file should **not** contain earlier-stage objects that correspond to cones or events that were ultimately rejected. Practical options include:
-    - Writing to temporary datasets and then compacting to “final” datasets.
-    - Writing all candidates but then rewriting/compacting the corresponding HDF5 groups after selection.
-
-Partial runs (e.g., `stop_stage = "events"`) naturally represent the state **before** later filters and selection have been applied.
 
 ### 12.2. Writing at Multiple Stages
 
@@ -1181,7 +1333,7 @@ As of the current ngimager snapshot:
       - Compute the angle between the cone axis and the vector from apex to prior point.
       - Use Δ = |θ_calc − θ_est| as the quality metric; the permutation with the smallest Δ is selected.
       - When no explicit prior is configured, the imaging plane center is used as a reasonable default prior point.
-    - This gamma cone path is implemented and produces images for PHITS toy data, but full physics validation is still pending; current results for gammas are limited by uncertainty in the PHITS gamma tally configuration.
+    - This gamma cone path is implemented and produces images.
 
 - Priors (`physics.priors`) support both point and line priors and are constructed via `make_prior(cfg.prior)`. The same prior object is used for neutron and gamma cone selection, with a fallback to the imaging plane center when no prior is provided.
 
@@ -1281,18 +1433,22 @@ The gamma cone construction path described in §16.6 is now implemented in `phys
 
 - The candidate with minimal Δ is selected as the single "finalist" cone for that event.
 
-This constitutes a full first implementation of gamma Compton-cone building and selection consistent with the NOVO imaging primer and the legacy code’s behavior. However:
+This constitutes a full first implementation of gamma Compton-cone building and selection consistent with the NOVO imaging primer and the legacy code’s behavior. 
 
-**Status:**  
-Gamma images produced from PHITS simulations using custom user-defined tallies currently do not reproduce the expected spatial structure (e.g. a line source). Preliminary investigation indicates that this is likely due to issues in the PHITS tallying pipeline rather than in ngimager’s gamma-cone kinematics. The legacy code exhibits similar behavior when run on the same PHITS gamma dataset.
+#### Gamma imaging status
 
-**Implications for development:**  
-Gamma-cone construction is implemented and functional in code, but remains **provisionally validated** pending:
-- verification of gamma-hit ordering and deposited-energy correctness in the PHITS tally,
-- comparison with legacy gamma datasets generated through the established multi-tally PHITS workflow,
-- future validation against ROOT experimental data once the ROOT adapter is complete.
+The Compton (gamma) path is now **fully wired and validated** against the legacy NOVO code, at least for the model datasets we have. The current implementation:
 
-Development on neutron imaging, event/candidate selection infrastructure, filters, and HDF5/species-resolved image generation can proceed independently while PHITS gamma tally diagnostics continue in parallel.
+- builds Compton cones via `build_cone_from_gamma`, using:
+  - three-hit `GammaEvent` objects,
+  - permutations of hit ordering when a plane is available,
+  - kinematics from `physics.kinematics` for Eg and θ₁, and
+  - the same Δ = |φ − θ| prior scoring used for neutrons;
+- reproduces legacy images on legacy-formatted PHITS data that has been converted into the new `phits_usrdef` adapter format; and
+- shares the same filter stack (hit-level, event-level, cone-level) and HDF5 output conventions as the neutron path.
+
+Earlier uncertainty about gamma reconstruction was traced to a buggy custom PHITS tally, not to the imaging chain itself. With clean input, the new gamma implementation matches the legacy behavior.
+
 
 
 ### 16.7. Unified Pipeline and CLI
@@ -1309,12 +1465,15 @@ Development on neutron imaging, event/candidate selection infrastructure, filter
 
 ### 16.8. HDF5 and Visualization
 
-- [x] Finalize and document the HDF5 layout described above (including `/lm/event_type`, `/cones/event_type, and `/images/summed/*`).
-- [ ] Ensure hits/events/cones/images store the necessary indices for full back-tracing, and audit for off-by-one or length mismatches between `/lm` and `/cones` (one such mismatch has been observed in PHITS toy datasets).
-- [ ] Implement species-separated and combined SBP images (`/images/summed/n`, `/images/summed/g`, `/images/summed/all`) and wire `pipelines.core` plus `vis.hdf.save_summed_png` to use them consistently.
-- [ ] Ensure final HDF5 outputs (for full runs) contain only objects that survive all active filters, with counters and metadata describing what was rejected at each stage.
-- [ ] Wrap PNG export in a clean CLI function that calls `vis.hdf.save_summed_png` driven by `[vis]`.
+- [x] **Back-tracing**: events, cones, and list-mode pixels are now linked via explicit indices (`/lm/event_survival`, `/cones/event_index`, `/lm/cone_pixel_indices`).
+- [x] **Species-separated images**: `/images/summed/n` and `/images/summed/g` are always written when the corresponding species are enabled; `/images/summed/all` is written when both are non-empty.
+- [x] **Counters in file**: the full counters dict is stored under `/meta/counters/*`.
+- [ ] **Restart from cones/image**: the current pipeline always starts from events; an “imaging-only” restart mode using an existing ngimager HDF5 file is still a future
+  enhancement.
+- [ ] **CLI wrappers / nicer entry points**: higher-level console scripts (e.g. `ngimager run config.toml`) are still on the roadmap.
+- [ ] Wrap PNG export in a clean CLI function that calls `vis.hdf.save_summed_png` driven by `[vis]`, outputs a PNG per summed image (so, at most, 3: n + g + all)
 - [ ] Support imaging-only reruns from existing cones (ngimager HDF5 input) to generate list-mode per-cone images from previously non-list-mode outputs.
+- [ ] For ROOT adapter, implement propagation of metadata, including run number (to `/lm/event_meta_run_id`), into the HDF5 output.
 
 
 
