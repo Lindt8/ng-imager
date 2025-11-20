@@ -44,6 +44,7 @@ from ngimager.io.lm_store import (
     write_cones,
     write_lm_indices,
     write_events_hits,
+    write_counters,
 )
 from ngimager.io.lut import build_lut_registry
 from ngimager.imaging.sbp import reconstruct_sbp
@@ -528,11 +529,6 @@ def run_pipeline(
                 f"proton={n_p}, carbon={n_C}, unknown={n_unknown}"
             )
 
-            
-
-    
-    
-    
     # ---- Stage 4: Cones → imaging/reconstruction (SPB) ----
     # SBP reconstruction
     from ngimager.imaging.sbp import reconstruct_sbp, Cone
@@ -583,7 +579,10 @@ def run_pipeline(
         # LM pixel indices
         lm_indices = recon.lm_indices or []
         write_lm_indices(f, lm_indices)
-        
+
+    # Store counters into the HDF5 file for later inspection
+    write_counters(f, counters)
+    
     f.close()
 
     # Optional PNG export

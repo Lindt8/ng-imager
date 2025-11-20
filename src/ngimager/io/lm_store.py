@@ -19,6 +19,11 @@ def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File
     f.attrs["created_utc"] = datetime.now(timezone.utc).isoformat()
     f.attrs["software"] = "ng-imager 0.1.0"
     f.attrs["config_text"] = snapshot_config_toml(cfg_path)
+    f.attrs["readme"] = (
+        "HDF5 output produced by ng-imager. "
+        "See the ng-imager documentation on GitHub for full layout details."
+    )
+    f.attrs["docs_url"] = "https://github.com/Lindt8/ng-imager"  # adjust if needed
 
     # /meta
     meta = f.create_group("meta")
@@ -136,10 +141,14 @@ def write_cones(
         species_arr = np.zeros_like(cone_ids, dtype=np.uint8)
     else:
         species_arr = np.asarray(species, dtype=np.uint8)
-    grp.create_dataset(
+    d_species = grp.create_dataset(
         "species",
         data=species_arr,
         compression="gzip",
+    )
+    d_species.attrs["legend"] = np.array(
+        ["0=neutron", "1=gamma"],
+        dtype=h5py.string_dtype(),
     )
 
     # Recoil code: 0 = unknown / N/A, 1 = proton, 2 = carbon.
@@ -147,10 +156,14 @@ def write_cones(
         recoil_arr = np.zeros_like(cone_ids, dtype=np.uint8)
     else:
         recoil_arr = np.asarray(recoil_code, dtype=np.uint8)
-    grp.create_dataset(
+    d_recoil = grp.create_dataset(
         "recoil_code",
         data=recoil_arr,
         compression="gzip",
+    )
+    d_recoil.attrs["legend"] = np.array(
+        ["0=unknown_or_gamma", "1=proton", "2=carbon"],
+        dtype=h5py.string_dtype(),
     )
 
 
@@ -420,6 +433,12 @@ def write_events_hits(
         lm_grp.create_dataset(name, data=data, compression="gzip")
 
     _replace_or_create("event_type", ev_type)
+    # Add a legend for event_type: 0 = neutron, 1 = gamma.
+    d_event_type = lm_grp["event_type"]
+    d_event_type.attrs["legend"] = np.array(
+        ["0=neutron", "1=gamma"],
+        dtype=h5py.string_dtype(),
+    )
     _replace_or_create("event_meta_run_id", ev_run)
     _replace_or_create("event_meta_file_ix", ev_file_ix)
     _replace_or_create("hit_pos_cm", hit_pos)
@@ -437,3 +456,22 @@ def read_summed(path: str, species: str = "n") -> np.ndarray:
             raise KeyError(f"{species} not found in /images/summed of {path}")
         arr = np.array(grp[species], dtype=np.float32)
     return arr
+
+def write_counters(f: h5py.File, counters: Dict[str, int]) -> None:
+    """
+    Store scalar counters under /meta/counters as attributes.
+
+    Each key in `counters` becomes an attribute on the /meta/counters group.
+    """
+    meta = f.require_group("meta")
+    if "counters" in meta:
+        del meta["counters"]
+    grp = meta.create_group("counters")
+    for key, value in counters.items():
+        try:
+            grp.attrs[key] = int(value)
+        except Exception:
+            # Fall back quietly if a value can't be cast to int
+            grp.attrs[key] = str(value)
+
+
