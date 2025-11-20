@@ -67,6 +67,8 @@ def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File
           - event_type (0=neutron, 1=gamma), event_type_labels
           - hit_pos_cm, hit_t_ns, hit_L_mevee, hit_det_id, hit_material_id
           - material_id_labels (mapping indices → material strings)
+          - cone_pixel_indices (rows of [cone_id, flat_pixel_index])
+          - event_cone_id, event_imaged_cone_id (per-event survival table)
       /counters
           - scalar integer diagnostics for each pipeline stage
 
@@ -187,6 +189,7 @@ def write_cones(
     species: np.ndarray,
     recoil_code: np.ndarray,
     incident_energy_MeV: np.ndarray,
+    event_index: np.ndarray,
 ) -> None:
     """
     Store per-cone geometric parameters under /cones.
@@ -209,6 +212,7 @@ def write_cones(
             2 = carbon recoil (for neutron cones)
         If None, all zeros are stored.
     incident_energy_MeV : (N,)  float32 (En for n, Eg for g)
+    event_index         : [N]   int32 (row index into /lm/event_* arrays)
     species_labels      : ["0=neutron", "1=gamma"]
     recoil_code_labels  : ["0=NA", "1=proton", "2=carbon"]
     """
@@ -221,6 +225,7 @@ def write_cones(
             "species",
             "recoil_code",
             "incident_energy_MeV",
+            "event_index",
             "species_labels",
             "recoil_code_labels",
     ):
@@ -302,54 +307,60 @@ def write_cones(
         compression="gzip",
     )
 
+    grp.create_dataset(
+        "event_index",
+        data=event_index.astype(np.int32),
+        compression="gzip",
+    )
+
 
 
 
 def write_lm_indices(
     f: h5py.File,
-    lm_indices: list[np.ndarray],
+    lm_cone_pixel_lists: list[tuple[int, np.ndarray]],
 ) -> None:
     """
     Store list-mode indices mapping cones -> (u,v) pixels.
 
     We store:
-      /lm/indices : ragged array of (cone_id, flat_index) pairs
-      /lm/events  : (event_id, cone_id) mapping (event_id is row index in event arrays)
+      /lm/cone_pixel_indices : ragged array of (cone_id, flat_index) pairs
+
+    where:
+      - cone_id is the index into /cones/cone_id
+      - flat_index is the flattened pixel index (row-major) on the imaging plane.
     """
     grp = f.require_group("lm")
-    # Flatten all LM lists with cone_id
-    all_rows = []
-    event_rows = []
 
-    cone_id = 0
-    for ev_id, arr in enumerate(lm_indices):
-        if arr.size == 0:
+    # Flatten all LM lists with cone_id
+    all_rows: list[np.ndarray] = []
+
+    for cone_id, arr in lm_cone_pixel_lists:
+        if arr is None:
             continue
-        flat = arr.astype(np.uint32).ravel()
-        cone_ids = np.full_like(flat, cone_id, dtype=np.uint32)
+        flat = np.asarray(arr, dtype=np.uint32).ravel()
+        if flat.size == 0:
+            continue
+        cone_ids = np.full_like(flat, int(cone_id), dtype=np.uint32)
         stacked = np.vstack([cone_ids, flat]).T  # (M,2)
         all_rows.append(stacked)
-        event_rows.append([ev_id, cone_id])
-        cone_id += 1
 
     if all_rows:
         all_rows_arr = np.concatenate(all_rows, axis=0)
     else:
         all_rows_arr = np.zeros((0, 2), dtype=np.uint32)
 
+    # Single, clearly-named dataset for cone→pixel mapping
+    if "cone_pixel_indices" in grp:
+        del grp["cone_pixel_indices"]
+    grp.create_dataset("cone_pixel_indices", data=all_rows_arr, compression="gzip")
+
+    # The old /lm/indices and /lm/events datasets are intentionally no longer
+    # written to avoid confusion about their semantics.
     if "indices" in grp:
         del grp["indices"]
-    grp.create_dataset("indices", data=all_rows_arr, compression="gzip")
-
-    # /lm/events: event_id <-> cone_id mapping
-    if event_rows:
-        events_arr = np.asarray(event_rows, dtype=np.uint32)
-    else:
-        events_arr = np.zeros((0, 2), dtype=np.uint32)
-
     if "events" in grp:
         del grp["events"]
-    grp.create_dataset("events", data=events_arr, compression="gzip")
 
 
 def _flatten_hits_for_ragged(phits_events: Sequence[Dict[str, Any]]
@@ -600,5 +611,48 @@ def read_summed(path: str, species: str = "n") -> np.ndarray:
         arr = np.array(grp[species], dtype=np.float32)
     return arr
 
+
+def write_event_cone_survival(
+    f: h5py.File,
+    event_cone_id: np.ndarray,
+    event_imaged_cone_id: np.ndarray,
+) -> None:
+    """
+    Store per-event survival information linking events → cones.
+
+    Layout (all under /lm):
+
+      /lm/event_cone_id         : [N_events] int32
+          For each event row i (as in /lm/event_type, /lm/hit_*):
+              - cone_id of the cone built from this event, or -1 if no cone.
+
+      /lm/event_imaged_cone_id  : [N_events] int32
+          For each event row i:
+              - cone_id of the cone that both exists AND hits the imaging plane
+                (has non-empty pixel set), or -1 if none.
+
+    Notes
+    -----
+    * event index i is simply the row index into /lm/event_type, /lm/hit_*.
+    * event_imaged_cone_id is only meaningfully populated when [run].list = true;
+      for non-list runs it will typically be all -1.
+    """
+    lm_grp = f.require_group("lm")
+
+    if "event_cone_id" in lm_grp:
+        del lm_grp["event_cone_id"]
+    lm_grp.create_dataset(
+        "event_cone_id",
+        data=event_cone_id.astype(np.int32),
+        compression="gzip",
+    )
+
+    if "event_imaged_cone_id" in lm_grp:
+        del lm_grp["event_imaged_cone_id"]
+    lm_grp.create_dataset(
+        "event_imaged_cone_id",
+        data=event_imaged_cone_id.astype(np.int32),
+        compression="gzip",
+    )
 
 

@@ -45,9 +45,10 @@ from ngimager.io.lm_store import (
     write_lm_indices,
     write_events_hits,
     write_counters,
+    write_event_cone_survival,
 )
 from ngimager.io.lut import build_lut_registry
-from ngimager.imaging.sbp import reconstruct_sbp, Cone
+from ngimager.imaging.sbp import reconstruct_sbp, Cone, _cone_to_indices
 from ngimager.physics.cones import build_cone_from_neutron, build_cone_from_gamma
 from ngimager.physics.events import NeutronEvent, GammaEvent, Event
 from ngimager.physics.energy_strategies import make_energy_strategy
@@ -149,7 +150,7 @@ def _build_cones_from_events(
     events: Sequence[Event],
     plane: Plane,
     counters: Dict[str, int],
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Turn events into cone geometry arrays for SBP.
 
@@ -178,6 +179,7 @@ def _build_cones_from_events(
     species_codes: list[int] = []
     recoil_codes: list[int] = []
     incident_energies: list[float] = []
+    event_indices: list[int] = []
 
     for j, ev in enumerate(events):
         # enforce time ordering & sanity without crashing the whole run
@@ -272,6 +274,7 @@ def _build_cones_from_events(
         species_codes.append(species_code)
         recoil_codes.append(int(recoil_code))
         incident_energies.append(incident_energy)
+        event_indices.append(j)
 
         # Fast-mode: optional conservative cap on number of cones
         if cfg.run.fast and (cfg.run.max_cones is not None):
@@ -291,6 +294,7 @@ def _build_cones_from_events(
             np.zeros(0, dtype=np.uint8),
             np.zeros(0, dtype=np.uint8),
             np.zeros(0, dtype=np.float32),
+            np.zeros(0, dtype=np.int32),
         )
 
     cone_ids = np.arange(len(cones), dtype=np.uint32)
@@ -300,6 +304,7 @@ def _build_cones_from_events(
     species_arr = np.array(species_codes, dtype=np.uint8)
     recoil_arr = np.array(recoil_codes, dtype=np.uint8)
     incident_energy_arr = np.array(incident_energies, dtype=np.float32)
+    event_index_arr = np.array(event_indices, dtype=np.int32)
 
     n_total = int(len(cones))
     n_n = int(np.count_nonzero(species_arr == 0))
@@ -319,7 +324,7 @@ def _build_cones_from_events(
             )
         )
 
-    return cone_ids, apex_xyz_cm, axis_xyz, theta_rad, species_arr, recoil_arr, incident_energy_arr
+    return cone_ids, apex_xyz_cm, axis_xyz, theta_rad, species_arr, recoil_arr, incident_energy_arr, event_index_arr
 
 
 def run_pipeline(
@@ -602,9 +607,21 @@ def run_pipeline(
         cone_species,
         recoil_code,
         incident_energy_MeV,
+        cone_event_index,
     ) = _build_cones_from_events(cfg, events, plane, counters)
     
-    
+    # --- Build per-event cone survival arrays (event → cone_id) ---
+    n_events = len(events)
+    event_cone_id = np.full(n_events, -1, dtype=np.int32)
+    event_imaged_cone_id = np.full(n_events, -1, dtype=np.int32)  # will be filled in LM block if list-mode
+
+    for cid, ev_idx in zip(cone_ids, cone_event_index):
+        # Defensive check; ev_idx should be in [0, n_events)
+        if 0 <= int(ev_idx) < n_events:
+            # For now, each event yields at most one cone; keep the first if ever that changes.
+            if event_cone_id[ev_idx] == -1:
+                event_cone_id[ev_idx] = int(cid)
+
     # Counters and diagnostics for cones
     n_cones = int(len(cone_ids))
     n_n = int(np.count_nonzero(cone_species == 0))
@@ -645,6 +662,7 @@ def run_pipeline(
         species=cone_species,
         recoil_code=recoil_code,
         incident_energy_MeV=incident_energy_MeV,
+        event_index=cone_event_index,
     )
 
     # ---- Stage 4: Cones → imaging/reconstruction (SPB) ----
@@ -747,25 +765,25 @@ def run_pipeline(
                 "shape=", img_all.shape,
             )
 
-    # --- 4d. List-mode extras (canonical LM mapping from all cones) ---
+    # --- 4d. List-mode extras: explicit cone → pixel mapping + event survival ---
     if cfg.run.list and len(cones_for_sbp) > 0:
-        if diag_level >= 1:
-            print( "[stage4] Repeating imaging for list-mode saving...")
-        # For LM we reconstruct once with all cones to build lm_indices.
-        # We don't use this reconstruction's summed image; "all" above is
-        # always defined from img_n/img_g sums for clarity.
-        recon_all_lm = reconstruct_sbp(
-            cones=cones_for_sbp,
-            plane=plane,
-            workers=cfg.run.workers,
-            chunk_cones=cfg.run.chunk_cones,
-            list_mode=True,
-            progress=cfg.run.progress,
-        )
-        lm_indices = recon_all_lm.lm_indices or []
-        write_lm_indices(f, lm_indices)
+        lm_cone_pixel_lists: list[tuple[int, np.ndarray]] = []
+        # For list-mode runs, we can now also record which cones actually
+        # intersected the plane (non-empty pixel sets) on a per-event basis.
+        for cid, c, ev_idx in zip(cone_ids, cones_for_sbp, cone_event_index):
+            idx = _cone_to_indices(c, plane, n_poly=360)  # match SBP default
+            if idx is None or idx.size == 0:
+                continue
+            lm_cone_pixel_lists.append((int(cid), idx))
+            # Mark this event as having an imaged cone, if not already set.
+            if 0 <= int(ev_idx) < len(event_imaged_cone_id):
+                if event_imaged_cone_id[ev_idx] == -1:
+                    event_imaged_cone_id[ev_idx] = int(cid)
+        write_lm_indices(f, lm_cone_pixel_lists)
 
-
+    # Store per-event survival table (event → cone, event → imaged cone)
+    write_event_cone_survival(f, event_cone_id, event_imaged_cone_id)
+    
     # Store counters into the HDF5 file for later inspection
     write_counters(f, counters)
     
