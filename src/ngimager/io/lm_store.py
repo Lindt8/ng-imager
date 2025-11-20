@@ -195,7 +195,7 @@ def write_cones(
     Store per-cone geometric and classification parameters under /cones.
 
     Layout:
-      /cones/cone_id             : [N]   uint32
+      /cones/cone_id             : [N]   uint32 
       /cones/apex_xyz_cm         : [N,3] float32
       /cones/axis_xyz            : [N,3] float32
       /cones/theta_rad           : [N]   float32
