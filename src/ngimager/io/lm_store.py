@@ -192,29 +192,20 @@ def write_cones(
     event_index: np.ndarray,
 ) -> None:
     """
-    Store per-cone geometric parameters under /cones.
+    Store per-cone geometric and classification parameters under /cones.
 
-    Parameters
-    ----------
-    f : open h5py.File
-    cone_ids : (N,) int
-    apex_xyz_cm : (N,3) float
-    axis_xyz : (N,3) float (unit vectors)
-    theta_rad : (N,) float (half-angle)
-    species : (N,) uint8, optional
-        Particle species per cone:
-            0 = neutron, 1 = gamma.
-        If None, all zeros (neutrons) are stored.
-    recoil_code : (N,) uint8, optional
-        Recoil tagging per cone:
-            0 = unknown / not applicable
-            1 = proton recoil (for neutron cones)
-            2 = carbon recoil (for neutron cones)
-        If None, all zeros are stored.
-    incident_energy_MeV : (N,)  float32 (En for n, Eg for g)
-    event_index         : [N]   int32 (row index into /lm/event_* arrays)
-    species_labels      : ["0=neutron", "1=gamma"]
-    recoil_code_labels  : ["0=NA", "1=proton", "2=carbon"]
+    Layout:
+      /cones/cone_id             : [N]   uint32
+      /cones/apex_xyz_cm         : [N,3] float32
+      /cones/axis_xyz            : [N,3] float32
+      /cones/theta_rad           : [N]   float32
+      /cones/species             : [N]   uint8  (0=neutron, 1=gamma)
+      /cones/recoil_code         : [N]   uint8  (0=NA, 1=proton, 2=carbon)
+      /cones/incident_energy_MeV : [N]   float32 (En for n, Eg for g)
+      /cones/event_index         : [N]   int32 (row index into /lm/event_* arrays)
+
+      /cones/species_labels      : ["0=neutron", "1=gamma"]
+      /cones/recoil_code_labels  : ["0=NA", "1=proton", "2=carbon"]
     """
     grp = f.require_group("cones")
     for name in (
