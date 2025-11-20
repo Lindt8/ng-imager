@@ -50,6 +50,74 @@ def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File
     return f
 
 
+def _counter_stage(key: str) -> int:
+    """
+    Heuristic mapping from counter key to pipeline stage:
+
+      1: raw events → hits
+      2: hits → shaped/typed events (event-level filters)
+      3: events → cones (cone-level filters)
+      4: cones → images
+
+    Keys that do not match any known pattern are assigned stage 0.
+    """
+    if key.startswith("hits_") or key.startswith("raw_events_"):
+        return 1
+
+    if key.startswith("shaped_") or key.startswith("events_typed_"):
+        return 2
+    if key.startswith("events_total_for_filters") or key.startswith("events_after_filters"):
+        return 2
+    if key.startswith("events_rejected_"):
+        return 2
+
+    if key.startswith("events_cone_") or key.startswith("cones_"):
+        return 3
+
+    if key.startswith("images_") or key.startswith("image_"):
+        return 4
+
+    return 0
+
+
+def write_counters(f: h5py.File, counters: Dict[str, int]) -> None:
+    """
+    Store scalar counters under /meta/counters as attributes.
+
+    Each key in `counters` becomes an attribute on the /meta/counters group,
+    prefixed with a stage number:
+
+        S1_... → Stage 1 (raw events → hits)
+        S2_... → Stage 2 (hits → shaped/typed → event filters)
+        S3_... → Stage 3 (events → cones → cone filters)
+        S4_... → Stage 4 (cones → images)
+
+    This forces a "chronological" ordering when viewed in tools like HDFView
+    (which sort attributes alphabetically).
+    """
+    meta = f.require_group("meta")
+    if "counters" in meta:
+        del meta["counters"]
+    grp = meta.create_group("counters")
+
+    # Sort by (stage, original key) so that attributes appear grouped by stage,
+    # then alphabetically within each stage.
+    for key in sorted(counters.keys(), key=lambda k: (_counter_stage(k), k)):
+        stage = _counter_stage(key)
+        if stage > 0:
+            out_key = f"S{stage}_{key}"
+        else:
+            out_key = key
+        value = counters[key]
+        try:
+            grp.attrs[out_key] = int(value)
+        except Exception:
+            grp.attrs[out_key] = str(value)
+
+
+
+
+
 def _ensure_summed_group(f: h5py.File):
     return f.require_group("images").require_group("summed")
 
@@ -457,21 +525,5 @@ def read_summed(path: str, species: str = "n") -> np.ndarray:
         arr = np.array(grp[species], dtype=np.float32)
     return arr
 
-def write_counters(f: h5py.File, counters: Dict[str, int]) -> None:
-    """
-    Store scalar counters under /meta/counters as attributes.
-
-    Each key in `counters` becomes an attribute on the /meta/counters group.
-    """
-    meta = f.require_group("meta")
-    if "counters" in meta:
-        del meta["counters"]
-    grp = meta.create_group("counters")
-    for key, value in counters.items():
-        try:
-            grp.attrs[key] = int(value)
-        except Exception:
-            # Fall back quietly if a value can't be cast to int
-            grp.attrs[key] = str(value)
 
 

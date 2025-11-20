@@ -47,7 +47,7 @@ from ngimager.io.lm_store import (
     write_counters,
 )
 from ngimager.io.lut import build_lut_registry
-from ngimager.imaging.sbp import reconstruct_sbp
+from ngimager.imaging.sbp import reconstruct_sbp, Cone
 from ngimager.physics.cones import build_cone_from_neutron, build_cone_from_gamma
 from ngimager.physics.events import NeutronEvent, GammaEvent, Event
 from ngimager.physics.energy_strategies import make_energy_strategy
@@ -134,7 +134,7 @@ def _build_cones_from_events(
             ev.validate(strict=False)
         except Exception as exc:
             if j < 5 and diag_level >= 2:
-                print(f"[cones] Skipping event {j} during ordered/validate: {exc}")
+                print(f"[stage3] Skipping event {j} during ordered/validate: {exc}")
             continue
 
         # ---- Species-aware cone building ----
@@ -184,7 +184,7 @@ def _build_cones_from_events(
                 _inc(counters, "events_cone_build_failed_g", 1)
 
             if j < 5 and diag_level >= 2:
-                print(f"[cones] Failed to build cone from event {j}: {exc}")
+                print(f"[stage3] Failed to build cone from event {j}: {exc}")
             continue
 
         # Δθ cone-level filter (optional; configured via [filters])
@@ -220,7 +220,7 @@ def _build_cones_from_events(
 
     if not cones:
         if diag_level >= 1:
-            print("[cones] No cones were successfully built.")
+            print("[stage3] No cones were successfully built.")
         return (
             np.zeros(0, dtype=np.uint32),
             np.zeros((0, 3), dtype=np.float32),
@@ -246,7 +246,7 @@ def _build_cones_from_events(
 
     if diag_level >= 1:
         print(
-            "[cones] Built {total} cones from {n_ev} events "
+            "[stage3] Built {total} cones from {n_ev} events "
             "(neutron={n_n}, gamma={n_g})".format(
                 total=n_total,
                 n_ev=len(events),
@@ -332,7 +332,8 @@ def run_pipeline(
         from ngimager.filters.hit_filters import apply_hit_filters, is_reconstructable
 
         if diag_level >= 1:
-            print("[pipeline] Using staged PHITS path: raw events → hits → shaped → typed")
+            print("\n[stage1] Raw events → hits")
+            print("[stage1] Using staged path: raw events → hits → shaped → typed")
 
         # Build adapter config, injecting detector-level material info.
         adapter_cfg: Dict[str, object] = dict(cfg.io.adapter)
@@ -365,7 +366,7 @@ def run_pipeline(
 
             counters["raw_events_total"] = counters.get("raw_events_total", 0) + 1
 
-            # Hit-level filters
+            # ---- Stage 1.5: Apply Hit-level filters
             filtered_hits = apply_hit_filters(
                 hits,
                 cfg.filters.hits,
@@ -389,7 +390,7 @@ def run_pipeline(
 
         if diag_level >= 1:
             print(
-                "[hits] raw_events_total={total} "
+                "[stage1] raw_events_total={total} "
                 "raw_events_after_filters={surv} "
                 "raw_events_rejected_unreconstructable={rej}".format(
                     total=counters.get("raw_events_total", 0),
@@ -398,7 +399,11 @@ def run_pipeline(
                 )
             )
 
+
         # ---- Stage 2: Hits → shaped events → typed events ----
+        if diag_level >= 1:
+            print("\n[stage2] Hits → shaped events → typed events")
+
         shaped_events, shape_diag = shape_events_for_cones(
             raw_events_after_filters,
             ShapeConfig(),
@@ -407,7 +412,7 @@ def run_pipeline(
 
         if diag_level >= 1:
             print(
-                "[shaper] total_events_in={total} "
+                "[stage2] shaper: total_events_in={total} "
                 "shaped_n={sn} shaped_g={sg}".format(
                     total=shape_diag.total_events,
                     sn=shape_diag.shaped_neutron,
@@ -415,8 +420,9 @@ def run_pipeline(
                 )
             )
 
+
         if diag_level >= 2 and shaped_events:
-            print(f"[shaper] Example shaped events (up to first 3):")
+            print(f"[stage2] Example shaped events (up to first 3):")
             for se in shaped_events[:3]:
                 ts = [h.t_ns for h in se.hits]
                 Ls = [h.L for h in se.hits]
@@ -450,7 +456,7 @@ def run_pipeline(
 
         if diag_level >= 1:
             print(
-                "[events] typed_total={total} "
+                "[stage2] typed_total={total} "
                 "typed_n={n} typed_g={g} "
                 "events_rejected_filters={rej}".format(
                     total=len(events),
@@ -460,40 +466,44 @@ def run_pipeline(
                 )
             )
             
-        # ---- Stage 2a: Event-level filters (e.g. ToF windows) ----
-        events = apply_event_filters(
-            events,
-            cfg.filters.events,
-            counters,
-        )
-
-
     else:
         # For non-PHITS sources, keep the existing direct typed-event path.
         events = list(_iter_source_events(cfg))
 
-        # Apply event-level filters here as well for consistency
-        events = apply_event_filters(
-            events,
-            cfg.filters.events,
-            counters,
+
+    # ---- Stage 2.5: Apply Event-level filters (e.g. ToF windows) ----
+    events = apply_event_filters(
+        events,
+        cfg.filters.events,
+        counters,
+    )
+
+    if diag_level >= 1:
+        print(
+            "[stage2] events_total_for_filters={etf} "
+            "events_after_filters={eaf} "
+            "events_rejected_filters={er}".format(
+                etf=counters.get("events_total_for_filters", 0),
+                eaf=counters.get("events_after_filters", 0),
+                er=counters.get("events_rejected_filters", 0),
+            )
         )
 
     # Existing diagnostics on typed events
     if diag_level >= 1:
-        print(f"[pipeline] Got {len(events)} events")
+        print(f"[stage2] Got {len(events)} events")
     if events:
         first = events[0]
         h1 = getattr(first, "h1", None)
         h2 = getattr(first, "h2", None)
         if diag_level >= 2:
-            print(f"[pipeline] First event type: {type(first).__name__}")
-            print(f"[pipeline] First event h1: {h1!r}")
-            print(f"[pipeline] First event h2: {h2!r}")
+            print(f"[stage2] First event type: {type(first).__name__}")
+            print(f"[stage2] First event h1: {h1!r}")
+            print(f"[stage2] First event h2: {h2!r}")
             if h1 is not None:
-                print(f"[pipeline] h1.r = {getattr(h1, 'r', None)}, t_ns={h1.t_ns}, L={h1.L}")
+                print(f"[stage2] h1.r = {getattr(h1, 'r', None)}, t_ns={h1.t_ns}, L={h1.L}")
             if h2 is not None:
-                print(f"[pipeline] h2.r = {getattr(h2, 'r', None)}, t_ns={h2.t_ns}, L={h2.L}")
+                print(f"[stage2] h2.r = {getattr(h2, 'r', None)}, t_ns={h2.t_ns}, L={h2.L}")
             for ev in events[:3]:
                 species = "n" if isinstance(ev, NeutronEvent) else "g" if isinstance(ev, GammaEvent) else "?"
                 hlist = [getattr(ev, name) for name in ("h1", "h2", "h3") if hasattr(ev, name)]
@@ -508,7 +518,14 @@ def run_pipeline(
                     f"L={Ls}"
                 )
 
+    # Write to output Per-event / per-hit physics (this links back via /lm/events dataset)
+    write_events_hits(f, events)
+    
+    
+
     # ---- Stage 3: Typed events → candidate cones → selected cones ----
+    if diag_level >= 1:
+        print("\n[stage3] Events → candidate cones → selected cones")
     # Cones from events
     (
         cone_ids,
@@ -534,7 +551,7 @@ def run_pipeline(
     
     if diag_level >= 1:
         print(
-            "[pipeline] Built {total} cones "
+            "[stage3] Built {total} cones "
             "(neutron={n_n}, gamma={n_g})".format(
                 total=n_cones,
                 n_n=n_n,
@@ -542,15 +559,28 @@ def run_pipeline(
             )
         )
         if n_cones and diag_level >= 2:
-            print("[pipeline] Example cone apex:", apex_xyz_cm[0])
-            print("[pipeline] Example cone dir:", axis_xyz[0])
-            print("[pipeline] Example cone theta[deg]:", np.degrees(theta_rad[0]))
+            print("[stage3] Example cone apex:", apex_xyz_cm[0])
+            print("[stage3] Example cone dir:", axis_xyz[0])
+            print("[stage3] Example cone theta[deg]:", np.degrees(theta_rad[0]))
             print(
-                "[pipeline] Neutron recoil breakdown: "
+                "[stage3] Neutron recoil breakdown: "
                 f"proton={n_p}, carbon={n_C}, unknown={n_unknown}"
             )
 
+    # Write to output Per-cone geometry + classification
+    write_cones(
+        f,
+        cone_ids,
+        apex_xyz_cm,
+        axis_xyz,
+        theta_rad,
+        species=cone_species,
+        recoil_code=recoil_code,
+    )
+
     # ---- Stage 4: Cones → imaging/reconstruction (SPB) ----
+    if diag_level >= 1:
+        print("\n[stage4] Cones → imaging / reconstruction (SBP)")
     # SBP reconstruction
     from ngimager.imaging.sbp import reconstruct_sbp, Cone
 
@@ -571,7 +601,7 @@ def run_pipeline(
     )
 
     if diag_level >= 1:
-        print("[pipeline] Recon summed image stats:",
+        print("[stage4] Recon summed image stats:",
               "min=", float(recon.summed.min()),
               "max=", float(recon.summed.max()),
               "sum=", float(recon.summed.sum()),
@@ -581,19 +611,8 @@ def run_pipeline(
     img = recon.summed.astype(np.float32)
     write_summed(f, "n", img)
 
-    # Per-cone geometry + classification
-    write_cones(
-        f,
-        cone_ids,
-        apex_xyz_cm,
-        axis_xyz,
-        theta_rad,
-        species=cone_species,
-        recoil_code=recoil_code,
-    )
     
-    # Per-event / per-hit physics (this links back via /lm/events dataset)
-    write_events_hits(f, events)
+    
 
     # List-mode extras
     if cfg.run.list:
@@ -612,10 +631,10 @@ def run_pipeline(
             dset = getattr(cfg.vis, "summed_dataset", "/images/summed/n")
             out_png = save_summed_png(str(out_path), dataset=dset)
             if cfg.run.diagnostics_level >= 1:
-                print(f"[pipeline] Wrote PNG {out_png} from {dset}")
+                print(f"[stage4] Wrote PNG {out_png} from {dset}")
         except Exception as e:
             if cfg.run.diagnostics_level >= 1:
-                print(f"[pipeline] PNG export failed: {e!r}")
+                print(f"[stage4] PNG export failed: {e!r}")
 
     return out_path
 

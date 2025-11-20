@@ -119,13 +119,13 @@ tof_window_ns = [0.0, 30.0]
 
 [filters.cones]
 # universal cone cuts
-max_delta_theta_deg = 5.0
+max_delta_theta_deg = 90.0
 
 [filters.cones.neutron]
-max_delta_theta_deg = 3.0
+# max_delta_theta_deg = 3.0
 
 [filters.cones.gamma]
-max_delta_theta_deg = 8.0
+# max_delta_theta_deg = 8.0
 
 
 

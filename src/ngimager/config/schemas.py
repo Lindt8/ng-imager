@@ -147,8 +147,15 @@ class HitsFiltersCfg(BaseModel):
 class EventSpeciesOverrides(BaseModel):
     """
     Species-specific overrides for event-level filters.
+
+    All fields are optional; when None, the universal [filters.events] value
+    is used for ToF, and L-thresholds default to "no extra cut".
     """
     tof_window_ns: Optional[List[float]] = None
+    min_L1_MeVee: Optional[float] = None
+    min_L2_MeVee: Optional[float] = None
+    min_L_any_MeVee: Optional[float] = None
+
 
 
 class EventsFiltersCfg(BaseModel):
@@ -161,10 +168,13 @@ class EventsFiltersCfg(BaseModel):
       tof_window_ns = [0.0, 30.0]
 
       [filters.events.neutron]
-      tof_window_ns = [0.0, 30.0]   # override (optional)
+      tof_window_ns = [0.0, 30.0]
+      min_L1_MeVee = 0.0
+      min_L2_MeVee = 0.0
 
       [filters.events.gamma]
-      tof_window_ns = [0.0, 30.0]   # override (optional)
+      tof_window_ns = [0.0, 30.0]
+      min_L_any_MeVee = 0.0
     """
     tof_window_ns: List[float] = Field(default_factory=lambda: [0.0, 1.0e9])
     neutron: EventSpeciesOverrides = Field(default_factory=EventSpeciesOverrides)
