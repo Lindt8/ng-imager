@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#hdf5-data-format" class="md-skip">
+        <a href="#hdf5-output-format" class="md-skip">
           Skip to content
         </a>
       
@@ -342,6 +342,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDF5 Format
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -358,6 +376,208 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#top-level-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Top-level structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#meta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /meta
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="/meta">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#geometry-and-run-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Geometry and run info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#config-snapshot-and-readme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Config snapshot and README
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#counters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Counters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#imagessummed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /images/summed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /cones
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lm-events-and-hits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /lm: events and hits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="/lm: events and hits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event-level-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event-level datasets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hit-level-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hit-level datasets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lm-list-mode-imaging-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /lm: list-mode imaging (optional)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="/lm: list-mode imaging (optional)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#per-cone-pixel-indices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-cone pixel indices
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-survival-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event survival table
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adapter-specific-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapter-specific extras
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#versioning-and-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Versioning and compatibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -505,16 +725,230 @@
 
 
 
-<h1 id="hdf5-data-format">HDF5 Data Format<a class="headerlink" href="#hdf5-data-format" title="Permanent link">&para;</a></h1>
-<p>This section will document how <strong>ng-imager</strong> stores and reads data in HDF5 format.</p>
-<p>Expected topics:</p>
+<h1 id="hdf5-output-format">HDF5 Output Format<a class="headerlink" href="#hdf5-output-format" title="Permanent link">&para;</a></h1>
+<p>The ngimager pipeline writes a single HDF5 file per run. The file is
+designed to be:</p>
 <ul>
-<li>Dataset and group hierarchy</li>
-<li>Metadata structure</li>
-<li>Coordinate conventions</li>
-<li>Examples of reading/writing datasets</li>
+<li><strong>self-describing</strong> — contains a config snapshot and a README,</li>
+<li><strong>traceable</strong> — you can go from pixels → cones → events → hits (and back),</li>
+<li><strong>diagnostic-friendly</strong> — counters from each stage are stored.</li>
 </ul>
-<p><em>TODO: Illustrate with real file examples once the output schema is finalized.</em></p>
+<p>This page documents the current layout.</p>
+<hr />
+<h2 id="top-level-structure">Top-level structure<a class="headerlink" href="#top-level-structure" title="Permanent link">&para;</a></h2>
+<p>At the top level, the file contains:</p>
+<ul>
+<li>attributes:</li>
+<li><code>format_version</code></li>
+<li><code>created_utc</code></li>
+<li><code>software</code></li>
+<li><code>config_text</code> (legacy snapshot, kept for compatibility)</li>
+<li>groups:</li>
+<li><code>/meta</code></li>
+<li><code>/images</code></li>
+<li><code>/cones</code></li>
+<li><code>/lm</code> (list-mode and event/hit info; always present, richer in list mode)</li>
+</ul>
+<hr />
+<h2 id="meta">/meta<a class="headerlink" href="#meta" title="Permanent link">&para;</a></h2>
+<p><code>/meta</code> holds geometry, run flags, human-readable text, and counters.</p>
+<h3 id="geometry-and-run-info">Geometry and run info<a class="headerlink" href="#geometry-and-run-info" title="Permanent link">&para;</a></h3>
+<p>Group attributes:</p>
+<ul>
+<li><code>plane.P0</code>  : <code>[3]</code> float64, plane origin in cm</li>
+<li><code>plane.n</code>   : <code>[3]</code> float64, plane normal</li>
+<li><code>plane.eu</code>  : <code>[3]</code> float64, plane u-basis</li>
+<li>
+<p><code>plane.ev</code>  : <code>[3]</code> float64, plane v-basis</p>
+</li>
+<li>
+<p><code>grid.u_min</code>, <code>grid.u_max</code>, <code>grid.du</code></p>
+</li>
+<li><code>grid.v_min</code>, <code>grid.v_max</code>, <code>grid.dv</code></li>
+<li><code>grid.nu</code>, <code>grid.nv</code></li>
+</ul>
+<p>Run flags:</p>
+<ul>
+<li><code>run_fast</code>     : bool</li>
+<li><code>run_list</code>     : bool</li>
+<li><code>run_neutron</code>  : bool</li>
+<li><code>run_gamma</code>    : bool</li>
+</ul>
+<h3 id="config-snapshot-and-readme">Config snapshot and README<a class="headerlink" href="#config-snapshot-and-readme" title="Permanent link">&para;</a></h3>
+<p>Datasets:</p>
+<ul>
+<li><code>/meta/config_toml</code> — the full TOML configuration used for this run,
+  stored as a single variable-length UTF-8 string.</li>
+<li><code>/meta/readme</code> — a short README (array of strings) summarizing the layout and
+  pointing to the online documentation. (You are here, welcome.)</li>
+</ul>
+<h3 id="counters">Counters<a class="headerlink" href="#counters" title="Permanent link">&para;</a></h3>
+<p>Counters are stored as simple datasets under <code>/meta/counters</code>:</p>
+<ul>
+<li><code>/meta/counters/s1_raw_events_total</code></li>
+<li><code>/meta/counters/s1_hits_after_filters</code></li>
+<li><code>/meta/counters/s2_events_after_filters</code></li>
+<li><code>/meta/counters/s3_cones_kept_n</code></li>
+<li><code>/meta/counters/s3_cones_kept_g</code></li>
+<li><code>/meta/counters/s3_cones_rejected_delta_theta</code></li>
+<li>… etc.</li>
+</ul>
+<p>The exact key set may grow over time, but the naming convention is:</p>
+<ul>
+<li><code>s1_*</code> — Stage 1 (raw events → hits)</li>
+<li><code>s2_*</code> — Stage 2 (hits → shaped/typed events → event filters)</li>
+<li><code>s3_*</code> — Stage 3 (events → cones + cone filters)</li>
+<li><code>s4_*</code> — Stage 4 (cones → images)</li>
+</ul>
+<p>All counters are <code>int64</code> and are intended for quick QA and experiment
+diagnostics.</p>
+<hr />
+<h2 id="imagessummed">/images/summed<a class="headerlink" href="#imagessummed" title="Permanent link">&para;</a></h2>
+<p>Summed images live under <code>/images/summed</code>:</p>
+<ul>
+<li><code>/images/summed/n</code>   : <code>[nv, nu]</code> float32 — neutron-only SBP image</li>
+<li><code>/images/summed/g</code>   : <code>[nv, nu]</code> float32 — gamma-only SBP image (if <code>run.gammas = true</code>)</li>
+<li><code>/images/summed/all</code> : <code>[nv, nu]</code> float32 — <code>n + g</code>, only written when both
+  species are present and produce non-zero images.</li>
+</ul>
+<p>These datasets use gzip compression and match the grid described under <code>/meta</code>.</p>
+<hr />
+<h2 id="cones">/cones<a class="headerlink" href="#cones" title="Permanent link">&para;</a></h2>
+<p><code>/cones</code> stores the geometric and physical properties of each cone.</p>
+<p>Datasets:</p>
+<ul>
+<li><code>/cones/cone_id</code>             : <code>[N_cones]</code> uint32</li>
+<li><code>/cones/apex_xyz_cm</code>         : <code>[N_cones, 3]</code> float32</li>
+<li><code>/cones/axis_xyz</code>            : <code>[N_cones, 3]</code> float32 (unit vectors)</li>
+<li><code>/cones/theta_rad</code>           : <code>[N_cones]</code> float32</li>
+<li><code>/cones/incident_energy_MeV</code> : <code>[N_cones]</code> float32</li>
+</ul>
+<p>Classification:</p>
+<ul>
+<li><code>/cones/species</code>             : <code>[N_cones]</code> uint8</li>
+<li><code>/cones/species_labels</code>      : string array legend,
+                                 typically <code>["0=neutron", "1=gamma"]</code></li>
+<li><code>/cones/recoil_code</code>         : <code>[N_cones]</code> uint8</li>
+<li><code>/cones/recoil_code_labels</code>  : string array legend,
+                                 typically <code>["0=unknown/NA", "1=proton", "2=carbon"]</code></li>
+<li><code>/cones/event_index</code>         : <code>[N_cones]</code> uint32, index into the event arrays
+                                 under <code>/lm</code> (see below).</li>
+</ul>
+<p>Notes:</p>
+<ul>
+<li><code>incident_energy_MeV</code> is the kinematically inferred incident particle energy
+  for that cone:</li>
+<li>for neutrons, from ToF + deposited energy at the first scatter;</li>
+<li>for gammas, from Compton kinematics.</li>
+<li><code>species</code> and <code>recoil_code</code> allow you to separate neutron/gamma cones and
+  distinguish proton vs carbon recoils in post-processing.</li>
+</ul>
+<hr />
+<h2 id="lm-events-and-hits">/lm: events and hits<a class="headerlink" href="#lm-events-and-hits" title="Permanent link">&para;</a></h2>
+<p>The <code>/lm</code> group contains per-event and per-hit data used for list-mode analysis.
+It is written regardless of <code>run.list</code>; list-mode <em>imaging</em> adds extra datasets.</p>
+<h3 id="event-level-datasets">Event-level datasets<a class="headerlink" href="#event-level-datasets" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>/lm/event_type</code>         : <code>[N_events]</code> uint8 (<code>0=neutron</code>, <code>1=gamma</code>)</li>
+<li><code>/lm/event_type_labels</code>  : legend array, e.g. <code>["0=neutron", "1=gamma"]</code></li>
+<li><code>/lm/event_meta_run_id</code>  : <code>[N_events]</code> int32 (optional provenance)</li>
+<li><code>/lm/event_meta_file_ix</code> : <code>[N_events]</code> int32 (optional provenance)</li>
+</ul>
+<p>An “event” here means a fully typed <code>NeutronEvent</code> or <code>GammaEvent</code> that has
+survived hit-level and event-level filters (Stage 1–2).</p>
+<h3 id="hit-level-datasets">Hit-level datasets<a class="headerlink" href="#hit-level-datasets" title="Permanent link">&para;</a></h3>
+<p>Hits are stored in fixed slots per event:</p>
+<ul>
+<li><code>/lm/hit_pos_cm</code>      : <code>[N_events, 3, 3]</code> float32</li>
+<li><code>/lm/hit_t_ns</code>        : <code>[N_events, 3]</code> float32</li>
+<li><code>/lm/hit_L_mevee</code>     : <code>[N_events, 3]</code> float32</li>
+<li><code>/lm/hit_det_id</code>      : <code>[N_events, 3]</code> int32</li>
+<li><code>/lm/hit_material_id</code> : <code>[N_events, 3]</code> int16</li>
+</ul>
+<p>Conventions:</p>
+<ul>
+<li>Neutron events use slots 0 and 1; slot 2 is filled with NaNs / -1.</li>
+<li>Gamma events use all three slots.</li>
+<li><code>hit_L_mevee</code> is <code>Hit.L</code> (calibrated light in MeVee for real data or <code>Edep</code>
+  in MeV for PHITS-style sources).</li>
+</ul>
+<p>Material labels:</p>
+<ul>
+<li><code>/lm/material_id_labels</code> : string array mapping <code>hit_material_id</code> values
+  back to human-readable material names (<code>"OGS"</code>, <code>"M600"</code>, etc.).</li>
+</ul>
+<hr />
+<h2 id="lm-list-mode-imaging-optional">/lm: list-mode imaging (optional)<a class="headerlink" href="#lm-list-mode-imaging-optional" title="Permanent link">&para;</a></h2>
+<p>When <code>run.list = true</code>, the SBP reconstruction also tracks which pixels each
+cone contributes to. This information is written to <code>/lm</code> in a form that
+makes it easy to map:</p>
+<blockquote>
+<p>pixels → cones → events → hits</p>
+</blockquote>
+<h3 id="per-cone-pixel-indices">Per-cone pixel indices<a class="headerlink" href="#per-cone-pixel-indices" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>/lm/cone_pixel_indices</code> : <code>[K, 2]</code> uint32</li>
+</ul>
+<p>Each row is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>(cone_id, flat_pixel_index)
+</code></pre></div>
+<p>where:</p>
+<ul>
+<li><code>cone_id</code> is an index into <code>/cones/cone_id</code> and the other cone arrays, and</li>
+<li><code>flat_pixel_index</code> is a flattened <code>(u, v)</code> index:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">flat</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">nu</span> <span class="o">+</span> <span class="n">u</span>
+</code></pre></div>
+<p>You can recover <code>(u, v)</code> from <code>flat</code> using <code>divmod(flat, nu)</code>.</p>
+<p>Only cones that actually intersect the imaging plane appear in this dataset.</p>
+<h3 id="event-survival-table">Event survival table<a class="headerlink" href="#event-survival-table" title="Permanent link">&para;</a></h3>
+<p>To make the pipeline’s decisions transparent, a small “survival table” is stored:</p>
+<ul>
+<li><code>/lm/event_survival</code> : <code>[N_events, 3]</code> int32</li>
+</ul>
+<p>Columns:</p>
+<ol>
+<li><code>event_index</code> — row index into the <code>/lm</code> event/hit datasets.</li>
+<li><code>first_cone_index</code> — index into <code>/cones/*</code> for the first cone built from
+   this event, or <code>-1</code> if the event never produced a cone.</li>
+<li><code>first_imaged_cone_index</code> — cone index for the first cone that both was
+   built and intersected the plane (i.e. appeared in <code>/lm/cone_pixel_indices</code>),
+   or <code>-1</code> if none of that event’s cones hit the plane.</li>
+</ol>
+<p>Together, the mapping looks like:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>hit (lm/hit_*)   ← event_index ← event_survival[:, 0]
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>                               ↘ first_cone_index      → cones/*
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>                                ↘ first_imaged_cone_index → cone_pixel_indices
+</code></pre></div>
+<p>If you need more detailed correlations (e.g. many cones per event), you can
+walk:</p>
+<ol>
+<li><code>/cones/event_index</code> to find all cones belonging to an event;</li>
+<li><code>/lm/cone_pixel_indices</code> to find all pixels touched by each cone.</li>
+</ol>
+<hr />
+<h2 id="adapter-specific-extras">Adapter-specific extras<a class="headerlink" href="#adapter-specific-extras" title="Permanent link">&para;</a></h2>
+<p>Some adapters (notably PHITS) may also populate ragged list-mode datasets
+for arbitrary-multiplicity events:</p>
+<ul>
+<li><code>/lm/hits/event_ptr</code>    : <code>[N_events+1]</code> int64 CSR pointer</li>
+<li><code>/lm/hits/x_cm</code>, <code>y_cm</code>, <code>z_cm</code>, <code>t_ns</code>, <code>Edep_MeV</code>, <code>reg</code> : flat arrays</li>
+<li><code>/lm/events/event_type</code>, <code>iomp</code>, <code>batch</code>, <code>history</code>, <code>no</code>, <code>name</code></li>
+</ul>
+<p>These are additive and do not conflict with the fixed-slot <code>/lm/hit_*</code> and
+<code>/lm/event_*</code> datasets described above.</p>
+<hr />
+<h2 id="versioning-and-compatibility">Versioning and compatibility<a class="headerlink" href="#versioning-and-compatibility" title="Permanent link">&para;</a></h2>
+<p>The root attribute <code>format_version</code> records the HDF5 schema version. Minor
+additions (e.g. new counters or label arrays) are made in a way that keeps
+existing code working; new consumers should always check for dataset
+existence before assuming it is present.</p>
+<p>If you are scripting against the file format, consider:</p>
+<ul>
+<li>gating on <code>format_version</code>,</li>
+<li>using the label arrays (<code>*_labels</code>) rather than hard-coding integer codes, and</li>
+<li>relying on <code>/meta/config_toml</code> to reproduce or document the run settings.</li>
+</ul>
 
 
 

@@ -254,10 +254,54 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#install" class="md-nav__link">
+  <a href="#names-and-packages" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Install
+        Names and Packages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-pipeline-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the Pipeline Does
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contributing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contributing
       
     </span>
   </a>
@@ -552,16 +596,138 @@
 
 
 <h1 id="ng-imager">ng-imager<a class="headerlink" href="#ng-imager" title="Permanent link">&para;</a></h1>
-<p>Event-cone imaging (neutrons &amp; gamma rays) with two operating modes:</p>
+<p><strong>ng-imager</strong> is a modular Python toolkit for reconstructing <strong>neutron</strong> and <strong>gamma</strong> images from multi-element NOVO detector data.</p>
+<p>It replaces a monolithic legacy script with a clean, restartable pipeline:</p>
 <ul>
-<li><strong>fastmode</strong> — aggressive cuts + coarse SBP → quick summed image for beam time.</li>
-<li><strong>list-mode</strong> — saves per-cone sparse pixel indices + summed image → rapid post-analysis.</li>
+<li>hits → events → cones → images</li>
 </ul>
-<h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>docs<span class="o">]</span><span class="w">   </span><span class="c1"># dev install with docs extras</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># or</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="w">         </span><span class="c1"># core only</span>
+<p>and provides:</p>
+<ul>
+<li>Explicit separation of <strong>physics</strong>, <strong>geometry</strong>, <strong>imaging</strong>, <strong>configuration</strong>, and <strong>I/O</strong></li>
+<li>Flexible energy strategies (ELUT, ToF, fixed-energy, direct Edep)</li>
+<li>Unified neutron + gamma imaging, including proton vs carbon recoil handling</li>
+<li>Structured filters at the hit, event, and cone level, with detailed counters</li>
+<li>HDF5 output that fully records the configuration, priors, counters, and list-mode data</li>
+</ul>
+<hr />
+<h2 id="names-and-packages">Names and Packages<a class="headerlink" href="#names-and-packages" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<p><strong>Repository</strong>: <code>ng-imager</code><br />
+  GitHub: <a href="https://github.com/Lindt8/ng-imager">https://github.com/Lindt8/ng-imager</a></p>
+</li>
+<li>
+<p><strong>Python package</strong>: <code>ngimager</code><br />
+  Imported as:</p>
+<p>import ngimager</p>
+</li>
+<li>
+<p><strong>Planned PyPI package</strong>: <code>ngimager</code><br />
+  (Eventually installable via <code>pip install ngimager</code>.)</p>
+</li>
+</ul>
+<p>Throughout the docs:</p>
+<ul>
+<li>“<strong>ng-imager</strong>” refers to the project as a whole.</li>
+<li>“<code>ngimager</code>” refers to the Python package and APIs.</li>
+</ul>
+<hr />
+<h2 id="what-the-pipeline-does">What the Pipeline Does<a class="headerlink" href="#what-the-pipeline-does" title="Permanent link">&para;</a></h2>
+<p>At a high level, the ng-imager pipeline:</p>
+<ol>
+<li><strong>Reads raw data</strong> via an adapter</li>
+<li>PHITS usrdef text tallies</li>
+<li>
+<p>(Planned / developing) ROOT data, ng-imager HDF5 restarts</p>
+</li>
+<li>
+<p><strong>Builds hits and typed events</strong></p>
+</li>
+<li>Hit-level filters remove obviously unphysical or irrelevant hits.</li>
+<li>Shaping turns raw events into neutron 2-hit and gamma 3-hit candidates.</li>
+<li>
+<p>Event-level filters (ToF windows, light thresholds) refine the sample.</p>
+</li>
+<li>
+<p><strong>Constructs cones</strong></p>
+</li>
+<li>Neutron cones with explicit proton vs carbon recoil hypotheses</li>
+<li>Gamma cones via Compton kinematics for 3-hit events</li>
+<li>
+<p>Prior-based selection (and filtering) using Δθ = |φ − θ|</p>
+</li>
+<li>
+<p><strong>Reconstructs images</strong></p>
+</li>
+<li>Simple back-projection (SBP) onto a user-defined imaging plane</li>
+<li>
+<p>Optional list-mode output mapping cones ↔ pixels ↔ events ↔ hits</p>
+</li>
+<li>
+<p><strong>Writes a self-contained HDF5 file</strong></p>
+</li>
+<li>Full config snapshot</li>
+<li>Plane and grid geometry</li>
+<li>Per-hit and per-event physics</li>
+<li>Per-cone geometry, classification, and kinematics</li>
+<li>Summed neutron, gamma, and combined images</li>
+<li>Counters and traces linking each stage</li>
+</ol>
+<hr />
+<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
+<p>If you’re new to ng-imager, start here:</p>
+<ol>
+<li><strong>Quickstart</strong></li>
+</ol>
+<p>A step-by-step walkthrough using the example PHITS configuration:</p>
+<div class="highlight"><pre><span></span><code>   docs/quickstart.md
 </code></pre></div>
+<ol>
+<li><strong>Configuration (TOML)</strong></li>
+</ol>
+<p>Detailed documentation for all fields in the TOML config:</p>
+<div class="highlight"><pre><span></span><code>   docs/config.md
+</code></pre></div>
+<ol>
+<li><strong>HDF5 Output Layout</strong></li>
+</ol>
+<p>How to interpret the ng-imager HDF5 file, including list-mode datasets:</p>
+<div class="highlight"><pre><span></span><code>   docs/hdf5.md
+</code></pre></div>
+<ol>
+<li><strong>Architecture / Design Primer</strong></li>
+</ol>
+<p>High-level design document that explains how the modules fit together:</p>
+<div class="highlight"><pre><span></span><code>   docs/architecture.md
+</code></pre></div>
+<ol>
+<li><strong>API Reference</strong></li>
+</ol>
+<p>Auto-generated reference for the <code>ngimager</code> Python package:</p>
+<div class="highlight"><pre><span></span><code>   docs/api/index.md
+</code></pre></div>
+<hr />
+<h2 id="current-status">Current Status<a class="headerlink" href="#current-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Neutron imaging: functional and validated against the legacy NOVO pipeline.</li>
+<li>Gamma imaging: functional and validated on legacy-formatted model data.</li>
+<li>Proton vs carbon neutron recoil handling: implemented and recorded in HDF5.</li>
+<li>Event, hit, and cone filters: implemented with counters and HDF5 export.</li>
+<li>Fast and list modes: wired through configuration and HDF5 output.</li>
+</ul>
+<p>The codebase is still evolving, but the overall architecture and I/O formats are intended to be stable enough for experimental and analysis usage.</p>
+<hr />
+<h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
+<p>If you’d like to:</p>
+<ul>
+<li>Add new adapters (e.g. other simulation formats),</li>
+<li>Extend the imaging methods,</li>
+<li>Or improve documentation and examples,</li>
+</ul>
+<p>please open an issue or pull request on GitHub:</p>
+<div class="highlight"><pre><span></span><code>https://github.com/Lindt8/ng-imager
+</code></pre></div>
+<p>The goal is to keep ng-imager modular, well-documented, and physically transparent, so that both new and existing NOVO analyses can be expressed in a clean, modern Python codebase.</p>
 
 
 

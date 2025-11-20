@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#configuration" class="md-skip">
+        <a href="#configuration-toml-reference" class="md-skip">
           Skip to content
         </a>
       
@@ -314,6 +314,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Config
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -330,6 +348,224 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-top-level-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Top-Level Layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-run-global-run-controls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. [run] – Global Run Controls
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-pipeline-how-far-to-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. [pipeline] – How Far to Run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-io-input-output-and-adapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. [io] – Input / Output and Adapters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. [io] – Input / Output and Adapters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-ioadapter-phits-usrdef-adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1. [io.adapter] – PHITS usrdef Adapter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-detectors-material-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. [detectors] – Material Mapping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-plane-imaging-plane-geometry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. [plane] – Imaging Plane Geometry
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-filters-hit-event-and-cone-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. [filters] – Hit, Event, and Cone Filters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. [filters] – Hit, Event, and Cone Filters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-hit-level-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1. Hit-Level Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-event-level-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2. Event-Level Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-cone-level-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3. Cone-Level Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-fast-fast-mode-overrides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4. [fast] – Fast-Mode Overrides
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-energy-energy-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. [energy] – Energy Strategy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-prior-spatial-priors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. [prior] – Spatial Priors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-uncertainty-smearing-and-uncertainties" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. [uncertainty] – Smearing and Uncertainties
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-vis-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. [vis] – Visualization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-putting-it-together" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Putting It Together
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -505,15 +741,350 @@
 
 
 
-<h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h1>
-<p>This page will explain how <strong>ng-imager</strong> is configured.</p>
-<p>It should eventually include:</p>
+<h1 id="configuration-toml-reference">Configuration: TOML Reference<a class="headerlink" href="#configuration-toml-reference" title="Permanent link">&para;</a></h1>
+<p>This page describes the TOML configuration format used by <strong>ngimager</strong> (the internal Python package for the <strong>ng-imager</strong> project).</p>
+<p>The examples below are based on:</p>
+<div class="highlight"><pre><span></span><code>examples/configs/phits_usrdef_simple.toml
+</code></pre></div>
+<p>and reflect the <strong>current, working</strong> configuration schema used by the pipeline.</p>
+<hr />
+<h2 id="1-top-level-layout">1. Top-Level Layout<a class="headerlink" href="#1-top-level-layout" title="Permanent link">&para;</a></h2>
+<p>At the highest level, a config file typically contains:</p>
 <ul>
-<li>Configuration file format (YAML/TOML/JSON)</li>
-<li>Default parameters and overrides</li>
-<li>Runtime flags and environment variables</li>
+<li>[run] – global run controls (species, fast/list mode, diagnostics)</li>
+<li>[pipeline] – where to stop the pipeline (hits / events / cones / image)</li>
+<li>[io] – input / output paths and adapter options</li>
+<li>[detectors] – detector → material mapping</li>
+<li>[plane] – imaging plane geometry and grid</li>
+<li>[filters] – hit / event / cone filters (+ optional fast overrides)</li>
+<li>[energy] – energy strategy (ELUT, ToF, fixed, Edep)</li>
+<li>[prior] – spatial prior for source location</li>
+<li>[uncertainty] – smearing / uncertainty options</li>
+<li>[vis] – visualization / PNG export options</li>
 </ul>
-<p><em>TODO: Describe how configuration propagates through the imaging pipeline.</em></p>
+<p>A minimal skeleton looks like:</p>
+<div class="highlight"><pre><span></span><code>[run]
+...
+
+[pipeline]
+...
+
+[io]
+...
+
+[detectors]
+...
+
+[plane]
+...
+
+[filters]
+...
+
+[energy]
+...
+
+[prior]
+...
+
+[uncertainty]
+...
+
+[vis]
+...
+</code></pre></div>
+<hr />
+<h2 id="2-run-global-run-controls">2. [run] – Global Run Controls<a class="headerlink" href="#2-run-global-run-controls" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>[run]
+# High-level data source context
+# One of: &quot;cf252&quot; | &quot;dt&quot; | &quot;proton_center&quot; | &quot;phits&quot;
+source_type = &quot;phits&quot;
+
+# Which species to process
+neutrons = true
+gammas   = true
+
+# Behavioral toggles
+fast = false        # enable fast-mode cuts / plane overrides
+list = true         # enable list-mode image output
+
+# Performance / execution
+workers     = 0     # 0 = single-process; &quot;auto&quot; or &gt;0 in newer configs
+chunk_cones = &quot;auto&quot;
+jit         = false
+progress    = true
+
+# Diagnostics
+diagnostics_level = 2   # 0=off, 1=minimal, 2=verbose
+
+# Limits
+max_cones = 50000       # hard cap on number of cones to build / image
+</code></pre></div>
+<p>Notes:</p>
+<ul>
+<li><code>fast = true</code> activates fast-mode overrides defined under <code>[filters.fast]</code>.</li>
+<li><code>list = true</code> asks the recon to keep per-cone pixel indices and to emit list-mode datasets under <code>/lm/...</code> in the HDF5 output.</li>
+<li><code>workers = 0</code> forces a single-process SBP path (nice for debugging); <code>"auto"</code> or an integer &gt; 0 uses multi-process SBP.</li>
+</ul>
+<hr />
+<h2 id="3-pipeline-how-far-to-run">3. [pipeline] – How Far to Run<a class="headerlink" href="#3-pipeline-how-far-to-run" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>[pipeline]
+# Where to stop the pipeline:
+#   &quot;hits&quot;   – stop after hit construction / hit filters
+#   &quot;events&quot; – stop after shaped/typed events
+#   &quot;cones&quot;  – stop after cone construction
+#   &quot;image&quot;  – full pipeline (cones → image)
+until = &quot;image&quot;
+</code></pre></div>
+<p>At the moment, most runs use <code>until = "image"</code>. Future work will make it easy to restart from intermediate stages using ng-imager HDF5 output.</p>
+<hr />
+<h2 id="4-io-input-output-and-adapters">4. [io] – Input / Output and Adapters<a class="headerlink" href="#4-io-input-output-and-adapters" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>[io]
+input_format = &quot;phits_usrdef&quot;  # &quot;phits_usrdef&quot; | &quot;root_novo_ddaq&quot; | &quot;hdf5_ngimager&quot;
+input_path   = &quot;examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out&quot;
+output_path  = &quot;examples/imaging_datasets/PHITS_simple_ng_source/usrdef_out.h5&quot;
+
+# If true, overwrite an existing output file; if false, error out if the
+# file already exists.
+hdf5_overwrite = true
+</code></pre></div>
+<h3 id="41-ioadapter-phits-usrdef-adapter">4.1. [io.adapter] – PHITS usrdef Adapter<a class="headerlink" href="#41-ioadapter-phits-usrdef-adapter" title="Permanent link">&para;</a></h3>
+<p>For the PHITS user-defined tally case:</p>
+<div class="highlight"><pre><span></span><code>[io.adapter]
+type  = &quot;phits&quot;   # selects the PHITS-style adapter
+style = &quot;usrdef&quot;  # indicates the custom usrdef text layout
+
+# Units / conventions
+unit_pos_is_mm       = false   # false → positions already in cm
+time_units           = &quot;ns&quot;    # &quot;ns&quot; recommended
+require_gamma_triples = true   # enforce 3-hit gamma events for Compton cones
+</code></pre></div>
+<p>Other adapters may accept different sub-keys under <code>[io.adapter]</code>; for now, the documented / tested case is the <code>"phits"</code> + <code>"usrdef"</code> combination.</p>
+<hr />
+<h2 id="5-detectors-material-mapping">5. [detectors] – Material Mapping<a class="headerlink" href="#5-detectors-material-mapping" title="Permanent link">&para;</a></h2>
+<p>Detector configuration is mainly used to assign materials to regions / bars, which then flow into hit construction and LUT lookup.</p>
+<div class="highlight"><pre><span></span><code>[detectors]
+default_material = &quot;OGS&quot;
+
+[detectors.material_map]
+200 = &quot;OGS&quot;
+210 = &quot;M600&quot;
+220 = &quot;OGS&quot;
+230 = &quot;M600&quot;
+240 = &quot;OGS&quot;
+</code></pre></div>
+<p>Keys:</p>
+<ul>
+<li><code>default_material</code>: fallback material name for any detector/bar ID not explicitly listed.</li>
+<li><code>material_map</code>: maps integer detector IDs (regions) to material names (strings). These names must match the keys used under <code>[energy].lut_paths</code>.</li>
+</ul>
+<hr />
+<h2 id="6-plane-imaging-plane-geometry">6. [plane] – Imaging Plane Geometry<a class="headerlink" href="#6-plane-imaging-plane-geometry" title="Permanent link">&para;</a></h2>
+<p>The imaging plane is specified in world coordinates:</p>
+<div class="highlight"><pre><span></span><code>[plane]
+origin = [0.0, 15.0, 0.0]   # point on the plane (cm)
+normal = [0.0, 1.0, 0.0]    # plane normal (unit-ish vector)
+
+# In-plane axes (u and v). Must be linearly independent of each other and of the normal.
+u_axis = [1.0, 0.0, 0.0]
+v_axis = [0.0, 0.0, 1.0]
+
+# u / v extents and sampling (cm)
+u_min = -20.0
+u_max =  20.0
+du    =   0.1
+
+v_min = -20.0
+v_max =  20.0
+dv    =   0.1
+</code></pre></div>
+<p>Notes:</p>
+<ul>
+<li>Internally, the plane object normalizes <code>normal</code>, <code>u_axis</code>, and <code>v_axis</code> and computes <code>nu</code>, <code>nv</code> from <code>(u_max - u_min)/du</code> and <code>(v_max - v_min)/dv</code>.</li>
+<li>All coordinates are in <strong>cm</strong>.</li>
+</ul>
+<hr />
+<h2 id="7-filters-hit-event-and-cone-filters">7. [filters] – Hit, Event, and Cone Filters<a class="headerlink" href="#7-filters-hit-event-and-cone-filters" title="Permanent link">&para;</a></h2>
+<p>Filters are split into three conceptual levels, with neutron/gamma-specific overrides:</p>
+<ul>
+<li><code>[filters.hits]</code> and <code>[filters.hits.neutron]</code> / <code>[filters.hits.gamma]</code></li>
+<li><code>[filters.events]</code> and <code>[filters.events.neutron]</code> / <code>[filters.events.gamma]</code></li>
+<li><code>[filters.cones]</code> and <code>[filters.cones.neutron]</code> / <code>[filters.cones.gamma]</code></li>
+<li><code>[filters.fast]</code> – optional fast-mode overrides</li>
+</ul>
+<p>The guiding principle is:</p>
+<ul>
+<li>The universal section (<code>[filters.X]</code>) defines global defaults.</li>
+<li>Species-specific sections (<code>[filters.X.neutron]</code>, <code>[filters.X.gamma]</code>) override only the keys they specify.</li>
+</ul>
+<h3 id="71-hit-level-filters">7.1. Hit-Level Filters<a class="headerlink" href="#71-hit-level-filters" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>[filters.hits]
+# Universal hit cuts applied before event shaping
+min_light_MeVee = 0.0
+max_light_MeVee = 200.0
+
+# Optional bar / material inclusion / exclusion
+bars_include       = []    # e.g. [200, 210, 220]
+bars_exclude       = []    # e.g. [230]
+materials_include  = []    # e.g. [&quot;M600&quot;, &quot;OGS&quot;]
+materials_exclude  = []    # e.g. [&quot;DEAD_BAR_MATERIAL&quot;]
+
+[filters.hits.neutron]
+# optional overrides / additions for neutron hits
+# (empty in the example config)
+
+[filters.hits.gamma]
+# optional overrides / additions for gamma hits
+# (empty in the example config)
+</code></pre></div>
+<p>The hit filters are applied uniformly to all hits in a raw event before any event-level shaping or typing occurs.</p>
+<h3 id="72-event-level-filters">7.2. Event-Level Filters<a class="headerlink" href="#72-event-level-filters" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>[filters.events]
+# Universal event cuts (applied after shaping into typed NeutronEvent/GammaEvent)
+tof_window_ns = [0.0, 30.0]
+
+[filters.events.neutron]
+# Override only what you need; unspecified keys fall back to [filters.events]
+tof_window_ns = [0.0, 30.0]
+min_L1_MeVee  = 0.1   # minimum first-scatter light for neutron events
+min_L2_MeVee  = 0.1   # minimum second-scatter light for neutron events
+
+[filters.events.gamma]
+tof_window_ns = [0.0, 10.0]
+min_L_any_MeVee = 0.05  # minimum light on any of the gamma hits
+</code></pre></div>
+<p>Typical uses:</p>
+<ul>
+<li>Narrow <code>tof_window_ns</code> for neutron/gamma separately.</li>
+<li>Require a minimum first/second scatter light for neutron 2-hit events.</li>
+<li>Require at least one sufficiently bright gamma hit for 3-hit gamma events.</li>
+</ul>
+<p>Event filters operate on <strong>typed events</strong> (NeutronEvent / GammaEvent) and feed into cone building.</p>
+<h3 id="73-cone-level-filters">7.3. Cone-Level Filters<a class="headerlink" href="#73-cone-level-filters" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>[filters.cones]
+# Universal cone cuts
+max_delta_theta_deg     = 90.0   # Δθ = |φ - θ|, prior-consistency limit
+max_incident_energy_MeV = 250.0  # reject events with unphysically high incident energy
+
+[filters.cones.neutron]
+# e.g., neutron-specific overrides (empty in the example)
+# max_delta_theta_deg     = 5.0
+# max_incident_energy_MeV = 30.0
+
+[filters.cones.gamma]
+# e.g., gamma-specific overrides (empty in the example)
+# max_delta_theta_deg     = 8.0
+# max_incident_energy_MeV = 10.0
+</code></pre></div>
+<p>The cone filters operate on:</p>
+<ul>
+<li>The <strong>selected</strong> neutron cone (after the proton vs carbon recoil decision)</li>
+<li>The <strong>selected</strong> gamma cone (after permutation + prior selection)</li>
+</ul>
+<p><code>max_delta_theta_deg</code> uses the same prior-based scoring as cone selection (Δθ = |φ − θ|).<br />
+<code>max_incident_energy_MeV</code> uses the incident energy stored on each cone (<code>incident_energy_MeV</code>), which is computed by the neutron/gamma kinematics code and passed through from the cone builders.</p>
+<h3 id="74-fast-fast-mode-overrides">7.4. [fast] – Fast-Mode Overrides<a class="headerlink" href="#74-fast-fast-mode-overrides" title="Permanent link">&para;</a></h3>
+<p>Fast mode (<code>run.fast = true</code>) activates a small set of more aggressive defaults. The exact details depend on the code, but conceptually:</p>
+<div class="highlight"><pre><span></span><code>[fast]
+# More aggressive light thresholds
+min_L1_MeVee   = 0.8   # MeVee, first neutron scatter
+min_L2_MeVee   = 0.4   # MeVee, second neutron scatter
+min_L_any_MeVee = 0.2  # MeVee, any gamma deposit considered
+
+# Stop after this many cones have been built and imaged
+max_cones = 20000
+
+# Coarsen the imaging plane by this integer factor:
+# du&#39; = du * plane_downsample, dv&#39; = dv * plane_downsample
+plane_downsample = 2
+</code></pre></div>
+<p>Any fast-mode cut that is defined will override the corresponding normal cut when <code>run.fast = true</code>. The exact field names and behavior are kept intentionally minimal so that the fast-mode logic does not diverge too far from the main configuration.</p>
+<hr />
+<h2 id="8-energy-energy-strategy">8. [energy] – Energy Strategy<a class="headerlink" href="#8-energy-energy-strategy" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>[energy]
+# One of: &quot;ELUT&quot; | &quot;ToF&quot; | &quot;FixedEn&quot; | &quot;Edep&quot;
+strategy = &quot;Edep&quot;
+
+# If strategy = &quot;FixedEn&quot;, this specifies the fixed incident neutron energy:
+fixed_En_MeV = 14.1
+
+# Inversion LUTs for light → energy (used when strategy = &quot;ELUT&quot;)
+[energy.lut_paths.OGS]
+proton = &quot;data/lut/OGS/lut_OGS_proton_Birks.npz&quot;
+carbon = &quot;data/lut/OGS/lut_OGS_carbon_Birks.npz&quot;
+
+[energy.lut_paths.M600]
+proton = &quot;data/lut/M600/lut_M600_proton_Birks.npz&quot;
+carbon = &quot;data/lut/M600/lut_M600_carbon_Birks.npz&quot;
+
+# When true, neutron cone construction forces proton recoils for kinematics
+force_proton_recoils = false
+</code></pre></div>
+<p>Strategies:</p>
+<ul>
+<li><code>"ELUT"</code> – Use per-material, per-species lookup tables to invert light (MeVee) → deposited energy Edep (MeV).</li>
+<li><code>"ToF"</code> – Use time-of-flight between hits to estimate neutron energy (placeholder, mainly experimental).</li>
+<li><code>"FixedEn"</code> – Assume a fixed incident neutron energy (e.g. 14.1 MeV DT source); used where appropriate.</li>
+<li><code>"Edep"</code> – Use deposited energy directly from the adapter (<code>Hit.L</code> in MeV).</li>
+</ul>
+<p>For neutron cone building, the kinematics are always routed through <code>neutron_theta_from_hits</code>, with the energy strategy providing the first-scatter deposited energy.</p>
+<hr />
+<h2 id="9-prior-spatial-priors">9. [prior] – Spatial Priors<a class="headerlink" href="#9-prior-spatial-priors" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>[prior]
+# One of: &quot;point&quot; | &quot;line&quot;
+type = &quot;point&quot;
+
+# For point prior:
+point = [0.0, 0.0, -500.0]
+
+# For line prior (example):
+# [prior.line]
+# p0 = [x0, y0, z0]
+# p1 = [x1, y1, z1]
+
+# Prior strength (dimensionless weighting)
+strength = 1.0
+</code></pre></div>
+<p>The prior is used for:</p>
+<ul>
+<li>Selecting between proton vs carbon neutron recoil hypotheses.</li>
+<li>Selecting the best permutation for gamma events.</li>
+<li>Cone-level Δθ filtering (<code>max_delta_theta_deg</code>).</li>
+</ul>
+<p>When no explicit prior is given, the imaging plane center is used as an implicit prior target.</p>
+<hr />
+<h2 id="10-uncertainty-smearing-and-uncertainties">10. [uncertainty] – Smearing and Uncertainties<a class="headerlink" href="#10-uncertainty-smearing-and-uncertainties" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>[uncertainty]
+enabled = false
+smearing = &quot;thicken&quot;          # &quot;thicken&quot; | &quot;weighted&quot;
+sigma_doi_cm        = 0.35
+sigma_transverse_cm = 0.346
+sigma_time_ns       = 0.5
+use_lut_bands       = false   # if true, use LUT-provided bands where available
+</code></pre></div>
+<p>This block is currently mostly reserved for future work. In the current code, the SBP reconstruction runs in a nominal, non-smeared mode unless uncertainty support is explicitly wired in.</p>
+<hr />
+<h2 id="11-vis-visualization">11. [vis] – Visualization<a class="headerlink" href="#11-vis-visualization" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>[vis]
+export_png_on_write = true
+summed_dataset      = &quot;/images/summed/n&quot;
+</code></pre></div>
+<ul>
+<li><code>export_png_on_write = true</code> asks the pipeline to render a PNG for one dataset in the output HDF5 file after reconstruction completes.</li>
+<li>
+<p><code>summed_dataset</code> allows you to choose what summed image to export, e.g.:</p>
+<p>/images/summed/n      – neutron-only
+/images/summed/g      – gamma-only
+/images/summed/all    – combined n+g (if present)</p>
+</li>
+</ul>
+<hr />
+<h2 id="12-putting-it-together">12. Putting It Together<a class="headerlink" href="#12-putting-it-together" title="Permanent link">&para;</a></h2>
+<p>The example config file:</p>
+<div class="highlight"><pre><span></span><code>examples/configs/phits_usrdef_simple.toml
+</code></pre></div>
+<p>is the simplest working end-to-end configuration. It is a good template to copy and edit for new runs. The sections documented above reflect the current, tested state of the code; if a value appears in that TOML, it should be described here, and vice-versa.</p>
+<p>If you run into a mismatch between the docs and what the code accepts, treat the running code + <code>phits_usrdef_simple.toml</code> as authoritative and adjust this file accordingly.</p>
 
 
 
