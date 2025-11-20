@@ -149,8 +149,9 @@ def write_cones(
     apex_xyz_cm: np.ndarray,
     axis_xyz: np.ndarray,
     theta_rad: np.ndarray,
-    species: np.ndarray | None = None,
-    recoil_code: np.ndarray | None = None,
+    species: np.ndarray,
+    recoil_code: np.ndarray,
+    incident_energy_MeV: np.ndarray,
 ) -> None:
     """
     Store per-cone geometric parameters under /cones.
@@ -172,9 +173,18 @@ def write_cones(
             1 = proton recoil (for neutron cones)
             2 = carbon recoil (for neutron cones)
         If None, all zeros are stored.
+    incident_energy_MeV : (N,)  float32 (En for n, Eg for g)
     """
     grp = f.require_group("cones")
-    for name in ("cone_id", "apex_xyz_cm", "axis_xyz", "theta_rad", "species", "recoil_code"):
+    for name in (
+            "cone_id",
+            "apex_xyz_cm",
+            "axis_xyz",
+            "theta_rad",
+            "species",
+            "recoil_code",
+            "incident_energy_MeV",
+    ):
         if name in grp:
             del grp[name]
 
@@ -232,6 +242,12 @@ def write_cones(
     d_recoil.attrs["legend"] = np.array(
         ["0=unknown_or_gamma", "1=proton", "2=carbon"],
         dtype=h5py.string_dtype(),
+    )
+
+    grp.create_dataset(
+        "incident_energy_MeV",
+        data=incident_energy_MeV.astype(np.float32),
+        compression="gzip",
     )
 
 

@@ -122,13 +122,15 @@ min_L_any_MeVee = 0.2
 [filters.cones]
 # universal cone cuts
 max_delta_theta_deg = 5.0
+max_incident_energy_MeV = 250.0   # global cap if desired
 
 [filters.cones.neutron]
 max_delta_theta_deg = 3.0
+max_incident_energy_MeV = 250.0
 
 [filters.cones.gamma]
 max_delta_theta_deg = 8.0
-
+# max_incident_energy_MeV = 100.0 
 
 
 [energy]

@@ -186,6 +186,7 @@ class ConeSpeciesOverrides(BaseModel):
     Species-specific overrides for cone-level filters.
     """
     max_delta_theta_deg: Optional[float] = None
+    max_incident_energy_MeV: Optional[float] = None
 
 
 class ConesFiltersCfg(BaseModel):
@@ -204,6 +205,7 @@ class ConesFiltersCfg(BaseModel):
       max_delta_theta_deg = 8.0
     """
     max_delta_theta_deg: Optional[float] = None
+    max_incident_energy_MeV: Optional[float] = None
     neutron: ConeSpeciesOverrides = Field(default_factory=ConeSpeciesOverrides)
     gamma: ConeSpeciesOverrides = Field(default_factory=ConeSpeciesOverrides)
 

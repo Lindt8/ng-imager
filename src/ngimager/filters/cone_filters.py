@@ -37,6 +37,25 @@ def _delta_theta_limit_rad(filters: ConesFiltersCfg, species: str) -> Optional[f
 
     return math.radians(float(val_deg))
 
+def _incident_energy_limit_MeV(filters: ConesFiltersCfg, species: str) -> Optional[float]:
+    """
+    Resolve the effective max incident energy [MeV] for a given species.
+
+    Priority:
+        per-species override, else global, else None.
+    """
+    s = (species or "").lower()
+    if s.startswith("n"):
+        val = getattr(filters.neutron, "max_incident_energy_MeV", None)
+    elif s.startswith("g"):
+        val = getattr(filters.gamma, "max_incident_energy_MeV", None)
+    else:
+        val = None
+
+    if val is None:
+        val = filters.max_incident_energy_MeV
+
+    return None if val is None else float(val)
 
 def passes_delta_theta_cut(
     cone: Cone,
@@ -45,16 +64,27 @@ def passes_delta_theta_cut(
     prior: Optional[Prior],
     filters: ConesFiltersCfg,
     counters: Dict[str, int],
+    *,
+    incident_energy_MeV: Optional[float] = None,
 ) -> bool:
     """
-    Cone-level filter on Δθ = |φ − θ|, where:
+    Cone-level filters:
 
-      - φ is the angle between the cone axis and the direction from apex to
-        the prior target (or plane center if prior is None),
-      - θ is the cone opening half-angle.
+      1. Δθ = |φ − θ|, where:
+         - φ is the angle between the cone axis and the direction from apex to
+           the prior target (or plane center if prior is None),
+         - θ is the cone opening half-angle.
 
-    This uses the same scorer as is used for proton vs carbon selection and
-    gamma permutation selection: _score_cone_against_prior.
+         Uses _score_cone_against_prior (shared with neutron p/C selection
+         and gamma permutation selection).
+
+      2. max_incident_energy_MeV:
+         - For neutrons, En is computed once in physics/kinematics and
+           passed in from the cone builder.
+         - For gammas, Eg is likewise computed in the gamma cone builder.
+
+    Both cuts are optional; if a limit is not configured (or we don't have
+    an incident_energy_MeV), that cut is skipped.
 
     Returns True if the cone is accepted, False if rejected.
 
@@ -66,31 +96,59 @@ def passes_delta_theta_cut(
       - "cones_rejected_delta_theta"
       - "cones_rejected_delta_theta_n"
       - "cones_rejected_delta_theta_g"
+
+      - "cones_checked_incident_energy"
+      - "cones_checked_incident_energy_n"
+      - "cones_checked_incident_energy_g"
+      - "cones_rejected_incident_energy"
+      - "cones_rejected_incident_energy_n"
+      - "cones_rejected_incident_energy_g"
     """
-    limit = _delta_theta_limit_rad(filters, species)
-    # If no Δθ limit configured, do nothing but still count checks.
-    _inc(counters, "cones_checked_delta_theta")
     s = (species or "").lower()
+
+    # ---- Δθ cut ---------------------------------------------------------
+    limit_dtheta = _delta_theta_limit_rad(filters, species)
+
+    # We always count that Δθ was "checked", even if no limit is set.
+    _inc(counters, "cones_checked_delta_theta")
     if s.startswith("n"):
         _inc(counters, "cones_checked_delta_theta_n")
     elif s.startswith("g"):
         _inc(counters, "cones_checked_delta_theta_g")
 
-    if limit is None:
-        return True
+    if limit_dtheta is not None:
+        delta = _score_cone_against_prior(cone, plane, prior)
+        if delta is not None and float(delta) > float(limit_dtheta):
+            _inc(counters, "cones_rejected_delta_theta")
+            if s.startswith("n"):
+                _inc(counters, "cones_rejected_delta_theta_n")
+            elif s.startswith("g"):
+                _inc(counters, "cones_rejected_delta_theta_g")
+            return False
+        # If delta is None (degenerate prior geometry), we treat it as
+        # "no Δθ cut applied" and continue.
 
-    delta = _score_cone_against_prior(cone, plane, prior)
-    if delta is None:
-        # Degenerate prior geometry → don't apply this cut.
-        return True
+    # ---- max incident energy cut ---------------------------------------
+    limit_En = _incident_energy_limit_MeV(filters, species)
 
-    if float(delta) <= float(limit):
-        return True
-
-    # Rejected
-    _inc(counters, "cones_rejected_delta_theta")
+    # Count that we evaluated the incident-energy filter.
+    _inc(counters, "cones_checked_incident_energy")
     if s.startswith("n"):
-        _inc(counters, "cones_rejected_delta_theta_n")
+        _inc(counters, "cones_checked_incident_energy_n")
     elif s.startswith("g"):
-        _inc(counters, "cones_rejected_delta_theta_g")
+        _inc(counters, "cones_checked_incident_energy_g")
+
+    # No configured energy limit or no value to compare → accept w.r.t. this cut.
+    if limit_En is None or incident_energy_MeV is None:
+        return True
+
+    if float(incident_energy_MeV) <= float(limit_En):
+        return True
+
+    # Rejected by incident-energy cut
+    _inc(counters, "cones_rejected_incident_energy")
+    if s.startswith("n"):
+        _inc(counters, "cones_rejected_incident_energy_n")
+    elif s.startswith("g"):
+        _inc(counters, "cones_rejected_incident_energy_g")
     return False

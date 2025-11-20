@@ -98,7 +98,7 @@ def _build_cones_from_events(
     events: Sequence[Event],
     plane: Plane,
     counters: Dict[str, int],
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Turn events into cone geometry arrays for SBP.
 
@@ -126,6 +126,7 @@ def _build_cones_from_events(
     cones: list[Cone] = []
     species_codes: list[int] = []
     recoil_codes: list[int] = []
+    incident_energies: list[float] = []
 
     for j, ev in enumerate(events):
         # enforce time ordering & sanity without crashing the whole run
@@ -162,7 +163,7 @@ def _build_cones_from_events(
             if species_char == "n":
                 # Neutrons: build proton vs carbon recoil hypotheses and,
                 # when a plane/prior are available, select the most plausible one.
-                cone, recoil_code = build_cone_from_neutron(
+                cone, recoil_code, En = build_cone_from_neutron(
                     ev,
                     energy_model,
                     plane=plane,
@@ -170,12 +171,20 @@ def _build_cones_from_events(
                     force_proton=cfg.energy.force_proton_recoils,
                     return_meta=True,
                 )
+                incident_energy = float(En)
             else:
                 # Gammas: Compton-based cone construction (uses Hit.L
                 # as deposited energy; energy_model is passed for future
                 # gamma LUT support even if not used now).
-                cone = build_cone_from_gamma(ev, energy_model, plane=plane, prior=prior)
+                cone, Eg = build_cone_from_gamma(
+                    ev,
+                    energy_model,
+                    plane=plane,
+                    prior=prior,
+                    return_meta=True,
+                )
                 recoil_code = 0  # not applicable for gammas
+                incident_energy = float(Eg)
         except Exception as exc:
             _inc(counters, "events_cone_build_failed", 1)
             if species_char == "n":
@@ -196,6 +205,7 @@ def _build_cones_from_events(
             prior=prior,
             filters=cfg.filters.cones,
             counters=counters,
+            incident_energy_MeV=incident_energy,
         ):
             # This cone is rejected by the Δθ cut.
             continue
@@ -210,6 +220,7 @@ def _build_cones_from_events(
         cones.append(cone)
         species_codes.append(species_code)
         recoil_codes.append(int(recoil_code))
+        incident_energies.append(incident_energy)
 
         # Fast-mode: optional conservative cap on number of cones
         if cfg.run.fast and (cfg.run.max_cones is not None):
@@ -228,6 +239,7 @@ def _build_cones_from_events(
             np.zeros(0, dtype=np.float32),
             np.zeros(0, dtype=np.uint8),
             np.zeros(0, dtype=np.uint8),
+            np.zeros(0, dtype=np.float32),
         )
 
     cone_ids = np.arange(len(cones), dtype=np.uint32)
@@ -236,6 +248,7 @@ def _build_cones_from_events(
     theta_rad = np.array([c.theta for c in cones], dtype=np.float32)
     species_arr = np.array(species_codes, dtype=np.uint8)
     recoil_arr = np.array(recoil_codes, dtype=np.uint8)
+    incident_energy_arr = np.array(incident_energies, dtype=np.float32)
 
     n_total = int(len(cones))
     n_n = int(np.count_nonzero(species_arr == 0))
@@ -255,7 +268,7 @@ def _build_cones_from_events(
             )
         )
 
-    return cone_ids, apex_xyz_cm, axis_xyz, theta_rad, species_arr, recoil_arr
+    return cone_ids, apex_xyz_cm, axis_xyz, theta_rad, species_arr, recoil_arr, incident_energy_arr
 
 
 def run_pipeline(
@@ -534,6 +547,7 @@ def run_pipeline(
         theta_rad,
         cone_species,
         recoil_code,
+        incident_energy_MeV,
     ) = _build_cones_from_events(cfg, events, plane, counters)
     
     
@@ -576,6 +590,7 @@ def run_pipeline(
         theta_rad,
         species=cone_species,
         recoil_code=recoil_code,
+        incident_energy_MeV=incident_energy_MeV,
     )
 
     # ---- Stage 4: Cones → imaging/reconstruction (SPB) ----

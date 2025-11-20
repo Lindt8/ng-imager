@@ -62,20 +62,21 @@ def build_cone_from_neutron(
     -----------------------
     * By default (return_meta=False), the function returns only a Cone.
 
-    * If return_meta is True, it returns (cone, recoil_code) where:
+    * If return_meta is True, it returns (cone, recoil_code, En_MeV) where:
 
           recoil_code = 1  → proton recoil hypothesis ("H")
           recoil_code = 2  → carbon recoil hypothesis ("C")
+          En_MeV      = incident neutron energy for the selected hypothesis
 
-      This is suitable for compact storage in HDF5. Callers that do not
-      care about the recoil species can continue to use the old,
-      cone-only behavior.
+      This is suitable for compact storage in HDF5 and for cone-level
+      max-energy cuts. Callers that do not care about the recoil species
+      or En can continue to use the old, cone-only behavior.
 
     Notes
     -----
     * This function does not mutate the event or record which hypothesis
       "won"; that bookkeeping is left to callers via the returned
-      recoil_code.
+      recoil_code and En.
     """
     # Basic sanity: caller should already have ordered() + validate(), but
     # doing a light check here keeps this function robust for standalone use.
@@ -98,11 +99,14 @@ def build_cone_from_neutron(
 
     def _candidate_for_nucleus(
         recoil_nucleus: str,
-    ) -> tuple[Optional[Cone], Optional[float]]:
+    ) -> tuple[Optional[Cone], Optional[float], Optional[float]]:
         """
         Helper: construct a Cone for a given recoil nucleus label ("H" or "C")
-        and return (cone, score) where score is Δ = |φ − θ| if a prior is
-        available, otherwise None.
+        and return (cone, score, En) where:
+
+          - cone  : Cone instance or None if non-physical
+          - score : Δ = |φ − θ| if a prior is available, else None
+          - En    : incident neutron energy [MeV] for this hypothesis, or None
         """
         # Decide which species key to use for the energy strategy.
         # For ELUT, we have distinct proton/carbon bands; for other
@@ -121,81 +125,82 @@ def build_cone_from_neutron(
                 species=species_key,
             )
         except Exception:
-            return None, None
+            return None, None, None
 
         # Full COM → lab mapping using primer-consistent kinematics.
         try:
-            theta = neutron_theta_from_hits(
+            theta, En = neutron_theta_from_hits(
                 r1, t1,
                 r2, t2,
                 Edep1_MeV,
                 scatter_nucleus=recoil_nucleus,
+                return_En=True,
             )
         except Exception:
-            return None, None
+            return None, None, None
 
         # Reject clearly non-physical / degenerate angles
         if (not np.isfinite(theta)) or (theta <= 0.0) or (theta >= np.pi):
-            return None, None
+            return None, None, None
 
         c = Cone(apex=apex, direction=Dhat, theta=float(theta))
 
         # If we have a plane, enforce that the cone axis points toward it.
         if plane is not None and (not _axis_towards_plane(apex, Dhat, plane)):
-            return None, None
+            return None, None, None
 
         # If we don't have a plane, we can't do prior-based scoring.
         if plane is None:
-            return c, None
+            return c, None, float(En)
 
         score = _score_cone_against_prior(c, plane, prior)
-        return c, score
+        return c, score, float(En)
 
     # Proton-only path: either explicitly requested, or no plane available.
     if force_proton or plane is None:
-        c_p, _ = _candidate_for_nucleus("H")
+        c_p, _, En_p = _candidate_for_nucleus("H")
         if c_p is None:
             raise ValueError("NeutronEvent cannot produce a physical proton-recoil cone.")
 
         if return_meta:
             # 1 = proton recoil
-            return c_p, 1
+            return c_p, 1, float(En_p)
         return c_p
 
     # Full proton vs carbon hypothesis test with prior-aware scoring.
-    # Store tuples of (score, recoil_nucleus, cone).
-    candidates: list[tuple[float, str, Cone]] = []
+    # Store tuples of (score, recoil_nucleus, cone, En).
+    candidates: list[tuple[float, str, Cone, float]] = []
 
     for nuc in ("H", "C"):
-        c, score = _candidate_for_nucleus(nuc)
+        c, score, En = _candidate_for_nucleus(nuc)
         if c is None:
             continue
         # If scoring failed (e.g. degenerate prior geometry), skip from
         # the prior-based comparison.
         if score is None:
             continue
-        candidates.append((score, nuc, c))
+        candidates.append((float(score), nuc, c, float(En)))
 
     if candidates:
         # Pick the cone with minimal Δ = |φ − θ|
         candidates.sort(key=lambda scn: scn[0])
-        best_score, best_nuc, best_cone = candidates[0]
+        best_score, best_nuc, best_cone, best_En = candidates[0]
 
         if return_meta:
             recoil_code = 1 if best_nuc == "H" else 2  # 1=proton, 2=carbon
-            return best_cone, recoil_code
+            return best_cone, recoil_code, float(best_En)
         return best_cone
 
     # If we got here, either both hypotheses were non-physical or prior
     # scoring failed for both. Fall back to proton-only construction
     # without using the prior.
-    c_p, _ = _candidate_for_nucleus("H")
+    c_p, _, En_p = _candidate_for_nucleus("H")
     if c_p is None:
         raise ValueError("NeutronEvent cannot produce a physical cone (proton or carbon).")
 
     if return_meta:
         # In this fallback, we default to proton-like tagging.
-        return c_p, 1
+        return c_p, 1, float(En_p)
     return c_p
 
 
@@ -204,6 +209,8 @@ def _gamma_cone_from_ordered_hits(
     h1,
     h2,
     h3,
+    *,
+    return_Eg: bool = False,
 ) -> Cone | None:
     """
     Attempt to build a Compton cone from three *ordered* hits.
@@ -212,9 +219,7 @@ def _gamma_cone_from_ordered_hits(
       - returns a Cone on success,
       - returns None if the configuration is non-physical.
 
-    This makes it suitable for:
-      - the current PHITS case (time-ordered hits),
-      - future 3! permutation searches without try/except at the caller.
+    If return_Eg is True, returns (cone, Eg_MeV) or (None, None).
 
     Geometry convention (as in the NOVO primer and neutron cones):
 
@@ -233,7 +238,7 @@ def _gamma_cone_from_ordered_hits(
     L23 = float(np.linalg.norm(v23))
     if L12 <= 0.0 or L23 <= 0.0:
         # Degenerate geometry
-        return None
+        return (None, None) if return_Eg else None
 
     # Second-scatter angle theta2 from geometry
     cos_theta2 = float(np.dot(v12, v23) / (L12 * L23))
@@ -245,7 +250,7 @@ def _gamma_cone_from_ordered_hits(
     dE1 = float(getattr(h1, "L", 0.0) or 0.0)
     dE2 = float(getattr(h2, "L", 0.0) or 0.0)
     if dE1 <= 0.0 or dE2 <= 0.0:
-        return None
+        return (None, None) if return_Eg else None
 
     try:
         Eg = compton_incident_energy_from_second_scatter(dE1, dE2, theta2)
@@ -253,24 +258,27 @@ def _gamma_cone_from_ordered_hits(
         theta1 = compton_theta_from_energies(Eg, Egp)
     except ValueError:
         # Non-physical combination for this ordering
-        return None
+        return (None, None) if return_Eg else None
 
     # Reject extremely small angles (numerically unstable / not useful)
     theta1_min = np.deg2rad(1.0)
     if not np.isfinite(theta1) or theta1 < theta1_min:
-        return None
+        return (None, None) if return_Eg else None
 
     # Geometry of the cone:
     # apex at first scatter, axis from 2nd -> 1st (matches neutron convention)
     D = r1 - r2
     L = float(np.linalg.norm(D))
     if L <= 0.0:
-        return None
+        return (None, None) if return_Eg else None
 
     Dhat = D / L
     apex = r1.copy()
 
-    return Cone(apex, Dhat, float(theta1))
+    cone = Cone(apex, Dhat, float(theta1))
+    if return_Eg:
+        return cone, float(Eg)
+    return cone
 
 def _axis_towards_plane(apex: np.ndarray, direction: np.ndarray, plane: Plane) -> bool:
     """
@@ -405,7 +413,7 @@ def enumerate_gamma_cone_candidates(
     # as the "third" (used only for geometry).
     for perm in itertools.permutations((0, 1, 2), 3):
         i0, i1, i2 = perm
-        cone = _gamma_cone_from_ordered_hits(hits[i0], hits[i1], hits[i2])
+        cone = _gamma_cone_from_ordered_hits(hits[i0], hits[i1], hits[i2], return_Eg=False)
         if cone is None:
             continue
         candidates.append((cone, perm))
@@ -419,6 +427,7 @@ def build_cone_from_gamma(
     energy_model: EnergyStrategy,
     plane: Optional[Plane] = None,
     prior: Optional[Prior] = None,
+    return_meta: bool = False,
 ) -> Cone:
     """
     Build a Compton gamma cone from a three-hit GammaEvent.
@@ -443,6 +452,12 @@ def build_cone_from_gamma(
       - If no candidate survives, fall back to the ordered (time) triplet
         as in the simple behavior; if that also fails, raise ValueError.
 
+    Return value
+    ------------
+    * If return_meta is False (default), returns only a Cone.
+    * If return_meta is True, returns (cone, Eg_MeV) where Eg_MeV is the
+      incident gamma energy for the selected ordering.
+
     Notes
     -----
     * For now, we do not use `energy_model` for gammas: Hit.L is already
@@ -457,19 +472,28 @@ def build_cone_from_gamma(
 
     # Backwards-compatible path: no plane provided → use only the ordered triplet
     if plane is None:
-        cone = _gamma_cone_from_ordered_hits(*hits)
-        if cone is None:
-            raise ValueError(
-                "GammaEvent cannot produce a physical Compton cone from ordered hits."
-            )
-        return cone
+        if return_meta:
+            cone, Eg = _gamma_cone_from_ordered_hits(*hits, return_Eg=True)
+            if cone is None:
+                raise ValueError(
+                    "GammaEvent cannot produce a physical Compton cone from ordered hits."
+                )
+            return cone, float(Eg)
+        else:
+            cone = _gamma_cone_from_ordered_hits(*hits)
+            if cone is None:
+                raise ValueError(
+                    "GammaEvent cannot produce a physical Compton cone from ordered hits."
+                )
+            return cone
 
     # Full permutation + prior-aware scoring path
     best_cone: Cone | None = None
     best_score: float | None = None
+    best_Eg: float | None = None
 
     for h1, h2, h3 in permutations(hits, 3):
-        c = _gamma_cone_from_ordered_hits(h1, h2, h3)
+        c, Eg = _gamma_cone_from_ordered_hits(h1, h2, h3, return_Eg=True)
         if c is None:
             continue
 
@@ -486,18 +510,23 @@ def build_cone_from_gamma(
         if best_cone is None or score < best_score:
             best_cone = c
             best_score = score
+            best_Eg = float(Eg)
 
     if best_cone is not None:
+        if return_meta:
+            return best_cone, float(best_Eg)
         return best_cone
 
     # If no candidate survived, fall back to the time-ordered triplet as a last resort
-    fallback = _gamma_cone_from_ordered_hits(*hits)
-    if fallback is None or not _axis_towards_plane(fallback.apex, fallback.dir, plane):
+    fallback_cone, fallback_Eg = _gamma_cone_from_ordered_hits(*hits, return_Eg=True)
+    if fallback_cone is None or not _axis_towards_plane(fallback_cone.apex, fallback_cone.dir, plane):
         raise ValueError(
             "GammaEvent cannot produce a physical Compton cone from any hit permutation."
         )
 
-    return fallback
+    if return_meta:
+        return fallback_cone, float(fallback_Eg)
+    return fallback_cone
 
 
 

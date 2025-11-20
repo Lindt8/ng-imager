@@ -62,12 +62,16 @@ def neutron_theta_from_hits(
     r2_cm: np.ndarray, t2_ns: float,
     Edep1_MeV: float,
     scatter_nucleus: str = "H",
+    return_En: bool = False,
 ) -> float:
     """
     Full calculation consistent with the NOVO primer:
       E' via ToF between hits 1->2 (relativistic),
       E_n = E' + Edep1,
       theta_lab from COM using A = m_recoil/m_n.
+    
+    If return_En is False (default), returns theta [rad].
+    If return_En is True, returns (theta [rad], En [MeV]).
     """
     s = float(np.linalg.norm(r2_cm - r1_cm))
     dt = float(t2_ns - t1_ns)
@@ -75,7 +79,9 @@ def neutron_theta_from_hits(
     En = Eprime + Edep1_MeV                      # MeV
     A = mass_ratio_A(scatter_nucleus)
     theta = theta_lab_from_Erecoil_En(Edep1_MeV, En, A)
-    return theta
+    if return_En:
+        return float(theta), float(En)
+    return float(theta)
 
 def compton_incident_energy_from_second_scatter(
     dE1_MeV: float,
