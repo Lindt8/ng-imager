@@ -56,6 +56,7 @@ from ngimager.filters.shapers import shape_events_for_cones, ShapeConfig
 from ngimager.filters.to_typed_events import shaped_to_typed_events
 from ngimager.filters.hit_filters import apply_hit_filters, is_reconstructable
 from ngimager.filters.cone_filters import passes_delta_theta_cut
+from ngimager.filters.event_filters import apply_event_filters
 from ngimager.vis.hdf import save_summed_png
 
 def _inc(counters: Dict[str, int], key: str, delta: int = 1) -> None:
@@ -193,7 +194,7 @@ def _build_cones_from_events(
             species=species_label,
             plane=plane,
             prior=prior,
-            filters=cfg.filters,
+            filters=cfg.filters.cones,
             counters=counters,
         ):
             # This cone is rejected by the Δθ cut.
@@ -365,10 +366,15 @@ def run_pipeline(
             counters["raw_events_total"] = counters.get("raw_events_total", 0) + 1
 
             # Hit-level filters
-            filtered_hits = apply_hit_filters(hits, cfg.filters, counters, particle_type=et)
+            filtered_hits = apply_hit_filters(
+                hits,
+                cfg.filters.hits,
+                counters,
+                particle_type=et,
+            )
 
             # Early reconstructability decision (also updates *_unreconstructable counters)
-            if not is_reconstructable(filtered_hits, cfg.filters, counters, event_type=et):
+            if not is_reconstructable(filtered_hits, cfg.filters.events, counters, event_type=et):
                 continue
 
             if not filtered_hits:
@@ -453,10 +459,25 @@ def run_pipeline(
                     rej=events_rejected,
                 )
             )
+            
+        # ---- Stage 2a: Event-level filters (e.g. ToF windows) ----
+        events = apply_event_filters(
+            events,
+            cfg.filters.events,
+            counters,
+        )
+
 
     else:
         # For non-PHITS sources, keep the existing direct typed-event path.
         events = list(_iter_source_events(cfg))
+
+        # Apply event-level filters here as well for consistency
+        events = apply_event_filters(
+            events,
+            cfg.filters.events,
+            counters,
+        )
 
     # Existing diagnostics on typed events
     if diag_level >= 1:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Dict, Optional
 import math
 
-from ngimager.config.schemas import FiltersCfg
+from ngimager.config.schemas import ConesFiltersCfg
 from ngimager.imaging.sbp import Cone
 from ngimager.geometry.plane import Plane
 from ngimager.physics.priors import Prior
@@ -11,13 +11,10 @@ from ngimager.physics.cones import _score_cone_against_prior
 
 
 def _inc(counters: Dict[str, int], key: str, delta: int = 1) -> None:
-    """
-    Small helper to increment counters safely.
-    """
     counters[key] = counters.get(key, 0) + delta
 
 
-def _delta_theta_limit_rad(filters: FiltersCfg, species: str) -> Optional[float]:
+def _delta_theta_limit_rad(filters: ConesFiltersCfg, species: str) -> Optional[float]:
     """
     Resolve the effective Δθ max (in radians) for a given species.
 
@@ -25,16 +22,15 @@ def _delta_theta_limit_rad(filters: FiltersCfg, species: str) -> Optional[float]
         per-species override, else global, else None.
     """
     s = (species or "").lower()
-
     if s.startswith("n"):
-        val_deg = filters.cone_delta_theta_max_deg_neutron
+        val_deg = filters.neutron.max_delta_theta_deg
     elif s.startswith("g"):
-        val_deg = filters.cone_delta_theta_max_deg_gamma
+        val_deg = filters.gamma.max_delta_theta_deg
     else:
         val_deg = None
 
     if val_deg is None:
-        val_deg = filters.cone_delta_theta_max_deg
+        val_deg = filters.max_delta_theta_deg
 
     if val_deg is None:
         return None
@@ -47,7 +43,7 @@ def passes_delta_theta_cut(
     species: str,
     plane: Plane,
     prior: Optional[Prior],
-    filters: FiltersCfg,
+    filters: ConesFiltersCfg,
     counters: Dict[str, int],
 ) -> bool:
     """

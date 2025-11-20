@@ -89,23 +89,18 @@ v_max =  20.0
 du = 0.1
 dv = 0.1
 
-[filters]
-min_light = 0.0
-max_light = 1e12
-cone_delta_theta_max_deg = 15.0
-cone_delta_theta_max_deg_neutron = 5.0
-cone_delta_theta_max_deg_gamma = 10.0
-
-# Filters are structured to allow future split into hit-level vs event-level.
 [filters.hits]
 # Universal hit-level cuts applied before event shaping
-min_light = 50.0
-max_light = 1.0e6
+min_light_MeVee = 0.0
+max_light_MeVee = 200.0
 bars_include      = []            # e.g. [200, 210, 220]
+bars_exclude      = []
 materials_include = []            # e.g. ["M600", "OGS"]
+materials_exclude = []
 
 [filters.hits.neutron]
 # optional overrides / additions for neutron hits
+# min_light_MeVee = 75.0
 
 [filters.hits.gamma]
 # optional overrides / additions for gamma hits
@@ -130,6 +125,7 @@ max_delta_theta_deg = 3.0
 
 [filters.cones.gamma]
 max_delta_theta_deg = 8.0
+
 
 
 [energy]

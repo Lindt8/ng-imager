@@ -95,19 +95,116 @@ class PlaneCfg(BaseModel):
     u_min: float; u_max: float; du: float
     v_min: float; v_max: float; dv: float
 
-class FiltersCfg(BaseModel):
-    min_light: float = 0.0
-    max_light: float = 1e12
-    tof_window_ns: List[float] = [0.0, 1e9]
-    bars_include: List[int] = []
-    materials_include: List[str] = []
+# --- Filters configuration ---------------------------------------------------
 
-    # Cone-level Δθ filters (in degrees).
-    # If cone_delta_theta_max_deg is set, it applies to all cones by default.
-    # The *_neutron / *_gamma variants override the universal value for each species.
-    cone_delta_theta_max_deg: Optional[float] = None
-    cone_delta_theta_max_deg_neutron: Optional[float] = None
-    cone_delta_theta_max_deg_gamma: Optional[float] = None
+class HitSpeciesOverrides(BaseModel):
+    """
+    Species-specific overrides for hit-level filters.
+
+    All fields are optional; when None, the universal [filters.hits] value is used.
+    """
+    min_light_MeVee: Optional[float] = None
+    max_light_MeVee: Optional[float] = None
+    bars_include: Optional[List[int]] = None
+    bars_exclude: Optional[List[int]] = None
+    materials_include: Optional[List[str]] = None
+    materials_exclude: Optional[List[str]] = None
+
+
+class HitsFiltersCfg(BaseModel):
+    """
+    Hit-level filters with universal defaults plus neutron/gamma overrides.
+
+    TOML:
+
+      [filters.hits]
+      min_light_MeVee = 50.0
+      max_light_MeVee = 1.0e6
+      bars_include      = []
+      bars_exclude      = []
+      materials_include = []
+      materials_exclude = []
+
+      [filters.hits.neutron]
+      min_light_MeVee = 100.0   # optional override; others fall back to [filters.hits]
+
+      [filters.hits.gamma]
+      # optional overrides...
+    """
+    # Universal defaults
+    min_light_MeVee: float = 0.0
+    max_light_MeVee: float = 1.0e12
+    bars_include: List[int] = Field(default_factory=list)
+    bars_exclude: List[int] = Field(default_factory=list)
+    materials_include: List[str] = Field(default_factory=list)
+    materials_exclude: List[str] = Field(default_factory=list)
+
+    # Species-specific overrides
+    neutron: HitSpeciesOverrides = Field(default_factory=HitSpeciesOverrides)
+    gamma: HitSpeciesOverrides = Field(default_factory=HitSpeciesOverrides)
+
+
+class EventSpeciesOverrides(BaseModel):
+    """
+    Species-specific overrides for event-level filters.
+    """
+    tof_window_ns: Optional[List[float]] = None
+
+
+class EventsFiltersCfg(BaseModel):
+    """
+    Event-level filters with universal defaults plus neutron/gamma overrides.
+
+    TOML:
+
+      [filters.events]
+      tof_window_ns = [0.0, 30.0]
+
+      [filters.events.neutron]
+      tof_window_ns = [0.0, 30.0]   # override (optional)
+
+      [filters.events.gamma]
+      tof_window_ns = [0.0, 30.0]   # override (optional)
+    """
+    tof_window_ns: List[float] = Field(default_factory=lambda: [0.0, 1.0e9])
+    neutron: EventSpeciesOverrides = Field(default_factory=EventSpeciesOverrides)
+    gamma: EventSpeciesOverrides = Field(default_factory=EventSpeciesOverrides)
+
+
+class ConeSpeciesOverrides(BaseModel):
+    """
+    Species-specific overrides for cone-level filters.
+    """
+    max_delta_theta_deg: Optional[float] = None
+
+
+class ConesFiltersCfg(BaseModel):
+    """
+    Cone-level filters with universal defaults plus neutron/gamma overrides.
+
+    TOML:
+
+      [filters.cones]
+      max_delta_theta_deg = 5.0
+
+      [filters.cones.neutron]
+      max_delta_theta_deg = 3.0
+
+      [filters.cones.gamma]
+      max_delta_theta_deg = 8.0
+    """
+    max_delta_theta_deg: Optional[float] = None
+    neutron: ConeSpeciesOverrides = Field(default_factory=ConeSpeciesOverrides)
+    gamma: ConeSpeciesOverrides = Field(default_factory=ConeSpeciesOverrides)
+
+
+class FiltersCfg(BaseModel):
+    """
+    Top-level filter configuration, split into hits / events / cones.
+    """
+    hits: HitsFiltersCfg = Field(default_factory=HitsFiltersCfg)
+    events: EventsFiltersCfg = Field(default_factory=EventsFiltersCfg)
+    cones: ConesFiltersCfg = Field(default_factory=ConesFiltersCfg)
 
 
 class EnergyCfg(BaseModel):
