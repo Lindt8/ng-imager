@@ -219,6 +219,26 @@ class FiltersCfg(BaseModel):
     cones: ConesFiltersCfg = Field(default_factory=ConesFiltersCfg)
 
 
+class FastCfg(BaseModel):
+    """
+    Fast-mode override knobs.
+
+    Applied only when [run].fast = true; otherwise ignored.
+    """
+    # Event-level light thresholds (units explicitly in name)
+    min_L1_MeVee: Optional[float] = None
+    min_L2_MeVee: Optional[float] = None
+    min_L_any_MeVee: Optional[float] = None
+
+    # Hard cap on number of cones actually built/imaged
+    max_cones: Optional[int] = None
+
+    # Imaging plane downsampling factor:
+    #   1 or None → no change
+    #   2         → double du,dv (coarser grid, ~4x fewer pixels)
+    plane_downsample: Optional[int] = None
+
+
 class EnergyCfg(BaseModel):
     """
     Energy strategy configuration.
@@ -270,4 +290,5 @@ class Config(BaseModel):
     uncertainty: UncertaintyCfg
     vis: VisCfg = Field(default_factory=VisCfg)
     pipeline: PipelineCfg = Field(default_factory=PipelineCfg)
+    fast: FastCfg = Field(default_factory=FastCfg)
 

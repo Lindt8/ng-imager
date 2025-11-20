@@ -65,6 +65,57 @@ def _inc(counters: Dict[str, int], key: str, delta: int = 1) -> None:
     """
     counters[key] = counters.get(key, 0) + delta
 
+def _apply_fast_overrides(cfg: Config, diag_level: int = 1) -> None:
+    """
+    Apply [fast] overrides when [run].fast is true.
+
+    This mutates cfg in-place:
+      - adjusts event-level light thresholds,
+      - caps the number of cones,
+      - coarsens the imaging plane grid.
+    """
+    if not getattr(cfg.run, "fast", False):
+        return
+
+    fast_cfg = getattr(cfg, "fast", None)
+    if fast_cfg is None:
+        return
+
+    if diag_level >= 1:
+        print("[run] fast mode enabled; applying [fast] overrides")
+
+    # ---- Event-level light thresholds ---------------------------------
+    events_cfg = getattr(cfg.filters, "events", None)
+    
+    if events_cfg is not None:
+        events_n_cfg = getattr(cfg.filters, "neutron", None)
+        events_g_cfg = getattr(cfg.filters, "gamma", None)
+        if fast_cfg.min_L1_MeVee is not None and events_n_cfg is not None:
+            events_n_cfg.min_L1_MeVee = fast_cfg.min_L1_MeVee
+        if fast_cfg.min_L2_MeVee is not None and events_n_cfg is not None:
+            events_n_cfg.min_L2_MeVee = fast_cfg.min_L2_MeVee
+        if fast_cfg.min_L_any_MeVee is not None and events_g_cfg is not None:
+            events_g_cfg.min_L_any_MeVee = fast_cfg.min_L_any_MeVee
+
+    # ---- Max cones cap -----------------------------------------------
+    if fast_cfg.max_cones is not None:
+        cfg.run.max_cones = fast_cfg.max_cones
+
+    # ---- Imaging plane downsampling -----------------------------------
+    if fast_cfg.plane_downsample is not None and fast_cfg.plane_downsample > 1:
+        factor = int(fast_cfg.plane_downsample)
+        try:
+            cfg.plane.du *= factor
+            cfg.plane.dv *= factor
+            if diag_level >= 1:
+                print(
+                    f"[run] fast mode downsampling plane: "
+                    f"du→{cfg.plane.du}, dv→{cfg.plane.dv} (factor={factor})"
+                )
+        except Exception as exc:
+            if diag_level >= 1:
+                print(f"[run] fast mode plane downsample failed: {exc!r}")
+
 
 def _iter_source_events(cfg: Config) -> Iterable[Event]:
     """
@@ -318,6 +369,9 @@ def run_pipeline(
               f"fast={cfg.run.fast} list={cfg.run.list}")
         print(f"[run] input={cfg.io.input_path} -> output={cfg.io.output_path}")
 
+    # Apply fast-mode overrides (if run.fast is true)
+    _apply_fast_overrides(cfg, diag_level=diag_level)
+    
     # Imaging plane
     plane = Plane.from_cfg(
         cfg.plane.origin,

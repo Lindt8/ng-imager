@@ -17,7 +17,7 @@ neutrons = true
 gammas   = true
 
 # Operational toggles (can also be overridden by CLI flags)
-fast = false                   # use more aggressive thresholds / cone caps
+fast = false                   # use more aggressive thresholds / cone caps in [fast] config section
 list = false                   # also write list-mode per-cone sparse images
 
 # Execution / performance
@@ -31,7 +31,7 @@ progress    = true
 diagnostics_level = 2
 
 # Safety cap for total imaged cones (after filtering and selection)
-max_cones = 3000
+max_cones = 50000
 
 
 [pipeline]
@@ -113,9 +113,12 @@ tof_window_ns = [0.0, 30.0]
 [filters.events.neutron]
 # override only what you need; if empty, falls back to [filters.events]
 tof_window_ns = [0.0, 30.0]
+min_L1_MeVee = 0.5
+min_L2_MeVee = 0.3
 
 [filters.events.gamma]
 tof_window_ns = [0.0, 30.0]
+min_L_any_MeVee = 0.2
 
 [filters.cones]
 # universal cone cuts
@@ -130,6 +133,18 @@ max_incident_energy_MeV = 30.0   # global cap if desired
 # max_delta_theta_deg = 8.0
 # max_incident_energy_MeV = 100.0
 
+[fast]
+# More aggressive light thresholds
+min_L1_MeVee   = 0.8   # MeVee, first neutron scatter
+min_L2_MeVee   = 0.4   # MeVee, second neutron scatter
+min_L_any_MeVee = 0.2  # MeVee, any gamma or neutron deposit considered
+
+# Stop after this many cones have been built and imaged
+max_cones = 20000
+
+# Coarsen the imaging plane by this integer factor:
+# du' = du * plane_downsample, dv' = dv * plane_downsample
+plane_downsample = 2
 
 
 [energy]

@@ -47,6 +47,41 @@ def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File
     meta.attrs["run_neutron"] = bool(getattr(cfg.run, "neutrons", True))
     meta.attrs["run_gamma"] = bool(getattr(cfg.run, "gammas", True))
     meta.attrs["run_stop_stage"] = getattr(cfg.run, "stop_stage", "")
+
+    # Human-readable overview of this HDF5 layout
+    readme_text = """
+    ng-imager HDF5 layout (format_version = {fmt}):
+
+    Top-level:
+      /meta
+          - imaging plane geometry and basic run flags as attributes
+          - README  (this text)
+      /images/summed
+          - 'n', 'g', or 'all' 2D images (float32)
+      /cones
+          - cone_id, apex_xyz_cm, axis_xyz, theta_rad
+          - species (0=neutron, 1=gamma), species_labels
+          - recoil_code (0=NA, 1=proton, 2=carbon), recoil_code_labels
+          - incident_energy_MeV (En for n, Eg for g)
+      /lm
+          - event_type (0=neutron, 1=gamma), event_type_labels
+          - hit_pos_cm, hit_t_ns, hit_L_mevee, hit_det_id, hit_material_id
+          - material_id_labels (mapping indices → material strings)
+      /counters
+          - scalar integer diagnostics for each pipeline stage
+
+    The original TOML config used for this run is stored as a single string
+    in the root attribute 'config_text'. For full documentation, see the
+    ng-imager repository and docs at: https://github.com/Lindt8/ng-imager
+    """.format(fmt=FORMAT_VERSION).strip()
+
+    if "README" in meta:
+        del meta["README"]
+    meta.create_dataset(
+        "README",
+        data=np.array(readme_text, dtype=h5py.string_dtype()),
+    )
+    
     return f
 
 
@@ -174,6 +209,8 @@ def write_cones(
             2 = carbon recoil (for neutron cones)
         If None, all zeros are stored.
     incident_energy_MeV : (N,)  float32 (En for n, Eg for g)
+    species_labels      : ["0=neutron", "1=gamma"]
+    recoil_code_labels  : ["0=NA", "1=proton", "2=carbon"]
     """
     grp = f.require_group("cones")
     for name in (
@@ -184,6 +221,8 @@ def write_cones(
             "species",
             "recoil_code",
             "incident_energy_MeV",
+            "species_labels",
+            "recoil_code_labels",
     ):
         if name in grp:
             del grp[name]
@@ -243,6 +282,19 @@ def write_cones(
         ["0=unknown_or_gamma", "1=proton", "2=carbon"],
         dtype=h5py.string_dtype(),
     )
+
+    # Visible legends as datasets (similar to /lm/materials/labels)
+    species_labels = np.array(
+        ["0=neutron", "1=gamma"],
+        dtype=h5py.string_dtype(),
+    )
+    recoil_labels = np.array(
+        ["0=NA/gamma/unknown", "1=proton", "2=carbon"],
+        dtype=h5py.string_dtype(),
+    )
+
+    grp.create_dataset("species_labels", data=species_labels)
+    grp.create_dataset("recoil_code_labels", data=recoil_labels)
 
     grp.create_dataset(
         "incident_energy_MeV",
@@ -501,15 +553,12 @@ def write_events_hits(
 
     lm_grp = f.require_group("lm")
 
-    # Store material vocabulary under /lm/materials
-    mats_grp = lm_grp.require_group("materials")
-    # Clear existing
-    for name in list(mats_grp.keys()):
-        del mats_grp[name]
-    mats_grp.create_dataset(
-        "labels",
-        data=np.array(material_list, dtype=h5py.string_dtype()),
-    )
+    # Store material vocabulary as a flat label list:
+    # index into this with hit_material_id
+    mat_labels = np.array(material_list, dtype=h5py.string_dtype())
+    if "hit_material_id_labels" in lm_grp:
+        del lm_grp["hit_material_id_labels"]
+    lm_grp.create_dataset("hit_material_id_labels", data=mat_labels)
 
     def _replace_or_create(name: str, data: np.ndarray):
         if name in lm_grp:
@@ -530,6 +579,16 @@ def write_events_hits(
     _replace_or_create("hit_L_mevee", hit_L)
     _replace_or_create("hit_det_id", hit_det)
     _replace_or_create("hit_material_id", hit_mat)
+    
+    # Legend for event_type (0=neutron, 1=gamma) as a visible dataset
+    event_type_labels = np.array(
+        ["0=neutron", "1=gamma"],
+        dtype=h5py.string_dtype(),
+    )
+    if "event_type_labels" in lm_grp:
+        del lm_grp["event_type_labels"]
+    lm_grp.create_dataset("event_type_labels", data=event_type_labels)
+
 
 
 def read_summed(path: str, species: str = "n") -> np.ndarray:
