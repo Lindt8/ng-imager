@@ -1067,9 +1067,11 @@ use_lut_bands       = false   # if true, use LUT-provided bands where available
 <h2 id="11-vis-visualization">11. [vis] – Visualization<a class="headerlink" href="#11-vis-visualization" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>[vis]
 export_png_on_write    = true
-species                = [&quot;n&quot;]
+species                = [&quot;n&quot;, &quot;g&quot;, &quot;all&quot;]
 center_on_plane_center = true
-flip_vertical          = false
+flip_vertical          = true
+axis_units             = &quot;cm&quot;          # &quot;cm&quot; or &quot;mm&quot;
+cmap                   = &quot;cividis&quot;
 filename_pattern       = &quot;{species}_{stem}.{ext}&quot;
 extra_formats          = []
 
@@ -1090,14 +1092,19 @@ extra_formats          = []
 </li>
 <li><code>"g"</code> – gamma-only image (<code>/images/summed/g</code>)</li>
 <li>
-<p><code>"all"</code> – combined neutron + gamma image (<code>/images/summed/all</code>, written only
-    when both species are present)</p>
+<p><code>"all"</code> – combined neutron + gamma image (<code>/images/summed/all</code>, written only when both species are present)</p>
 </li>
 <li>
 <p><code>center_on_plane_center</code> – if true, the u–v axes are shifted so that <code>(0, 0)</code> is at the imaging plane center. If false, the axes use the raw <code>grid.u_min</code> / <code>grid.v_min</code> coordinates stored in the HDF5 metadata.</p>
 </li>
 <li>
 <p><code>flip_vertical</code> – flips the plotted image vertically relative to the natural v-axis orientation. This is mainly useful for visual comparison with legacy images.</p>
+</li>
+<li>
+<p><code>axis_units</code> – units used for axis labels: <code>"cm"</code> (native) or <code>"mm"</code>. The underlying HDF5 metadata always stores geometry in centimeters; <code>"mm"</code> simply rescales labels by a factor of 10.</p>
+</li>
+<li>
+<p><code>cmap</code> – Matplotlib colormap name to use for the image (e.g. <code>"cividis"</code>).</p>
 </li>
 <li>
 <p><code>filename_pattern</code> – pattern for automatically generated file names. It is a Python <code>str.format</code> template and may reference:</p>
