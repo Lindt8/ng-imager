@@ -35,7 +35,7 @@ Fastmode neutron image:
 
 
 
-<pre> ``` <img src="legacy_code/autoSorted_coinc_detector_DT-14p8MeV_000041/fastmode/n_image_exp.png" width="500"/> ``` </pre>
+<img src="legacy_code/autoSorted_coinc_detector_DT-14p8MeV_000041/fastmode/n_image_exp.png" width="500" style="background:white; padding:10px;" />
 
 
 
