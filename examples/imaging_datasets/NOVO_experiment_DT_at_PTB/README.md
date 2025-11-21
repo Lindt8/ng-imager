@@ -33,13 +33,11 @@ Fastmode neutron image:
 
 <!-- ![](legacy_code/autoSorted_coinc_detector_DT-14p8MeV_000041/fastmode/n_image_exp.png) /-->
 
-<table>
-<tr><td style="background:white;">
 
-<img src="legacy_code/autoSorted_coinc_detector_DT-14p8MeV_000041/fastmode/n_image_exp.png" width="500"/>
 
-</td></tr>
-</table>
+<pre> ``` <img src="legacy_code/autoSorted_coinc_detector_DT-14p8MeV_000041/fastmode/n_image_exp.png" width="500"/> ``` </pre>
+
+
 
 Full higher-resolution neutron image:
 
