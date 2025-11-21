@@ -1066,18 +1066,54 @@ use_lut_bands       = false   # if true, use LUT-provided bands where available
 <hr />
 <h2 id="11-vis-visualization">11. [vis] – Visualization<a class="headerlink" href="#11-vis-visualization" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>[vis]
-export_png_on_write = true
-summed_dataset      = &quot;/images/summed/n&quot;
+export_png_on_write    = true
+species                = [&quot;n&quot;]
+center_on_plane_center = true
+flip_vertical          = false
+filename_pattern       = &quot;{species}_{stem}.{ext}&quot;
+extra_formats          = []
+
+# Advanced / legacy option:
+# summed_dataset       = &quot;/images/summed/n&quot;
 </code></pre></div>
+<p>Fields:</p>
 <ul>
-<li><code>export_png_on_write = true</code> asks the pipeline to render a PNG for one dataset in the output HDF5 file after reconstruction completes.</li>
 <li>
-<p><code>summed_dataset</code> allows you to choose what summed image to export, e.g.:</p>
-<p>/images/summed/n      – neutron-only
-/images/summed/g      – gamma-only
-/images/summed/all    – combined n+g (if present)</p>
+<p><code>export_png_on_write</code> – when true, the pipeline automatically renders image files from the reconstructed HDF5 output after stage 4 completes.</p>
+</li>
+<li>
+<p><code>species</code> – list of which summed images to render from <code>/images/summed</code>.
+  Allowed values:</p>
+</li>
+<li>
+<p><code>"n"</code> – neutron-only image (<code>/images/summed/n</code>)</p>
+</li>
+<li><code>"g"</code> – gamma-only image (<code>/images/summed/g</code>)</li>
+<li>
+<p><code>"all"</code> – combined neutron + gamma image (<code>/images/summed/all</code>, written only
+    when both species are present)</p>
+</li>
+<li>
+<p><code>center_on_plane_center</code> – if true, the u–v axes are shifted so that <code>(0, 0)</code> is at the imaging plane center. If false, the axes use the raw <code>grid.u_min</code> / <code>grid.v_min</code> coordinates stored in the HDF5 metadata.</p>
+</li>
+<li>
+<p><code>flip_vertical</code> – flips the plotted image vertically relative to the natural v-axis orientation. This is mainly useful for visual comparison with legacy images.</p>
+</li>
+<li>
+<p><code>filename_pattern</code> – pattern for automatically generated file names. It is a Python <code>str.format</code> template and may reference:</p>
+</li>
+<li>
+<p><code>{stem}</code> – the stem of the HDF5 file name (e.g. <code>"phits_usrdef_simple"</code>)</p>
+</li>
+<li><code>{species}</code> – <code>"n"</code>, <code>"g"</code>, or <code>"all"</code></li>
+<li>
+<p><code>{ext}</code> – the file extension (<code>"png"</code>, <code>"pdf"</code>, …)</p>
+</li>
+<li>
+<p><code>extra_formats</code> – list of additional output formats to write alongside PNG (for example <code>["pdf"]</code> to also write vector PDF figures with rasterized image data).</p>
 </li>
 </ul>
+<p>The older <code>summed_dataset</code> field is kept for backward compatibility with earlier versions and with the <code>ng-viz h5-to-png</code> command. For standard summed images you usually do not need to set it.</p>
 <hr />
 <h2 id="12-putting-it-together">12. Putting It Together<a class="headerlink" href="#12-putting-it-together" title="Permanent link">&para;</a></h2>
 <p>The example config file:</p>
