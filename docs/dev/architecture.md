@@ -1,4 +1,4 @@
-```markdown
+
 # ng-imager Architecture & Pipeline Overview  
 *(Design document and development guideline)*
 
