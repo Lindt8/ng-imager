@@ -31,7 +31,7 @@ docs = [
 ]
 
 [project.scripts]
-novo-viz = "ngimager.cli.viz:app"
+ng-viz = "ngimager.cli.viz:app"
 
 [tool.hatch.build]
 include = [

@@ -270,9 +270,51 @@ class UncertaintyCfg(BaseModel):
     use_lut_bands: bool = False
 
 class VisCfg(BaseModel):
+    """
+    Visualization configuration.
+
+    These options control automatic image export from the pipeline and provide
+    defaults for the standalone `ng-viz` CLI.
+    """
+
+    # When true, the pipeline writes image files after reconstruction completes.
     export_png_on_write: bool = True
-    # Default to neutron summed image, matching lm_store layout
+
+    # Legacy / advanced option: a single dataset path.
+    # Kept for backward compatibility with older configs and helper scripts.
     summed_dataset: str = "/images/summed/n"
+
+    # Which summed images to render automatically from `/images/summed`.
+    #
+    # Allowed values:
+    #   "n"   – neutron-only image  (`/images/summed/n`)
+    #   "g"   – gamma-only image    (`/images/summed/g`)
+    #   "all" – combined n+g image  (`/images/summed/all`)
+    species: list[Literal["n", "g", "all"]] = Field(
+        default_factory=lambda: ["n"],
+        description="List of image species to render automatically.",
+    )
+
+    # If true, shift the plotting coordinates so that (u, v) = (0, 0) is at
+    # the imaging plane center. If false, use raw grid.u_min/grid.v_min.
+    center_on_plane_center: bool = True
+
+    # If true, flip the plotted image vertically relative to the natural v-axis
+    # orientation. This is mainly useful for matching legacy images visually.
+    flip_vertical: bool = True
+
+    # File naming pattern for automatic exports. Available placeholders:
+    #
+    #   {stem}    – stem of the HDF5 filename (e.g. "phits_usrdef_simple")
+    #   {species} – "n", "g", or "all"
+    #   {ext}     – file extension ("png", "pdf", ...)
+    filename_pattern: str = "{species}_{stem}.{ext}"
+
+    # Additional output formats beyond PNG. The pipeline always writes PNG
+    # when export_png_on_write is true; any extra formats listed here will be
+    # written alongside (e.g. ["pdf"]).
+    extra_formats: list[str] = Field(default_factory=list)
+
 
 
 class Config(BaseModel):

@@ -368,15 +368,42 @@ This block is currently mostly reserved for future work. In the current code, th
 ## 11. [vis] – Visualization
 
     [vis]
-    export_png_on_write = true
-    summed_dataset      = "/images/summed/n"
+    export_png_on_write    = true
+    species                = ["n"]
+    center_on_plane_center = true
+    flip_vertical          = false
+    filename_pattern       = "{species}_{stem}.{ext}"
+    extra_formats          = []
 
-- `export_png_on_write = true` asks the pipeline to render a PNG for one dataset in the output HDF5 file after reconstruction completes.
-- `summed_dataset` allows you to choose what summed image to export, e.g.:
+    # Advanced / legacy option:
+    # summed_dataset       = "/images/summed/n"
 
-    /images/summed/n      – neutron-only
-    /images/summed/g      – gamma-only
-    /images/summed/all    – combined n+g (if present)
+Fields:
+
+- `export_png_on_write` – when true, the pipeline automatically renders image files from the reconstructed HDF5 output after stage 4 completes.
+
+- `species` – list of which summed images to render from `/images/summed`.
+  Allowed values:
+
+  - `"n"` – neutron-only image (`/images/summed/n`)
+  - `"g"` – gamma-only image (`/images/summed/g`)
+  - `"all"` – combined neutron + gamma image (`/images/summed/all`, written only
+    when both species are present)
+
+- `center_on_plane_center` – if true, the u–v axes are shifted so that `(0, 0)` is at the imaging plane center. If false, the axes use the raw `grid.u_min` / `grid.v_min` coordinates stored in the HDF5 metadata.
+
+- `flip_vertical` – flips the plotted image vertically relative to the natural v-axis orientation. This is mainly useful for visual comparison with legacy images.
+
+- `filename_pattern` – pattern for automatically generated file names. It is a Python `str.format` template and may reference:
+
+  - `{stem}` – the stem of the HDF5 file name (e.g. `"phits_usrdef_simple"`)
+  - `{species}` – `"n"`, `"g"`, or `"all"`
+  - `{ext}` – the file extension (`"png"`, `"pdf"`, …)
+
+- `extra_formats` – list of additional output formats to write alongside PNG (for example `["pdf"]` to also write vector PDF figures with rasterized image data).
+
+The older `summed_dataset` field is kept for backward compatibility with earlier versions and with the `ng-viz h5-to-png` command. For standard summed images you usually do not need to set it.
+
 
 ---
 

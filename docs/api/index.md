@@ -128,7 +128,7 @@ Command-line entry point and basic visualization utilities.
 
 ### `ngimager.cli.viz`
 
-The `novo-viz` CLI application: entry point for running imaging from the shell.
+The `ng-viz` CLI application: entry point for visualizing ng-imager HDF5 outputs.
 
 ::: ngimager.cli.viz
 

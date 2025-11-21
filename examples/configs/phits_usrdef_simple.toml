@@ -180,5 +180,11 @@ sigma_time_ns = 0.5
 use_lut_bands = false  # if true, read E_lo/E_hi from LUTs where available
 
 [vis]
-export_png_on_write = true           # default true
-summed_dataset = "/images/summed/n"     # override if needed
+export_png_on_write    = true           # render images after reconstruction
+species                = ["n", "g", "all"]
+center_on_plane_center = true
+filename_pattern       = "{stem}_{species}.{ext}"
+# flip_vertical          = true
+# extra_formats          = ["pdf"]
+# summed_dataset       = "/images/summed/n"  # advanced / legacy option
+

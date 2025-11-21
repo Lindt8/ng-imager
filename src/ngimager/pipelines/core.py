@@ -58,7 +58,7 @@ from ngimager.filters.to_typed_events import shaped_to_typed_events
 from ngimager.filters.hit_filters import apply_hit_filters, is_reconstructable
 from ngimager.filters.cone_filters import passes_delta_theta_cut
 from ngimager.filters.event_filters import apply_event_filters
-from ngimager.vis.hdf import save_summed_png
+from ngimager.vis.hdf import render_summed_images
 
 def _inc(counters: Dict[str, int], key: str, delta: int = 1) -> None:
     """
@@ -789,16 +789,37 @@ def run_pipeline(
     
     f.close()
 
-    # Optional PNG export
+    # Optional image export
     if getattr(cfg, "vis", None) and getattr(cfg.vis, "export_png_on_write", False):
         try:
-            dset = getattr(cfg.vis, "summed_dataset", "/images/summed/n")
-            out_png = save_summed_png(str(out_path), dataset=dset)
+            # Species to render (n/g/all)
+            species = getattr(cfg.vis, "species", ["n"])
+
+            # Always include PNG; add extra formats from config (e.g. ["pdf"])
+            formats = ["png"]
+            extra = getattr(cfg.vis, "extra_formats", [])
+            for fmt in extra:
+                fmt = str(fmt).lower()
+                if fmt and fmt not in formats:
+                    formats.append(fmt)
+
+            image_paths = render_summed_images(
+                str(out_path),
+                species=species,
+                filename_pattern=getattr(cfg.vis, "filename_pattern", "{species}_{stem}.{ext}"),
+                center_on_plane_center=getattr(cfg.vis, "center_on_plane_center", True),
+                flip_vertical=getattr(cfg.vis, "flip_vertical", False),
+                formats=formats,
+            )
+
             if cfg.run.diagnostics_level >= 1:
-                print(f"[stage4] Wrote PNG {out_png} from {dset}")
+                if image_paths:
+                    print("[stage4] Wrote images: " + ", ".join(str(p) for p in image_paths))
+                else:
+                    print("[stage4] No /images/summed/* datasets found to visualize")
         except Exception as e:
             if cfg.run.diagnostics_level >= 1:
-                print(f"[stage4] PNG export failed: {e!r}")
+                print(f"[stage4] Image export failed: {e!r}")
 
     return out_path
 
@@ -807,7 +828,7 @@ def run_pipeline(
 # Unified CLI entry point
 # ---------------------------------------------------------------------------
 
-app = typer.Typer(help="Unified NOVO imaging pipeline (ngimager.pipelines.core)")
+app = typer.Typer(help="Unified ng-imager imaging pipeline (ngimager.pipelines.core)")
 
 
 @app.command()
