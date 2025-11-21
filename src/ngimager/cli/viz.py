@@ -17,7 +17,7 @@ def summed(
         help="Path to ng-imager HDF5 file (must contain /images/summed/*).",
     ),
     species: List[str] = typer.Option(
-        ["n"],
+        ["n", "g", "all"],
         "--species",
         "-s",
         help="Which images to render from /images/summed: any of 'n', 'g', 'all'.",
@@ -28,9 +28,19 @@ def summed(
         help="Center axes on the imaging plane center.",
     ),
     flip_vertical: bool = typer.Option(
-        False,
+        True,
         "--flip-vertical/--no-flip-vertical",
         help="Flip the plotted image vertically (mainly for legacy comparison).",
+    ),
+    axis_units: str = typer.Option(
+        "cm",
+        "--axis-units",
+        help="Axis units for plotting: 'cm' or 'mm'.",
+    ),
+    cmap: str = typer.Option(
+        "cividis",
+        "--cmap",
+        help="Matplotlib colormap to use (e.g. 'cividis', 'viridis').",
     ),
     filename_pattern: str = typer.Option(
         "{species}_{stem}.{ext}",
@@ -53,6 +63,8 @@ def summed(
         filename_pattern=filename_pattern,
         center_on_plane_center=center_on_plane_center,
         flip_vertical=flip_vertical,
+        axis_units=axis_units,
+        cmap=cmap,
         formats=fmt,
     )
     if not out_paths:

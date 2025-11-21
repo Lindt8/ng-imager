@@ -793,7 +793,7 @@ def run_pipeline(
     if getattr(cfg, "vis", None) and getattr(cfg.vis, "export_png_on_write", False):
         try:
             # Species to render (n/g/all)
-            species = getattr(cfg.vis, "species", ["n"])
+            species = getattr(cfg.vis, "species", ["n", "g", "all"])
 
             # Always include PNG; add extra formats from config (e.g. ["pdf"])
             formats = ["png"]
@@ -808,7 +808,9 @@ def run_pipeline(
                 species=species,
                 filename_pattern=getattr(cfg.vis, "filename_pattern", "{species}_{stem}.{ext}"),
                 center_on_plane_center=getattr(cfg.vis, "center_on_plane_center", True),
-                flip_vertical=getattr(cfg.vis, "flip_vertical", False),
+                flip_vertical=getattr(cfg.vis, "flip_vertical", True),
+                axis_units=getattr(cfg.vis, "axis_units", "cm"),
+                cmap=getattr(cfg.vis, "cmap", "cividis"),
                 formats=formats,
             )
 
@@ -820,6 +822,8 @@ def run_pipeline(
         except Exception as e:
             if cfg.run.diagnostics_level >= 1:
                 print(f"[stage4] Image export failed: {e!r}")
+
+
 
     return out_path
 

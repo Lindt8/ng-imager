@@ -289,9 +289,9 @@ class VisCfg(BaseModel):
     # Allowed values:
     #   "n"   – neutron-only image  (`/images/summed/n`)
     #   "g"   – gamma-only image    (`/images/summed/g`)
-    #   "all" – combined n+g image  (`/images/summed/all`)
+    #   "all" – combined n+g image  (`/images/summed/all`, only when both exist)
     species: list[Literal["n", "g", "all"]] = Field(
-        default_factory=lambda: ["n"],
+        default_factory=lambda: ["n", "g", "all"],
         description="List of image species to render automatically.",
     )
 
@@ -302,6 +302,13 @@ class VisCfg(BaseModel):
     # If true, flip the plotted image vertically relative to the natural v-axis
     # orientation. This is mainly useful for matching legacy images visually.
     flip_vertical: bool = True
+
+    # Units for plotting axes: "cm" (native) or "mm".
+    # Internally, grids are stored in cm; mm just rescales labels.
+    axis_units: Literal["cm", "mm"] = "cm"
+
+    # Matplotlib colormap name to use for images (e.g. "cividis", "viridis").
+    cmap: str = "cividis"
 
     # File naming pattern for automatic exports. Available placeholders:
     #
@@ -314,6 +321,7 @@ class VisCfg(BaseModel):
     # when export_png_on_write is true; any extra formats listed here will be
     # written alongside (e.g. ["pdf"]).
     extra_formats: list[str] = Field(default_factory=list)
+
 
 
 

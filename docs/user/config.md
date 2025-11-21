@@ -369,9 +369,11 @@ This block is currently mostly reserved for future work. In the current code, th
 
     [vis]
     export_png_on_write    = true
-    species                = ["n"]
+    species                = ["n", "g", "all"]
     center_on_plane_center = true
-    flip_vertical          = false
+    flip_vertical          = true
+    axis_units             = "cm"          # "cm" or "mm"
+    cmap                   = "cividis"
     filename_pattern       = "{species}_{stem}.{ext}"
     extra_formats          = []
 
@@ -387,12 +389,15 @@ Fields:
 
   - `"n"` – neutron-only image (`/images/summed/n`)
   - `"g"` – gamma-only image (`/images/summed/g`)
-  - `"all"` – combined neutron + gamma image (`/images/summed/all`, written only
-    when both species are present)
+  - `"all"` – combined neutron + gamma image (`/images/summed/all`, written only when both species are present)
 
 - `center_on_plane_center` – if true, the u–v axes are shifted so that `(0, 0)` is at the imaging plane center. If false, the axes use the raw `grid.u_min` / `grid.v_min` coordinates stored in the HDF5 metadata.
 
 - `flip_vertical` – flips the plotted image vertically relative to the natural v-axis orientation. This is mainly useful for visual comparison with legacy images.
+
+- `axis_units` – units used for axis labels: `"cm"` (native) or `"mm"`. The underlying HDF5 metadata always stores geometry in centimeters; `"mm"` simply rescales labels by a factor of 10.
+
+- `cmap` – Matplotlib colormap name to use for the image (e.g. `"cividis"`).
 
 - `filename_pattern` – pattern for automatically generated file names. It is a Python `str.format` template and may reference:
 

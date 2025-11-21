@@ -63,15 +63,18 @@ def _image_axes_from_meta(
     meta: Optional[h5py.Group],
     *,
     center_on_plane_center: bool = True,
-) -> tuple[Optional[tuple[float, float, float, float]], str, str]:
+    axis_units: str = "cm",
+) -> tuple[Optional[tuple[float, float, float, float]], str, str, float, float]:
     """
     Derive imshow extent and axis labels from /meta attributes.
 
-    Returns (extent, xlabel, ylabel), where extent is (u_min, u_max, v_min, v_max)
-    in centimeters, or None if we cannot infer physical axes.
+    Returns (extent, xlabel, ylabel, du, dv), where:
+      - extent is (u_min, u_max, v_min, v_max) in requested units,
+        or None if we cannot infer physical axes.
+      - du, dv are the pixel sizes in those same units (>=0, or 0 if unknown).
     """
     if meta is None:
-        return None, "u (pixels)", "v (pixels)"
+        return None, "u [pixels]", "v [pixels]", 0.0, 0.0
 
     attrs = meta.attrs
 
@@ -79,8 +82,9 @@ def _image_axes_from_meta(
     u_max = _safe_get_attr(attrs, "grid.u_max")
     v_min = _safe_get_attr(attrs, "grid.v_min")
     v_max = _safe_get_attr(attrs, "grid.v_max")
+    du = _safe_get_attr(attrs, "grid.du", 0.0) or 0.0
+    dv = _safe_get_attr(attrs, "grid.dv", 0.0) or 0.0
 
-    extent: Optional[tuple[float, float, float, float]]
     if None in (u_min, u_max, v_min, v_max):
         extent = None
     else:
@@ -97,26 +101,39 @@ def _image_axes_from_meta(
             float(v_max - v_center),  # type: ignore[operator,arg-type]
         )
 
+    # Convert to requested units (cm → mm if needed)
+    scale = 1.0
+    unit_str = "cm"
+    if axis_units == "mm":
+        scale = 10.0
+        unit_str = "mm"
+
+    if extent is not None:
+        extent = tuple(scale * x for x in extent)  # type: ignore[assignment]
+    du *= scale
+    dv *= scale
+
     # Try to infer world-axis alignment for u, v
     eu = attrs.get("plane.eu")
     ev = attrs.get("plane.ev")
     u_world = _basis_world_name(np.asarray(eu)) if eu is not None else None
     v_world = _basis_world_name(np.asarray(ev)) if ev is not None else None
 
+    # Labels: include both u/v and world axes when aligned
     if u_world and v_world:
-        xlabel = f"u / {u_world} [cm]"
-        ylabel = f"v / {v_world} [cm]"
+        xlabel = f"u / {u_world} [{unit_str}]"
+        ylabel = f"v / {v_world} [{unit_str}]"
     elif u_world:
-        xlabel = f"u / {u_world} [cm]"
-        ylabel = "v [cm]"
+        xlabel = f"u / {u_world} [{unit_str}]"
+        ylabel = f"v [{unit_str}]"
     elif v_world:
-        xlabel = "u [cm]"
-        ylabel = f"v / {v_world} [cm]"
+        xlabel = f"u [{unit_str}]"
+        ylabel = f"v / {v_world} [{unit_str}]"
     else:
-        xlabel = "u [cm]"
-        ylabel = "v [cm]"
+        xlabel = f"u [{unit_str}]"
+        ylabel = f"v [{unit_str}]"
 
-    return extent, xlabel, ylabel
+    return extent, xlabel, ylabel, du, dv
 
 
 def _cone_counts(meta: Optional[h5py.Group]) -> dict[str, Optional[int]]:
@@ -153,6 +170,10 @@ def _render_single_image(
     count_text: Optional[str] = None,
     flip_vertical: bool = False,
     rasterized: bool = False,
+    cmap: str = "cividis",
+    du: float = 0.0,
+    dv: float = 0.0,
+    unit_str: str = "cm",
 ) -> None:
     """
     Internal helper: render a 2D array to an image file.
@@ -163,12 +184,17 @@ def _render_single_image(
     fig, ax = plt.subplots(figsize=(6, 5))
 
     if extent is not None:
-        im = ax.imshow(data, origin="lower", extent=extent, rasterized=rasterized)
+        im = ax.imshow(data, origin="lower", extent=extent, rasterized=rasterized, cmap=cmap)
     else:
-        im = ax.imshow(data, origin="lower", rasterized=rasterized)
+        im = ax.imshow(data, origin="lower", rasterized=rasterized, cmap=cmap)
 
     cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label("Counts (arb.)")
+
+    # Colorbar label with pixel area if known
+    if du > 0.0 and dv > 0.0:
+        cbar.set_label(f"counts per {du:.2f} × {dv:.2f} {unit_str}² pixel")
+    else:
+        cbar.set_label("counts")
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
@@ -182,11 +208,11 @@ def _render_single_image(
 
     if lines:
         ax.text(
-            0.01,
+            0.99,
             0.99,
             "\n".join(lines),
             transform=ax.transAxes,
-            ha="left",
+            ha="right",
             va="top",
             fontsize=9,
             bbox=dict(boxstyle="round,pad=0.2", facecolor="white", alpha=0.75),
@@ -232,7 +258,7 @@ def save_summed_png(
             raise ValueError(f"Dataset {dataset!r} is not 2D (shape={data.shape!r})")
 
         meta = f["meta"] if "meta" in f else None
-        extent, xlabel, ylabel = _image_axes_from_meta(meta, center_on_plane_center=True)
+        extent, xlabel, ylabel, du, dv = _image_axes_from_meta(meta, center_on_plane_center=True, axis_units="cm")
 
         _render_single_image(
             data,
@@ -245,6 +271,10 @@ def save_summed_png(
             count_text=None,
             flip_vertical=False,
             rasterized=False,
+            cmap="cividis",
+            du=du,
+            dv=dv,
+            unit_str="cm",
         )
 
     return str(out_path)
@@ -252,11 +282,13 @@ def save_summed_png(
 
 def render_summed_images(
     h5_path: str | Path,
-    species: Sequence[str] = ("n",),
+    species: Sequence[str] = ("n", "g", "all"),
     *,
     filename_pattern: str = "{species}_{stem}.{ext}",
     center_on_plane_center: bool = True,
-    flip_vertical: bool = False,
+    flip_vertical: bool = True,
+    axis_units: str = "cm",
+    cmap: str = "cividis",
     formats: Sequence[str] = ("png",),
 ) -> list[Path]:
     """
@@ -269,6 +301,8 @@ def render_summed_images(
         Path to the ng-imager HDF5 output file.
     species:
         Iterable of species strings: any combination of "n", "g", "all".
+        If "all" is requested but only one of n/g is present, the "all" image
+        is skipped to avoid redundant copies.
     filename_pattern:
         Format string for output filenames. It may reference:
           - {stem}:    stem of the HDF5 file name
@@ -281,6 +315,11 @@ def render_summed_images(
         If True, flip the plotted image vertically relative to the natural
         v-axis orientation. This is mainly useful for comparison with legacy
         images.
+    axis_units:
+        Units for axes ("cm" or "mm"). Values are derived from /meta, which
+        stores geometry in centimeters; "mm" rescales labels by 10.
+    cmap:
+        Matplotlib colormap name (e.g. "cividis").
     formats:
         Iterable of output formats (e.g. ["png", "pdf"]).
 
@@ -290,8 +329,14 @@ def render_summed_images(
         A list of written image paths.
     """
     h5_path = Path(h5_path)
-    species_list = [s for s in species if s in ("n", "g", "all")]
-    if not species_list:
+
+    # Deduplicate species while preserving order, and only keep known keys
+    requested_species = []
+    for s in species:
+        if s in ("n", "g", "all") and s not in requested_species:
+            requested_species.append(s)
+
+    if not requested_species:
         return []
 
     # Deduplicate formats while preserving order
@@ -307,13 +352,35 @@ def render_summed_images(
 
     with h5py.File(h5_path, "r") as f:
         meta = f["meta"] if "meta" in f else None
-        extent, xlabel, ylabel = _image_axes_from_meta(
+        extent, xlabel, ylabel, du, dv = _image_axes_from_meta(
             meta,
             center_on_plane_center=center_on_plane_center,
+            axis_units=axis_units,
         )
+        unit_str = "mm" if axis_units == "mm" else "cm"
         counts = _cone_counts(meta)
 
-        for s in species_list:
+        # Determine which species are actually present
+        have_n = "/images/summed/n" in f
+        have_g = "/images/summed/g" in f
+
+        # Apply "all only when both exist" rule
+        effective_species: list[str] = []
+        for s in requested_species:
+            if s == "all":
+                if have_n and have_g and "/images/summed/all" in f:
+                    effective_species.append("all")
+            elif s == "n":
+                if have_n:
+                    effective_species.append("n")
+            elif s == "g":
+                if have_g:
+                    effective_species.append("g")
+
+        if not effective_species:
+            return []
+
+        for s in effective_species:
             dset_path = f"/images/summed/{s}"
             if dset_path not in f:
                 continue
@@ -326,6 +393,7 @@ def render_summed_images(
             title = f"{label} cones – {h5_path.name}"
             subtitle = dset_path
 
+            # Cone-count annotation
             count_text: Optional[str] = None
             n = counts.get("n")
             g = counts.get("g")
@@ -361,6 +429,10 @@ def render_summed_images(
                     count_text=count_text,
                     flip_vertical=flip_vertical,
                     rasterized=(ext == "pdf"),
+                    cmap=cmap,
+                    du=du,
+                    dv=dv,
+                    unit_str=unit_str,
                 )
                 out_paths.append(out_path)
 

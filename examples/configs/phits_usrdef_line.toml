@@ -87,8 +87,8 @@ u_min = -15.0
 u_max =  15.0
 v_min = -15.0
 v_max =  15.0
-du = 0.2
-dv = 0.2
+du = 0.1
+dv = 0.1
 
 [filters.hits]
 # Universal hit-level cuts applied before event shaping
@@ -191,6 +191,7 @@ use_lut_bands = false  # if true, read E_lo/E_hi from LUTs where available
 export_png_on_write    = true           # render images after reconstruction
 species                = ["n", "g", "all"]
 center_on_plane_center = true
+axis_units             = "mm"          # "cm" or "mm"
 filename_pattern       = "{stem}_{species}.{ext}"
 # flip_vertical          = true
 # extra_formats          = ["pdf"]

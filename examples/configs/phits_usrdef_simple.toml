@@ -183,6 +183,7 @@ use_lut_bands = false  # if true, read E_lo/E_hi from LUTs where available
 export_png_on_write    = true           # render images after reconstruction
 species                = ["n", "g", "all"]
 center_on_plane_center = true
+axis_units             = "mm"          # "cm" or "mm"
 filename_pattern       = "{stem}_{species}.{ext}"
 # flip_vertical          = true
 # extra_formats          = ["pdf"]
