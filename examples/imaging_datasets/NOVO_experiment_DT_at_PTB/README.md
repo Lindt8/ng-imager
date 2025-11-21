@@ -31,7 +31,15 @@ _(Note: 2D centroid-locating techniques are better suited to this purpose, and a
 
 Fastmode neutron image:
 
-![](legacy_code/autoSorted_coinc_detector_DT-14p8MeV_000041/fastmode/n_image_exp.png)
+<!-- ![](legacy_code/autoSorted_coinc_detector_DT-14p8MeV_000041/fastmode/n_image_exp.png) /-->
+
+<table>
+<tr><td style="background:white;">
+
+<img src="legacy_code/autoSorted_coinc_detector_DT-14p8MeV_000041/fastmode/n_image_exp.png" width="500"/>
+
+</td></tr>
+</table>
 
 Full higher-resolution neutron image:
 
