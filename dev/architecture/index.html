@@ -1545,6 +1545,8 @@ It serves both as:
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">workers</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;auto&quot;</span><span class="w">     </span><span class="c1"># SBP worker count: &quot;auto&quot; or integer</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">chunk_cones</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;auto&quot;</span><span class="w">     </span><span class="c1"># SBP chunk size: &quot;auto&quot; or integer</span>
 <a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">progress</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">       </span><span class="c1"># show SBP progress bars if available</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">sbp_engine</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;scan&quot;</span><span class="w">   </span><span class="c1"># &quot;scan&quot; (continuous, matrix math) or &quot;poly&quot; (fast perimeter)</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">jit</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">            </span><span class="c1"># use Numba acceleration for the scan engine if available</span>
 </code></pre></div>
 <ul>
 <li><code>fast</code> and <code>list</code> are <strong>modifiers</strong> of the standard pipeline, not separate pipelines.</li>
@@ -2230,6 +2232,17 @@ It serves both as:
 <li>Computes cone–plane intersections analytically.</li>
 <li>Rasterizes each intersection into the plane’s pixel grid.</li>
 </ul>
+<p>SBP now supports two rasterization engines (selectable via <code>[run].sbp_engine</code>):</p>
+<ul>
+<li><code>"scan"</code> (default) — A full matrix-math engine that solves the conic equation on every horizontal and vertical pixel-centered scan line. This method guarantees continuous ellipse/hyperbola arcs and is resolution-adaptive.</li>
+<li><code>"poly"</code> — The legacy-like parametric perimeter sampler.<br />
+  Fast, but may produce dotted arcs at high resolutions.</li>
+</ul>
+<p>When <code>[run].jit = true</code> and Numba is installed, the scan engine uses a JIT-compiled inner loop, providing large speedups while keeping the exact same mathematical behavior.</p>
+<p>The imaging stage chooses the engine with:</p>
+<div class="highlight"><pre><span></span><code>sbp_engine = cfg.run.sbp_engine # &quot;scan&quot; or &quot;poly&quot;
+use_jit = cfg.run.jit # True/False
+</code></pre></div>
 <p>Current return type (<code>ReconResult</code>):</p>
 <ul>
 <li><code>summed_n</code>: summed image from neutron cones.</li>
@@ -2689,6 +2702,8 @@ It serves both as:
 <li>[x] Implement gamma cone-building for 3-hit Compton events in <code>physics.cones</code>, including permutation testing and prior-based Δ = |φ − θ| scoring; treat this path as validated for PHITS-based model data, with ROOT validation pending.</li>
 <li>[x] Extend neutron cone construction to support explicit proton vs carbon candidate branches, including directionality checks analogous to the gamma <code>t_int &gt; 0</code> test.</li>
 <li>[x] Implement combined n/g/all SBP images at the imaging stage (<code>/images/summed/n</code>, <code>/images/summed/g</code>, <code>/images/summed/all</code>).</li>
+<li>[x] Implemented dual SBP engines ("scan" and "poly") with configuration via <code>[run].sbp_engine</code> and optional Numba acceleration via <code>[run].jit</code>.</li>
+<li>[x] "scan" engine reproduces the legacy <code>image_via_matrix_math</code> behavior and guarantees continuous conic arcs on the imaging plane.</li>
 </ul>
 <p>Neutron proton vs carbon recoil hypothesis handling:</p>
 <ul>
