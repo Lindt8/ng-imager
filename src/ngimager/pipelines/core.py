@@ -716,6 +716,7 @@ def run_pipeline(
             # uncertainty_mode stays at default "off" for now
             progress=cfg.run.progress,
             sbp_engine=sbp_engine,
+            use_jit=cfg.run.jit,
         )
 
         img_n = recon_n.summed.astype(np.float32)
@@ -743,6 +744,7 @@ def run_pipeline(
             list_mode=False,  # LM handled separately below
             progress=cfg.run.progress,
             sbp_engine=sbp_engine,
+            use_jit=cfg.run.jit,
         )
 
         img_g = recon_g.summed.astype(np.float32)
@@ -786,7 +788,7 @@ def run_pipeline(
         # For list-mode runs, we can now also record which cones actually
         # intersected the plane (non-empty pixel sets) on a per-event basis.
         for cid, c, ev_idx in zip(cone_ids, cones_for_sbp, cone_event_index):
-            idx = cone_to_indices(c, plane, engine=sbp_engine, n_poly=360)  # match SBP default
+            idx = cone_to_indices(c, plane, engine=sbp_engine, n_poly=360, use_jit=cfg.run.jit)  # match SBP default
             if idx is None or idx.size == 0:
                 continue
             lm_cone_pixel_lists.append((int(cid), idx))

@@ -23,7 +23,7 @@ list = true                   # also write list-mode per-cone sparse images
 # Execution / performance
 workers     = 0                # 0 = auto
 chunk_cones = "auto"
-jit         = false
+jit         = true
 progress    = true
 
 # Diagnostics verbosity

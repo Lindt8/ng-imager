@@ -250,6 +250,9 @@ diagnostics_level = 1          # 0 = silent, 1 = normal, 2 = verbose
 workers           = "auto"     # SBP worker count: "auto" or integer
 chunk_cones       = "auto"     # SBP chunk size: "auto" or integer
 progress          = true       # show SBP progress bars if available
+sbp_engine        = "scan"   # "scan" (continuous, matrix math) or "poly" (fast perimeter)
+jit               = true            # use Numba acceleration for the scan engine if available
+
 ```
 
 - `fast` and `list` are **modifiers** of the standard pipeline, not separate pipelines.
@@ -1017,6 +1020,20 @@ It is constructed from `[plane]` config entries via `Plane.from_cfg(...)`.
 - Computes cone–plane intersections analytically.
 - Rasterizes each intersection into the plane’s pixel grid.
 
+SBP now supports two rasterization engines (selectable via `[run].sbp_engine`):
+
+- `"scan"` (default) — A full matrix-math engine that solves the conic equation on every horizontal and vertical pixel-centered scan line. This method guarantees continuous ellipse/hyperbola arcs and is resolution-adaptive.
+- `"poly"` — The legacy-like parametric perimeter sampler.  
+  Fast, but may produce dotted arcs at high resolutions.
+
+When `[run].jit = true` and Numba is installed, the scan engine uses a JIT-compiled inner loop, providing large speedups while keeping the exact same mathematical behavior.
+
+The imaging stage chooses the engine with:
+
+    sbp_engine = cfg.run.sbp_engine # "scan" or "poly"
+    use_jit = cfg.run.jit # True/False
+
+
 Current return type (`ReconResult`):
 
 - `summed_n`: summed image from neutron cones.
@@ -1441,6 +1458,8 @@ This checklist tracks migration from the current state to the architecture descr
 - [x] Implement gamma cone-building for 3-hit Compton events in `physics.cones`, including permutation testing and prior-based Δ = |φ − θ| scoring; treat this path as validated for PHITS-based model data, with ROOT validation pending.
 - [x] Extend neutron cone construction to support explicit proton vs carbon candidate branches, including directionality checks analogous to the gamma `t_int > 0` test.
 - [x] Implement combined n/g/all SBP images at the imaging stage (`/images/summed/n`, `/images/summed/g`, `/images/summed/all`).
+- [x] Implemented dual SBP engines ("scan" and "poly") with configuration via `[run].sbp_engine` and optional Numba acceleration via `[run].jit`.
+- [x] "scan" engine reproduces the legacy `image_via_matrix_math` behavior and guarantees continuous conic arcs on the imaging plane.
 
 Neutron proton vs carbon recoil hypothesis handling:
 
