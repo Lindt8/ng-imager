@@ -819,12 +819,18 @@ diagnostics_level = 2   # 0=off, 1=minimal, 2=verbose
 
 # Limits
 max_cones = 50000       # hard cap on number of cones to build / image
+
+# SBP imaging engine:
+#   &quot;scan&quot; – matrix scan across pixel-centered lines (continuous arcs)
+#   &quot;poly&quot; – perimeter sampling (faster, but may show dotted arcs)
+sbp_engine = &quot;scan&quot;
 </code></pre></div>
 <p>Notes:</p>
 <ul>
 <li><code>fast = true</code> activates fast-mode overrides defined under <code>[filters.fast]</code>.</li>
 <li><code>list = true</code> asks the recon to keep per-cone pixel indices and to emit list-mode datasets under <code>/lm/...</code> in the HDF5 output.</li>
 <li><code>workers = 0</code> forces a single-process SBP path (nice for debugging); <code>"auto"</code> or an integer &gt; 0 uses multi-process SBP.</li>
+<li><code>sbp_engine</code> selects the simple back-projection engine: <code>"scan"</code> (matrix scan, visually smooth arcs) or <code>"poly"</code> (perimeter sampler, usually faster).</li>
 </ul>
 <hr />
 <h2 id="3-pipeline-how-far-to-run">3. [pipeline] – How Far to Run<a class="headerlink" href="#3-pipeline-how-far-to-run" title="Permanent link">&para;</a></h2>
@@ -997,6 +1003,11 @@ max_cones = 20000
 # Coarsen the imaging plane by this integer factor:
 # du&#39; = du * plane_downsample, dv&#39; = dv * plane_downsample
 plane_downsample = 2
+
+# SBP imaging engine:
+#   &quot;scan&quot; – matrix scan across pixel-centered lines (continuous arcs)
+#   &quot;poly&quot; – perimeter sampling (faster, but may show dotted arcs)
+sbp_engine = &quot;poly&quot;
 </code></pre></div>
 <p>Any fast-mode cut that is defined will override the corresponding normal cut when <code>run.fast = true</code>. The exact field names and behavior are kept intentionally minimal so that the fast-mode logic does not diverge too far from the main configuration.</p>
 <hr />
