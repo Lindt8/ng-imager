@@ -48,7 +48,7 @@ from ngimager.io.lm_store import (
     write_event_cone_survival,
 )
 from ngimager.io.lut import build_lut_registry
-from ngimager.imaging.sbp import reconstruct_sbp, Cone, _cone_to_indices
+from ngimager.imaging.sbp import reconstruct_sbp, Cone, cone_to_indices
 from ngimager.physics.cones import build_cone_from_neutron, build_cone_from_gamma
 from ngimager.physics.events import NeutronEvent, GammaEvent, Event
 from ngimager.physics.energy_strategies import make_energy_strategy
@@ -116,6 +116,19 @@ def _apply_fast_overrides(cfg: Config, diag_level: int = 1) -> None:
         except Exception as exc:
             if diag_level >= 1:
                 print(f"[run] fast mode plane downsample failed: {exc!r}")
+                
+    # ---- SBP engine override ------------------------------------------
+    # If [fast].sbp_engine is explicitly set, use it. Otherwise, when
+    # [run].fast = true and the user left run.sbp_engine at its default
+    # ("scan"), we implicitly switch to "poly" for speed.
+    if getattr(fast_cfg, "sbp_engine", None) is not None:
+        cfg.run.sbp_engine = fast_cfg.sbp_engine
+    else:
+        # Implicit default: fast mode prefers "poly" unless the user chose
+        # something else in [run].
+        if getattr(cfg.run, "sbp_engine", "scan") == "scan":
+            cfg.run.sbp_engine = "poly"
+
 
 
 def _iter_source_events(cfg: Config) -> Iterable[Event]:
@@ -668,8 +681,8 @@ def run_pipeline(
     # ---- Stage 4: Cones → imaging/reconstruction (SPB) ----
     if diag_level >= 1:
         print("\n[stage4] Cones → imaging / reconstruction (SBP)")
-    # SBP reconstruction
-    from ngimager.imaging.sbp import reconstruct_sbp, Cone
+    # Choose SBP engine from config
+    sbp_engine = getattr(cfg.run, "sbp_engine", "scan")
 
     # Build Cone objects from the geometry arrays
     cones_for_sbp: list[Cone] = [
@@ -702,6 +715,7 @@ def run_pipeline(
             list_mode=False,  # LM handled separately below
             # uncertainty_mode stays at default "off" for now
             progress=cfg.run.progress,
+            sbp_engine=sbp_engine,
         )
 
         img_n = recon_n.summed.astype(np.float32)
@@ -728,6 +742,7 @@ def run_pipeline(
             chunk_cones=cfg.run.chunk_cones,
             list_mode=False,  # LM handled separately below
             progress=cfg.run.progress,
+            sbp_engine=sbp_engine,
         )
 
         img_g = recon_g.summed.astype(np.float32)
@@ -771,7 +786,7 @@ def run_pipeline(
         # For list-mode runs, we can now also record which cones actually
         # intersected the plane (non-empty pixel sets) on a per-event basis.
         for cid, c, ev_idx in zip(cone_ids, cones_for_sbp, cone_event_index):
-            idx = _cone_to_indices(c, plane, n_poly=360)  # match SBP default
+            idx = cone_to_indices(c, plane, engine=sbp_engine, n_poly=360)  # match SBP default
             if idx is None or idx.size == 0:
                 continue
             lm_cone_pixel_lists.append((int(cid), idx))

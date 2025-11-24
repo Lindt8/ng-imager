@@ -4,8 +4,15 @@ from typing import Literal, Optional, Dict, List, Union, Any
 
 class RunCfg(BaseModel):
     """
-        Global run controls (see docs/dev/architecture.md §3.1).
-        """
+        Global run controls that apply to the entire pipeline.
+
+        source_type:
+            "cf252" | "dt" | "proton_center" | "phits"
+        fast:
+            Enable fast-mode overrides (see FastCfg and [fast] section).
+        list:
+            Enable list-mode imaging output (/lm/cone_pixel_indices, etc.).
+    """
 
     # Which species to process
     neutrons: bool = True
@@ -19,7 +26,7 @@ class RunCfg(BaseModel):
     source_type: Literal["cf252", "dt", "proton_center", "phits"] = "proton_center"
 
     # Performance / execution
-    workers: Union[int, Literal["auto"]] = "auto"
+    workers: Union[int, Literal["auto"]] = 0
     chunk_cones: Union[int, Literal["auto"]] = "auto"
     jit: bool = False
     progress: bool = True
@@ -29,6 +36,9 @@ class RunCfg(BaseModel):
 
     # Limits
     max_cones: Optional[int] = None
+
+    # SBP imaging engine: "scan" (matrix scan) or "poly" (perimeter sampler)
+    sbp_engine: str = "scan"
 
     @field_validator("diagnostics_level")
     def _diag_range(cls, v: int) -> int:
@@ -237,6 +247,11 @@ class FastCfg(BaseModel):
     #   1 or None → no change
     #   2         → double du,dv (coarser grid, ~4x fewer pixels)
     plane_downsample: Optional[int] = None
+
+    # Optional override of the SBP engine for fast-mode runs.
+    # None → use run.sbp_engine (which defaults to "scan"),
+    # otherwise one of "poly" or "scan".
+    sbp_engine: Optional[str] = None
 
 
 class EnergyCfg(BaseModel):

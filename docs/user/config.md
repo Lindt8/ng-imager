@@ -86,11 +86,17 @@ A minimal skeleton looks like:
     # Limits
     max_cones = 50000       # hard cap on number of cones to build / image
 
+    # SBP imaging engine:
+    #   "scan" – matrix scan across pixel-centered lines (continuous arcs)
+    #   "poly" – perimeter sampling (faster, but may show dotted arcs)
+    sbp_engine = "scan"
+
 Notes:
 
 - `fast = true` activates fast-mode overrides defined under `[filters.fast]`.
 - `list = true` asks the recon to keep per-cone pixel indices and to emit list-mode datasets under `/lm/...` in the HDF5 output.
 - `workers = 0` forces a single-process SBP path (nice for debugging); `"auto"` or an integer > 0 uses multi-process SBP.
+- `sbp_engine` selects the simple back-projection engine: `"scan"` (matrix scan, visually smooth arcs) or `"poly"` (perimeter sampler, usually faster).
 
 ---
 
@@ -287,6 +293,11 @@ Fast mode (`run.fast = true`) activates a small set of more aggressive defaults.
     # Coarsen the imaging plane by this integer factor:
     # du' = du * plane_downsample, dv' = dv * plane_downsample
     plane_downsample = 2
+
+    # SBP imaging engine:
+    #   "scan" – matrix scan across pixel-centered lines (continuous arcs)
+    #   "poly" – perimeter sampling (faster, but may show dotted arcs)
+    sbp_engine = "poly"
 
 Any fast-mode cut that is defined will override the corresponding normal cut when `run.fast = true`. The exact field names and behavior are kept intentionally minimal so that the fast-mode logic does not diverge too far from the main configuration.
 

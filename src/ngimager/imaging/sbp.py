@@ -11,6 +11,8 @@ except Exception:
 
 from ..geometry.plane import Plane
 
+SBPEngine = Literal["poly", "scan"]
+
 # ----------------- public datatypes -----------------
 
 class Cone:
@@ -49,6 +51,11 @@ def _conic_Q(M: np.ndarray, O: np.ndarray, plane: Plane) -> np.ndarray:
     return Q
 
 def _ellipse_from_Q(Q: np.ndarray):
+    """
+    Extract ellipse parameters from a 3×3 conic matrix Q in (u, v, 1) coords.
+
+    Returns (center_uv, a, b, R) or None if the conic is not an ellipse.
+    """
     A, B2, C = Q[0,0], 2*Q[0,1], Q[1,1]
     disc = B2*B2 - 4*A*C
     if disc >= 0:
@@ -60,6 +67,7 @@ def _ellipse_from_Q(Q: np.ndarray):
         uv0 = np.linalg.solve(M2, rhs)
     except np.linalg.LinAlgError:
         return None
+    # Translate to center
     T = np.array([[1,0,uv0[0]],[0,1,uv0[1]],[0,0,1]], dtype=np.float64)
     Qc = T.T @ Q @ T
     Q2 = Qc[:2,:2]
@@ -97,25 +105,104 @@ def _pixels_from_poly(pts_uv: np.ndarray, plane: Plane) -> np.ndarray:
     flat = (v_idx * plane.nu + u_idx).astype(np.uint32)
     return np.unique(flat)
 
-def _cone_to_indices(c: Cone, plane: Plane, n_poly: int = 360) -> np.ndarray:
-    M = _cone_matrix(c.dir, c.theta)
-    Q = _conic_Q(M, c.apex, plane)
-    el = _ellipse_from_Q(Q)
-    if el is None:
-        #return np.empty(0, dtype=np.uint32)
-        # Fallback: general ray sampling around the cone axis
-        return _ray_sample_indices(c.apex, c.dir, c.theta, plane, n_phi=720)
-    uv0, a, b, R = el
-    pts = _ellipse_poly(uv0, a, b, R, n=n_poly)
-    return _pixels_from_poly(pts, plane)
+def _scan_conic_indices(Q: np.ndarray, plane: Plane) -> np.ndarray:
+    """
+    Matrix-math "scan" engine: walk vertical and horizontal lines at pixel
+    centers, solve the conic equation analytically, and map all hits to pixels.
 
+    Works for general conics (ellipses, hyperbolas, etc.) as long as they
+    intersect the plane within the [u, v] window.
+    """
+    # Unpack symmetric Q
+    q11 = Q[0, 0]
+    q12 = Q[0, 1]
+    q13 = Q[0, 2]
+    q22 = Q[1, 1]
+    q23 = Q[1, 2]
+    q33 = Q[2, 2]
+
+    # Pixel-center lines
+    u_edges = np.linspace(plane.u_min, plane.u_max, plane.nu + 1)
+    v_edges = np.linspace(plane.v_min, plane.v_max, plane.nv + 1)
+    u_mids = 0.5 * (u_edges[:-1] + u_edges[1:])
+    v_mids = 0.5 * (v_edges[:-1] + v_edges[1:])
+
+    us_samples: List[float] = []
+    vs_samples: List[float] = []
+
+    eps = 1e-14
+
+    # Horizontal scan: fixed u, solve for v
+    for u in u_mids:
+        Av = q22
+        Bv = 2.0 * q12 * u + 2.0 * q23
+        Cv = q11 * u * u + 2.0 * q13 * u + q33
+
+        roots: List[float] = []
+        if abs(Av) < eps:
+            if abs(Bv) < eps:
+                continue
+            v = -Cv / Bv
+            roots = [v]
+        else:
+            disc = Bv * Bv - 4.0 * Av * Cv
+            if disc < 0.0:
+                continue
+            sqrt_disc = np.sqrt(max(disc, 0.0))
+            v1 = (-Bv - sqrt_disc) / (2.0 * Av)
+            v2 = (-Bv + sqrt_disc) / (2.0 * Av)
+            if disc <= eps:
+                roots = [v1]
+            else:
+                roots = [v1, v2]
+
+        for v in roots:
+            if plane.v_min <= v <= plane.v_max:
+                us_samples.append(u)
+                vs_samples.append(v)
+
+    # Vertical scan: fixed v, solve for u
+    for v in v_mids:
+        Au = q11
+        Bu = 2.0 * q12 * v + 2.0 * q13
+        Cu = q22 * v * v + 2.0 * q23 * v + q33
+
+        roots: List[float] = []
+        if abs(Au) < eps:
+            if abs(Bu) < eps:
+                continue
+            u = -Cu / Bu
+            roots = [u]
+        else:
+            disc = Bu * Bu - 4.0 * Au * Cu
+            if disc < 0.0:
+                continue
+            sqrt_disc = np.sqrt(max(disc, 0.0))
+            u1 = (-Bu - sqrt_disc) / (2.0 * Au)
+            u2 = (-Bu + sqrt_disc) / (2.0 * Au)
+            if disc <= eps:
+                roots = [u1]
+            else:
+                roots = [u1, u2]
+
+        for u in roots:
+            if plane.u_min <= u <= plane.u_max:
+                us_samples.append(u)
+                vs_samples.append(v)
+
+    if not us_samples:
+        return np.empty(0, dtype=np.uint32)
+
+    pts_uv = np.stack([np.asarray(us_samples), np.asarray(vs_samples)], axis=1)
+    return _pixels_from_poly(pts_uv, plane)
 
 def _ray_sample_indices(apex: np.ndarray, Dhat: np.ndarray, theta: float, plane: Plane, n_phi: int = 720) -> np.ndarray:
     # Build orthonormal basis around Dhat
     t = np.array([1.0, 0.0, 0.0])
     if abs(Dhat @ t) > 0.9:
         t = np.array([0.0, 1.0, 0.0])
-    e1 = np.cross(Dhat, t); e1 /= np.linalg.norm(e1)
+    e1 = np.cross(Dhat, t)
+    e1 /= np.linalg.norm(e1)
     e2 = np.cross(Dhat, e1)
 
     # Ray directions on the cone surface: r_dir = cosθ Dhat + sinθ (cosφ e1 + sinφ e2)
@@ -156,15 +243,52 @@ def _ray_sample_indices(apex: np.ndarray, Dhat: np.ndarray, theta: float, plane:
     flat = (v_idx * plane.nu + u_idx).astype(np.uint32)
     return np.unique(flat)
 
+def cone_to_indices(
+    c: Cone,
+    plane: Plane,
+    engine: SBPEngine = "poly",
+    n_poly: int = 360,
+) -> np.ndarray:
+    """
+    Unified entry point: cone → flat pixel indices.
+
+    engine = "scan":
+        Use matrix-math scanning across rows/columns (continuous arcs).
+    engine = "poly":
+        Use ellipse parameterization when possible, falling back to
+        general ray sampling for non-elliptic conics.
+    """
+    M = _cone_matrix(c.dir, c.theta)
+    Q = _conic_Q(M, c.apex, plane)
+
+    if engine == "scan":
+        return _scan_conic_indices(Q, plane)
+
+    # Default: "poly" perimeter sampling
+    el = _ellipse_from_Q(Q)
+    if el is None:
+        # Fallback: general ray sampling around the cone axis
+        return _ray_sample_indices(c.apex, c.dir, c.theta, plane, n_phi=720)
+    uv0, a, b, R = el
+    pts = _ellipse_poly(uv0, a, b, R, n=n_poly)
+    return _pixels_from_poly(pts, plane)
+
 
 # ----------------- worker & reducer -----------------
 
-def _process_chunk(cones: Sequence[Cone], plane: Plane, list_mode: bool, nu: int, n_poly: int) -> Tuple[np.ndarray, List[np.ndarray] | None]:
+def _process_chunk(
+    cones: Sequence[Cone],
+    plane: Plane,
+    list_mode: bool,
+    nu: int,
+    n_poly: int,
+    sbp_engine: SBPEngine,
+) -> Tuple[np.ndarray, List[np.ndarray] | None]:
     """Worker: returns (flat_counts, maybe list-of-indices)."""
     flat_counts = np.zeros(nu * plane.nv, dtype=np.uint32)
     lm_list: List[np.ndarray] | None = [] if list_mode else None
     for c in cones:
-        idx = _cone_to_indices(c, plane, n_poly=n_poly)
+        idx = cone_to_indices(c, plane, engine=sbp_engine, n_poly=n_poly)
         if idx.size:
             np.add.at(flat_counts, idx, 1)
             if lm_list is not None:
@@ -187,14 +311,19 @@ def reconstruct_sbp(
     cones: Iterable[Cone],
     plane: Plane,
     list_mode: bool = False,
-    uncertainty_mode: Literal["off","thicken","weighted"] = "off",
+    uncertainty_mode: Literal["off", "thicken", "weighted"] = "off",
     workers: int | str = "auto",
     chunk_cones: int | str = "auto",
     progress: bool = True,
     n_poly: int = 360,
+    sbp_engine: SBPEngine = "poly",
 ) -> ReconResult:
     """
     Parallel SBP (analytic conic). If workers==0, runs single-process.
+
+    sbp_engine:
+        "poly" – perimeter parametric ellipse (with ray fallback).
+        "scan" – matrix-math scan across pixel-centered lines (continuous arcs).
     """
     # Normalize inputs
     cones_list = list(cones)
@@ -216,8 +345,9 @@ def reconstruct_sbp(
     if workers == 0 or N < 1500:
         hit_count = 0
         lm = [] if list_mode else None
-        for c in (tqdm(cones_list, desc="SBP", unit="cone") if progress and tqdm else cones_list):
-            idx = _cone_to_indices(c, plane, n_poly=n_poly)
+        it = tqdm(cones_list, desc="SBP", unit="cone") if progress and tqdm else cones_list
+        for c in it:
+            idx = cone_to_indices(c, plane, engine=sbp_engine, n_poly=n_poly)
             if idx.size:
                 hit_count += 1
                 np.add.at(img.ravel(), idx, 1)
@@ -233,7 +363,7 @@ def reconstruct_sbp(
         chunk_cones = int(chunk_cones)
 
     # Chunk the work
-    chunks: List[Sequence[Cone]] = [cones_list[i:i+chunk_cones] for i in range(0, N, chunk_cones)]
+    chunks: List[Sequence[Cone]] = [cones_list[i : i + chunk_cones] for i in range(0, N, chunk_cones)]
 
     # Progress bar over chunks
     pbar = tqdm(total=len(chunks), desc=f"SBP x{workers}", unit="chunk") if (progress and tqdm) else None
@@ -243,7 +373,7 @@ def reconstruct_sbp(
 
     # Use spawn-friendly ProcessPoolExecutor
     with ProcessPoolExecutor(max_workers=workers) as ex:
-        futs = [ex.submit(_process_chunk, ch, plane, list_mode, plane.nu, n_poly) for ch in chunks]
+        futs = [ex.submit(_process_chunk, ch, plane, list_mode, plane.nu, n_poly, sbp_engine) for ch in chunks]
         for fut in as_completed(futs):
             flat_counts, lm_list = fut.result()
             flat_total += flat_counts
