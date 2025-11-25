@@ -423,6 +423,8 @@ def run_pipeline(
         cfg.plane.v_min,
         cfg.plane.v_max,
         cfg.plane.dv,
+        eu=cfg.plane.u_axis,
+        ev=cfg.plane.v_axis,
     )
 
     # HDF5 output

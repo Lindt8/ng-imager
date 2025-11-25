@@ -100,8 +100,8 @@ class PipelineCfg(BaseModel):
 class PlaneCfg(BaseModel):
     origin: List[float]
     normal: List[float]
-    eu: Optional[List[float]] = None
-    ev: Optional[List[float]] = None
+    u_axis: Optional[List[float]] = None # eu
+    v_axis: Optional[List[float]] = None # ev
     u_min: float; u_max: float; du: float
     v_min: float; v_max: float; dv: float
 
@@ -324,7 +324,7 @@ class VisCfg(BaseModel):
 
     # If true, flip the plotted image vertically relative to the natural v-axis
     # orientation. This is mainly useful for matching legacy images visually.
-    flip_vertical: bool = True
+    flip_vertical: bool = False
 
     # Units for plotting axes: "cm" (native) or "mm".
     # Internally, grids are stored in cm; mm just rescales labels.

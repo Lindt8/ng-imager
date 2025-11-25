@@ -167,7 +167,7 @@ min_L2_MeVee   = 0.4   # MeVee, second neutron scatter
 min_L_any_MeVee = 0.2  # MeVee, any gamma or neutron deposit considered
 
 # Stop after this many cones have been built and imaged
-max_cones = 10000
+max_cones = 20000
 
 # Coarsen the imaging plane by this integer factor:
 # du' = du * plane_downsample, dv' = dv * plane_downsample
@@ -176,7 +176,7 @@ plane_downsample = 4
 # SBP imaging engine:
 #   "scan" – matrix scan across pixel-centered lines (continuous arcs)
 #   "poly" – perimeter sampling (faster, but may show dotted arcs)
-sbp_engine = "poly"
+sbp_engine = "scan"
 
 
 [energy]
