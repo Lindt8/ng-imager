@@ -313,10 +313,10 @@ def _build_cones_from_events(
         event_indices.append(j)
 
         # Fast-mode: optional conservative cap on number of cones
-        if cfg.run.fast and (cfg.run.max_cones is not None):
+        if cfg.run.max_cones is not None:
             if len(cones) >= cfg.run.max_cones:
                 if diag_level >= 1:
-                    print(f"[cones] Reached max_cones={cfg.run.max_cones}, stopping cone build.")
+                    print(f"[stage3] Reached max_cones={cfg.run.max_cones}, stopping cone build.")
                 break
 
     if not cones:
@@ -839,6 +839,12 @@ def run_pipeline(
     
     # Store counters into the HDF5 file for later inspection
     write_counters(f, counters)
+
+    # Optional diagnostics printout of counters (console only).
+    if diag_level >= 1:
+        print("\n[diagnostics] Counter summary:")
+        for key in sorted(counters.keys()):
+            print(f"  {key} = {counters[key]}")
     
     f.close()
 
