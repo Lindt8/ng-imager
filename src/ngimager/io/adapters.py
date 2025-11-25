@@ -172,6 +172,7 @@ class RootNovoDdaqAdapter(BaseAdapter):
     time_units: Literal["ns", "ps"] = "ns"
     default_material: str = "UNK"
     material_map: Optional[Dict[int, str]] = None
+    require_gamma_triples: bool = False
     meta_tree_key: Optional[str] = "meta"
 
     def __post_init__(self) -> None:
