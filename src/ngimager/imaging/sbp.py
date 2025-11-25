@@ -117,15 +117,37 @@ def _ellipse_poly(uv0, a, b, R, n: int = 360) -> np.ndarray:
 
 
 def _pixels_from_poly(pts_uv: np.ndarray, plane: Plane) -> np.ndarray:
+    """
+    Map (u, v) points on the imaging plane into flat pixel indices.
+
+    Binning is chosen to mimic numpy.histogram2d with explicit bin edges:
+    each bin owns a half-open interval [edge_k, edge_{k+1}), with the
+    last bin closed on the top edge. Indices are obtained by floor-
+    based scaling and then clipped into [0, nu-1] / [0, nv-1].
+    """
+    if pts_uv.size == 0:
+        return np.empty(0, dtype=np.uint32)
     u = pts_uv[:, 0]
     v = pts_uv[:, 1]
+    # First, drop points clearly outside the [u_min, u_max] × [v_min, v_max] window.
     in_u = (u >= plane.u_min) & (u <= plane.u_max)
     in_v = (v >= plane.v_min) & (v <= plane.v_max)
     keep = in_u & in_v
     if not np.any(keep):
         return np.empty(0, dtype=np.uint32)
-    u_idx = ((u[keep] - plane.u_min) / plane.du).astype(np.int64)
-    v_idx = ((v[keep] - plane.v_min) / plane.dv).astype(np.int64)
+    u_kept = u[keep]
+    v_kept = v[keep]
+    # Floor-based binning, then clip to valid index range.
+    # This matches np.histogram2d semantics when using explicit edges.
+    u_scaled = (u_kept - plane.u_min) / plane.du
+    v_scaled = (v_kept - plane.v_min) / plane.dv
+    u_idx = np.floor(u_scaled).astype(np.int64)
+    v_idx = np.floor(v_scaled).astype(np.int64)
+    # Clamp to [0, nu-1] and [0, nv-1] to handle numerical noise at edges.
+    u_idx = np.clip(u_idx, 0, plane.nu - 1)
+    v_idx = np.clip(v_idx, 0, plane.nv - 1)
+    #u_idx = ((u[keep] - plane.u_min) / plane.du).astype(np.int64)
+    #v_idx = ((v[keep] - plane.v_min) / plane.dv).astype(np.int64)
     flat = (v_idx * plane.nu + u_idx).astype(np.uint32)
     return np.unique(flat)
 
@@ -153,6 +175,12 @@ def _scan_conic_indices_python(Q: np.ndarray, plane: Plane) -> np.ndarray:
     v_edges = np.linspace(plane.v_min, plane.v_max, plane.nv + 1)
     u_mids = 0.5 * (u_edges[:-1] + u_edges[1:])
     v_mids = 0.5 * (v_edges[:-1] + v_edges[1:])
+    # If midpoint grid is symmetric, shift midpoint grid slightly so 0 is not included
+    if np.isclose(u_mids.mean(), 0.0) and np.min(np.abs(u_mids)) < 1e-12:
+        u_mids += plane.du * 0.5  # shift mids by half-bin
+
+    if np.isclose(v_mids.mean(), 0.0) and np.min(np.abs(v_mids)) < 1e-12:
+        v_mids += plane.dv * 0.5
 
     us_samples: List[float] = []
     vs_samples: List[float] = []
@@ -358,6 +386,12 @@ def _scan_conic_indices_numba(Q: np.ndarray, plane: Plane) -> np.ndarray:
     v_edges = np.linspace(plane.v_min, plane.v_max, plane.nv + 1)
     u_mids = 0.5 * (u_edges[:-1] + u_edges[1:])
     v_mids = 0.5 * (v_edges[:-1] + v_edges[1:])
+    # If midpoint grid is symmetric, shift midpoint grid slightly so 0 is not included
+    if np.isclose(u_mids.mean(), 0.0) and np.min(np.abs(u_mids)) < 1e-12:
+        u_mids += plane.du * 0.5  # shift mids by half-bin
+
+    if np.isclose(v_mids.mean(), 0.0) and np.min(np.abs(v_mids)) < 1e-12:
+        v_mids += plane.dv * 0.5
 
     us, vs, k = _scan_conic_core_numba(
         q11,
