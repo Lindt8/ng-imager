@@ -139,15 +139,32 @@ class BaseAdapter:
 @dataclass
 class RootNovoDdaqAdapter(BaseAdapter):
     """
-    Skeleton adapter for NOVO DDAQ ROOT files (\"image_tree\" + \"meta\").
+    Adapter for NOVO DDAQ ROOT files (\"image_tree\" + optional \"meta\" tree).
 
-    Phase 1 implementation:
-      - open the ROOT file with uproot,
-      - locate the `image_tree` TTree,
-      - stream rows and group them into coincidence windows,
-      - construct canonical Hit objects for each per-entry hit.
+    This adapter:
+      - reads the main coincidence tree (image_tree) and yields raw events
+        with canonicalized hits, and
+      - can optionally read the run-level metadata tree (meta) via
+        `read_meta_tree` for passthrough into HDF5.
 
-    Downstream shaping (into NeutronEvent/GammaEvent) is handled elsewhere.
+    Parameters
+    ----------
+    tree_key : str
+        Name of the ROOT TTree containing the imaging events
+        (default: \"image_tree\").
+    unit_pos_is_mm : bool
+        If True, hit positions are stored in mm and converted to cm.
+    time_units : {\"ns\", \"ps\"}
+        Units of the time branches (converted to ns).
+    default_material : str
+        Material tag to use when no mapping is provided.
+    material_map : dict[int,str] or None
+        Mapping from det_id to material name.
+    require_gamma_triples : bool
+        If True, drop gamma events that do not have exactly 3 hits.
+    meta_tree_key : str or None
+        Name of the metadata TTree (default \"meta\"). If None, metadata
+        extraction is disabled.
     """
 
     tree_key: str = "image_tree"
@@ -155,6 +172,7 @@ class RootNovoDdaqAdapter(BaseAdapter):
     time_units: Literal["ns", "ps"] = "ns"
     default_material: str = "UNK"
     material_map: Optional[Dict[int, str]] = None
+    meta_tree_key: Optional[str] = "meta"
 
     def __post_init__(self) -> None:
         # MaterialResolver uses detectors.material_map + detectors.default_material
@@ -201,6 +219,39 @@ class RootNovoDdaqAdapter(BaseAdapter):
 
         raise KeyError(f"Could not find tree {self.tree_key!r} in ROOT file {path!r}")
 
+    def _find_meta_tree(self, f):
+        """
+        Best-effort lookup for the NOVO 'meta' TTree.
+
+        Returns the TTree object or None if not found.
+        """
+        if self.meta_tree_key:
+            preferred = [self.meta_tree_key, f"{self.meta_tree_key};1"]
+        else:
+            preferred = []
+
+        # Fallback common names
+        for base in ("meta", "Meta", "META"):
+            preferred.extend([base, f"{base};1"])
+
+        seen = set()
+        for key in preferred:
+            if key in seen:
+                continue
+            seen.add(key)
+            try:
+                obj = f[key]
+            except Exception:
+                continue
+            try:
+                from uproot.behaviors.TTree import TTree  # type: ignore
+            except Exception:  # pragma: no cover
+                return obj
+            if isinstance(obj, TTree):
+                return obj
+
+        return None
+    
     # --- BaseAdapter API -----------------------------------------------
 
     def iter_raw_events(self, path: str):
@@ -374,6 +425,55 @@ class RootNovoDdaqAdapter(BaseAdapter):
             "RootNovoDdaqAdapter.iter_events is not implemented yet; "
             "use iter_raw_events() via a staged pipeline."
         )
+
+    def read_meta_tree(self, path: str) -> Optional[Dict[str, Any]]:
+        """
+        Read the NOVO 'meta' TTree (if present) and return a flat dict
+        mapping branch names → Python scalars/strings.
+
+        This is intended for run-level metadata passthrough into HDF5.
+        Returns None if no compatible meta tree is found.
+        """
+        if uproot is None:  # pragma: no cover
+            return None
+
+        path = str(path)
+        f = uproot.open(path)
+        try:
+            tree = self._find_meta_tree(f)
+            if tree is None:
+                return None
+
+            arrays = tree.arrays(library="np")
+        finally:
+            try:
+                f.close()
+            except Exception:
+                pass
+
+        if not arrays:
+            return {}
+
+        meta: Dict[str, Any] = {}
+        for key, vals in arrays.items():
+            # Expect exactly one entry; take the first.
+            try:
+                v = vals[0]
+            except Exception:
+                v = vals
+
+            if isinstance(v, np.generic):
+                v = v.item()
+
+            if isinstance(v, (bytes, bytearray)):
+                try:
+                    v = v.decode("utf-8", "ignore")
+                except Exception:
+                    v = repr(v)
+
+            meta[str(key)] = v
+
+        return meta
 
 
 # Backwards-compat alias; to be removed once config / factory use the new name.

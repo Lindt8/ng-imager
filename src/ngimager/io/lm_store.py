@@ -647,3 +647,146 @@ def write_event_cone_survival(
     )
 
 
+def write_root_novo_meta(f: h5py.File, meta: Dict[str, Any]) -> None:
+    """
+    Persist NOVO DDAQ ROOT run-level metadata into HDF5 under /meta/root_novo_ddaq.
+
+    The input 'meta' is expected to be a flat mapping from branch names
+    in the ROOT 'meta' TTree to Python scalars/strings, as returned by
+    RootNovoDdaqAdapter.read_meta_tree().
+
+    Layout
+    ------
+      /meta/root_novo_ddaq           : group
+        attrs:
+          InputFileName, OutputFileName, CDFFileName, PSDCutsFileName
+          SampleRate, NumDet, NumThreads, WriteHistograms,
+          MergeMode, CardOffsetChannel, UsePositionVeto
+
+        /meta/root_novo_ddaq/detectors
+          det_id            : [NumDet] int32
+          pos               : [NumDet, 3] float32   (PosX, PosY, PosZ)   [mm]
+          dim               : [NumDet, 3] float32   (DimX, DimY, DimZ)   [mm]
+          rot_deg           : [NumDet, 3] float32   (RotX, RotY, RotZ)   [deg]
+          local_time_offset : [NumDet] float32      [ns]
+          global_time_offset: [NumDet] float32      [ns]
+          pos_cal_file      : [NumDet] string
+          energy_cal_file   : [NumDet] string
+          is_start_det      : [NumDet] int8
+          is_laser_det      : [NumDet] int8
+    """
+    meta_root = f.require_group("meta").require_group("root_novo_ddaq")
+
+    # ---- Run-level scalars as attributes ----
+    attr_keys = [
+        "InputFileName",
+        "OutputFileName",
+        "CDFFileName",
+        "PSDCutsFileName",
+        "SampleRate",
+        "NumDet",
+        "NumThreads",
+        "WriteHistograms",
+        "MergeMode",
+        "CardOffsetChannel",
+        "UsePositionVeto",
+    ]
+    for key in attr_keys:
+        if key not in meta:
+            continue
+        val = meta[key]
+        if isinstance(val, np.generic):
+            val = val.item()
+        meta_root.attrs[key] = val
+
+    # ---- Detector table ----
+    num_det = int(meta.get("NumDet", 0) or 0)
+    if num_det <= 0:
+        return
+
+    det_grp = meta_root.require_group("detectors")
+
+    # Helper to (re)create a dataset
+    def _create_or_replace(name: str, data: np.ndarray, **kwargs) -> h5py.Dataset:
+        if name in det_grp:
+            del det_grp[name]
+        return det_grp.create_dataset(name, data=data, compression="gzip", **kwargs)
+
+    det_ids = np.arange(num_det, dtype=np.int32)
+    _create_or_replace("det_id", det_ids)
+
+    # Numeric tables
+    pos = np.zeros((num_det, 3), dtype=np.float32)
+    dim = np.zeros((num_det, 3), dtype=np.float32)
+    rot = np.zeros((num_det, 3), dtype=np.float32)
+    local_off = np.zeros(num_det, dtype=np.float32)
+    global_off = np.zeros(num_det, dtype=np.float32)
+    is_start = np.zeros(num_det, dtype=np.int8)
+    is_laser = np.zeros(num_det, dtype=np.int8)
+
+    pos_cal: List[str] = []
+    e_cal: List[str] = []
+
+    for i in range(num_det):
+        def _get(name: str, default=0.0):
+            key = f"Det{i}_{name}"
+            v = meta.get(key, default)
+            if isinstance(v, np.generic):
+                v = v.item()
+            return v
+
+        pos[i, 0] = float(_get("PosX", 0.0))
+        pos[i, 1] = float(_get("PosY", 0.0))
+        pos[i, 2] = float(_get("PosZ", 0.0))
+
+        dim[i, 0] = float(_get("DimX", 0.0))
+        dim[i, 1] = float(_get("DimY", 0.0))
+        dim[i, 2] = float(_get("DimZ", 0.0))
+
+        rot[i, 0] = float(_get("RotX", 0.0))
+        rot[i, 1] = float(_get("RotY", 0.0))
+        rot[i, 2] = float(_get("RotZ", 0.0))
+
+        local_off[i] = float(_get("LocalTimeOffset", 0.0))
+        global_off[i] = float(_get("GlobalTimeOffset", 0.0))
+
+        # Filenames
+        pc = meta.get(f"Det{i}_PosCalFileName", "")
+        ec = meta.get(f"Det{i}_EnergyCalFileName", "")
+        pos_cal.append(str(pc))
+        e_cal.append(str(ec))
+
+        # Flags (stored as ints)
+        is_start[i] = int(_get("IsStartDet", 0))
+        is_laser[i] = int(_get("IsLaserDet", 0))
+
+    ds_pos = _create_or_replace("pos", pos)
+    ds_pos.attrs["units"] = "mm"
+
+    ds_dim = _create_or_replace("dim", dim)
+    ds_dim.attrs["units"] = "mm"
+
+    ds_rot = _create_or_replace("rot_deg", rot)
+    ds_rot.attrs["units"] = "deg"
+
+    ds_local = _create_or_replace("local_time_offset", local_off)
+    ds_local.attrs["units"] = "ns"
+
+    ds_global = _create_or_replace("global_time_offset", global_off)
+    ds_global.attrs["units"] = "ns"
+
+    _create_or_replace(
+        "is_start_det",
+        is_start,
+    )
+    _create_or_replace(
+        "is_laser_det",
+        is_laser,
+    )
+
+    # String datasets
+    str_dt = h5py.string_dtype(encoding="utf-8")
+    _create_or_replace("pos_cal_file", np.asarray(pos_cal, dtype=str_dt))
+    _create_or_replace("energy_cal_file", np.asarray(e_cal, dtype=str_dt))
+
+

@@ -46,6 +46,7 @@ from ngimager.io.lm_store import (
     write_events_hits,
     write_counters,
     write_event_cone_survival,
+    write_root_novo_meta,
 )
 from ngimager.io.lut import build_lut_registry
 from ngimager.imaging.sbp import reconstruct_sbp, Cone, cone_to_indices
@@ -431,7 +432,31 @@ def run_pipeline(
     out_path = Path(cfg.io.output_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     f = write_init(str(out_path), cfg_path, cfg, plane)
+    
+    
+    # If this is a NOVO DDAQ ROOT run, try to capture the 'meta' TTree.
+    if cfg.io.input_format == "root_novo_ddaq":
+        adapter_cfg_meta: Dict[str, object] = dict(cfg.io.adapter)
 
+        adapter_for_meta = make_adapter(adapter_cfg_meta)
+        extractor = getattr(adapter_for_meta, "read_meta_tree", None)
+
+        if callable(extractor):
+            try:
+                meta_dict = extractor(str(cfg.io.input_path))
+            except Exception as exc:
+                if diag_level >= 1:
+                    print(f"[meta] Failed to read ROOT meta tree: {exc}")
+            else:
+                if meta_dict:
+                    write_root_novo_meta(f, meta_dict)
+                    if diag_level >= 1:
+                        print("[meta] ROOT meta tree written to /meta/root_novo_ddaq")
+        else:
+            if diag_level >= 1:
+                print("[meta] Adapter does not support ROOT meta tree extraction; skipping")
+    
+    
     # Shared counters for this run
     counters: Dict[str, int] = {}
 
