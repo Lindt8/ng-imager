@@ -431,6 +431,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#43-ioextra_text_files-extra-text-metadata-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3. [io.extra_text_files] Extra text metadata files
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -894,6 +905,19 @@ time_units            = &quot;ns&quot;   # &quot;ns&quot; or &quot;ps&quot;
 require_gamma_triples = true   # enforce 3-hit gamma events for 3-hit gamma imaging
 </code></pre></div>
 <p>Material assignment (e.g. M600 vs OGS) is still configured via [detectors]; the ROOT adapter consults those mappings when constructing Hit objects.</p>
+<h3 id="43-ioextra_text_files-extra-text-metadata-files">4.3. [io.extra_text_files] Extra text metadata files<a class="headerlink" href="#43-ioextra_text_files-extra-text-metadata-files" title="Permanent link">&para;</a></h3>
+<p>Sometimes it is useful to carry additional text configuration or metadata files forward into the HDF5 output (e.g. a PHITS input deck, DAQ config files, or auxiliary calibration notes). You can specify these via an optional table:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">[io.extra_text_files]</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># key = &quot;path/to/text/file&quot;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">phits_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;phits/input/deck.inp&quot;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">daq_config</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daq/config/daq_settings.txt&quot;</span>
+</code></pre></div>
+<ul>
+<li>Keys become dataset names under /meta/extra_text/{key}.</li>
+<li>Values are file paths. If they are relative, they are interpreted relative to the location of the TOML config file.</li>
+<li>Each dataset stores the full file contents as a single UTF-8 string.</li>
+</ul>
+<p>If <code>[io.extra_text_files]</code> is omitted or empty, no extra text metadata is embedded.</p>
 <hr />
 <h2 id="5-detectors-material-mapping">5. [detectors] – Material Mapping<a class="headerlink" href="#5-detectors-material-mapping" title="Permanent link">&para;</a></h2>
 <p>Detector configuration is mainly used to assign materials to regions / bars, which then flow into hit construction and LUT lookup.</p>
