@@ -420,6 +420,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#42-ioadapter-root-novo-ddaq-adapter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2. [io.adapter] – ROOT NOVO DDAQ Adapter
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -866,6 +877,23 @@ time_units           = &quot;ns&quot;    # &quot;ns&quot; recommended
 require_gamma_triples = true   # enforce 3-hit gamma events for Compton cones
 </code></pre></div>
 <p>Other adapters may accept different sub-keys under <code>[io.adapter]</code>; for now, the documented / tested case is the <code>"phits"</code> + <code>"usrdef"</code> combination.</p>
+<h3 id="42-ioadapter-root-novo-ddaq-adapter">4.2. [io.adapter] – ROOT NOVO DDAQ Adapter<a class="headerlink" href="#42-ioadapter-root-novo-ddaq-adapter" title="Permanent link">&para;</a></h3>
+<p>For NOVO DDAQ ROOT files with an <code>image_tree</code> and <code>meta</code> tree:</p>
+<div class="highlight"><pre><span></span><code>[io]
+input_format = &quot;root_novo_ddaq&quot;
+input_path   = &quot;examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041.root&quot;
+output_path  = &quot;examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041_out.h5&quot;
+
+[io.adapter]
+type  = &quot;root&quot;       # selects the ROOT-based adapter
+style = &quot;novo_ddaq&quot;  # NOVO DDAQ schema (image_tree + meta)
+
+# Units / conventions
+unit_pos_is_mm        = true   # positions in input are mm; converted → cm internally
+time_units            = &quot;ns&quot;   # &quot;ns&quot; or &quot;ps&quot;
+require_gamma_triples = true   # enforce 3-hit gamma events for 3-hit gamma imaging
+</code></pre></div>
+<p>Material assignment (e.g. M600 vs OGS) is still configured via [detectors]; the ROOT adapter consults those mappings when constructing Hit objects.</p>
 <hr />
 <h2 id="5-detectors-material-mapping">5. [detectors] – Material Mapping<a class="headerlink" href="#5-detectors-material-mapping" title="Permanent link">&para;</a></h2>
 <p>Detector configuration is mainly used to assign materials to regions / bars, which then flow into hit construction and LUT lookup.</p>
@@ -935,15 +963,27 @@ bars_exclude       = []    # e.g. [230]
 materials_include  = []    # e.g. [&quot;M600&quot;, &quot;OGS&quot;]
 materials_exclude  = []    # e.g. [&quot;DEAD_BAR_MATERIAL&quot;]
 
+# Optional PSD window (applied only when hits carry a PSD value,
+# e.g. ROOT NOVO DDAQ data). If psd_min / psd_max are omitted, no
+# PSD-based cut is applied at this level. Typical NOVO PSD values
+# lie in [0, 1].
+# psd_min = 0.0
+# psd_max = 1.0
+
 [filters.hits.neutron]
 # optional overrides / additions for neutron hits
-# (empty in the example config)
+# Any field set here (including psd_min / psd_max) overrides the
+# corresponding [filters.hits] value for neutron hits only.
+# psd_min = 0.2
+# psd_max = 0.6
 
 [filters.hits.gamma]
 # optional overrides / additions for gamma hits
-# (empty in the example config)
+# Optional overrides / additions for gamma hits.
+# psd_min = 0.0
+# psd_max = 0.2
 </code></pre></div>
-<p>The hit filters are applied uniformly to all hits in a raw event before any event-level shaping or typing occurs.</p>
+<p>The hit filters are applied uniformly to all hits in a raw event before any event-level shaping or typing occurs.  If a hit carries no PSD value (e.g. PHITS-generated data), the PSD-related settings are silently ignored.</p>
 <h3 id="72-event-level-filters">7.2. Event-Level Filters<a class="headerlink" href="#72-event-level-filters" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>[filters.events]
 # Universal event cuts (applied after shaping into typed NeutronEvent/GammaEvent)
