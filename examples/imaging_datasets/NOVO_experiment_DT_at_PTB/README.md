@@ -9,7 +9,7 @@ In this particular run, from the detector array's frame of reference and the exp
 
 ### ng-imager code processing
 
-TO-DO
+TO-DO (add run/settings details)
 
 ![](aautoSorted_coinc_detector_DT-14p8MeV_000041_out_n.png)
 
