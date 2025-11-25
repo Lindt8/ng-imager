@@ -140,6 +140,28 @@ For the PHITS user-defined tally case:
 
 Other adapters may accept different sub-keys under `[io.adapter]`; for now, the documented / tested case is the `"phits"` + `"usrdef"` combination.
 
+
+### 4.2. [io.adapter] – ROOT NOVO DDAQ Adapter
+
+For NOVO DDAQ ROOT files with an `image_tree` and `meta` tree:
+
+    [io]
+    input_format = "root_novo_ddaq"
+    input_path   = "examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041.root"
+    output_path  = "examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041_out.h5"
+
+    [io.adapter]
+    type  = "root"       # selects the ROOT-based adapter
+    style = "novo_ddaq"  # NOVO DDAQ schema (image_tree + meta)
+
+    # Units / conventions
+    unit_pos_is_mm        = true   # positions in input are mm; converted → cm internally
+    time_units            = "ns"   # "ns" or "ps"
+    require_gamma_triples = true   # enforce 3-hit gamma events for 3-hit gamma imaging
+
+Material assignment (e.g. M600 vs OGS) is still configured via [detectors]; the ROOT adapter consults those mappings when constructing Hit objects.
+
+
 ---
 
 ## 5. [detectors] – Material Mapping
@@ -218,15 +240,27 @@ The guiding principle is:
     materials_include  = []    # e.g. ["M600", "OGS"]
     materials_exclude  = []    # e.g. ["DEAD_BAR_MATERIAL"]
 
+    # Optional PSD window (applied only when hits carry a PSD value,
+    # e.g. ROOT NOVO DDAQ data). If psd_min / psd_max are omitted, no
+    # PSD-based cut is applied at this level. Typical NOVO PSD values
+    # lie in [0, 1].
+    # psd_min = 0.0
+    # psd_max = 1.0
+
     [filters.hits.neutron]
     # optional overrides / additions for neutron hits
-    # (empty in the example config)
+    # Any field set here (including psd_min / psd_max) overrides the
+    # corresponding [filters.hits] value for neutron hits only.
+    # psd_min = 0.2
+    # psd_max = 0.6
 
     [filters.hits.gamma]
     # optional overrides / additions for gamma hits
-    # (empty in the example config)
+    # Optional overrides / additions for gamma hits.
+    # psd_min = 0.0
+    # psd_max = 0.2
 
-The hit filters are applied uniformly to all hits in a raw event before any event-level shaping or typing occurs.
+The hit filters are applied uniformly to all hits in a raw event before any event-level shaping or typing occurs.  If a hit carries no PSD value (e.g. PHITS-generated data), the PSD-related settings are silently ignored.
 
 ### 7.2. Event-Level Filters
 

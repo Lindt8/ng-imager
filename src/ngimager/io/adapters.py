@@ -18,7 +18,7 @@ Design goals
 
 Entry points
 ------------
-- class ROOTAdapter: reads NOVO ROOT trees ("Joey" or "Lena" styles).
+- class ROOTAdapter: reads NOVO ROOT trees ("novo_ddaq" or "hvl_geant4" styles).
 - class PHITSAdapter: reads tabular PHITS lists (CSV/Parquet/HDF5).
 - function make_adapter(cfg): factory from the [io.adapter] TOML section.
 
@@ -29,7 +29,7 @@ input = "data/run42.root"
 
 [io.adapter]
 type = "root"                 # "root" | "phits"
-style = "Joey"                # ROOT styles: "Joey" | "Lena"
+style = "novo_ddaq"                # ROOT styles: "novo_ddaq" | "hvl_geant4"
 unit_pos_is_mm = true
 time_units = "ns"             # "ns" | "ps"
 require_gamma_triples = false # keep filtering in pipeline by default
@@ -132,149 +132,243 @@ class BaseAdapter:
 # ROOT adapter
 # ---------------------------------------------------------------------------
 
-class ROOTAdapter(BaseAdapter):
+# ---------------------------------------------------------------------------
+# ROOT NOVO DDAQ adapter
+# ---------------------------------------------------------------------------
+
+@dataclass
+class RootNovoDdaqAdapter(BaseAdapter):
     """
-    Read NOVO ROOT files produced by the sort code or by MC emulating it.
+    Skeleton adapter for NOVO DDAQ ROOT files (\"image_tree\" + \"meta\").
 
-    Two common schema flavors are supported via `style`:
-      - "Joey" (default): tree key 'image_tree;1'
-      - "Lena":           tree key 'ntuple_NCE_raw;1'
+    Phase 1 implementation:
+      - open the ROOT file with uproot,
+      - locate the `image_tree` TTree,
+      - stream rows and group them into coincidence windows,
+      - construct canonical Hit objects for each per-entry hit.
 
-    Parameters
-    ----------
-    style : Literal['Joey','Lena']
-    require_gamma_triples : bool
-        If True, only yield GammaEvent when all three hits exist; else be permissive.
-    unit_pos_is_mm : bool
-        If True (default), convert positions from mm -> cm.
-    keep_mevee : bool
-        If True, use Elong* branches as 'L' (light-like) for Hit; else set L=0.0.
-    time_branch_units : Literal['ns','ps']
-    default_material : str
-        Material tag to attach to hits (e.g., "M600").
+    Downstream shaping (into NeutronEvent/GammaEvent) is handled elsewhere.
     """
 
-    _DEFAULT_KEYS_JOEY = {
-        # positions [mm]
-        "x1": "x1", "y1": "y1", "z1": "z1",
-        "x2": "x2", "y2": "y2", "z2": "z2",
-        "x3": "x3", "y3": "y3", "z3": "z3",
-        # times
-        "t1": "t1", "t2": "t2", "t3": "t3",
-        # optional light-like / energy-ish
-        "Elong1": "Elong1", "Elong2": "Elong2", "Elong3": "Elong3",
-        "dE1": "dE1", "dE2": "dE2", "dE3": "dE3",
-        # detector ID & PSD
-        "det1": "det1", "det2": "det2", "det3": "det3",
-        "psd1": "psd1", "psd2": "psd2", "psd3": "psd3",
-        # particle id (0=unk,1=n,2=g,3=laser) — optional
-        "par1": "particle1", "par2": "particle2", "par3": "particle3",
-    }
+    tree_key: str = "image_tree"
+    unit_pos_is_mm: bool = True
+    time_units: Literal["ns", "ps"] = "ns"
+    default_material: str = "UNK"
+    material_map: Optional[Dict[int, str]] = None
 
-    _DEFAULT_KEYS_LENA = {
-        "x1": "hit_x1", "y1": "hit_y1", "z1": "hit_z1",
-        "x2": "hit_x2", "y2": "hit_y2", "z2": "hit_z2",
-        "x3": "hit_x3", "y3": "hit_y3", "z3": "hit_z3",
-        "t1": "hit_time1", "t2": "hit_time2", "t3": "hit_time3",
-        "Elong1": "elong1", "Elong2": "elong2", "Elong3": "elong3",
-        "dE1": "hit_edep1", "dE2": "hit_edep2", "dE3": "hit_edep3",
-        "det1": "det1", "det2": "det2", "det3": "det3",
-        "psd1": "psd1", "psd2": "psd2", "psd3": "psd3",
-        "par1": "particle1", "par2": "particle2", "par3": "particle3",
-    }
+    def __post_init__(self) -> None:
+        # MaterialResolver uses detectors.material_map + detectors.default_material
+        self._material_resolver = MaterialResolver.from_mapping(
+            self.material_map, default=self.default_material
+        )
+        if self.time_units == "ns":
+            self._time_scale = 1.0
+        elif self.time_units == "ps":
+            self._time_scale = 1e-3
+        else:
+            raise ValueError(f"Unsupported time_units {self.time_units!r}")
 
-    def __init__(
-        self,
-        style: Literal["Joey", "Lena"] = "Joey",
-        require_gamma_triples: bool = False,
-        unit_pos_is_mm: bool = True,
-        keep_mevee: bool = True,
-        time_branch_units: Literal["ns", "ps"] = "ns",
-        default_material: str = "M600",
-    ) -> None:
-        if uproot is None:  # pragma: no cover
-            raise RuntimeError("uproot is required for ROOTAdapter but is not installed.")
-        self.style = style
-        self.unit_pos_is_mm = unit_pos_is_mm
-        self.keep_mevee = keep_mevee
-        self.require_gamma_triples = require_gamma_triples
-        self.time_scale = 0.001 if time_branch_units == "ps" else 1.0
-        base = self._DEFAULT_KEYS_JOEY if style == "Joey" else self._DEFAULT_KEYS_LENA
-        self.tree_key = "image_tree;1" if style == "Joey" else "ntuple_NCE_raw;1"
-        self.default_material = default_material
+    # --- internals -----------------------------------------------------
 
-    def iter_events(self, path: str):
-        with uproot.open(path) as f:
-            try:
-                tree = f[self.tree_key]
-            except Exception:
-                first_key = next(iter(f.keys()))
-                tree = f[first_key]
+    def _find_tree(self, path: str):
+        """
+        Open the ROOT file and locate the image tree.
 
-            # Iterate in chunks for streaming
-            for arrays in tree.iterate(filter_name=list(self.keys.values()), step_size="100 MB"):
-                A = {k: arrays.get(v) for k, v in self.keys.items() if v in arrays}
-                n = len(next(iter(A.values()))) if A else 0
+        We first try exact keys:
+          - 'image_tree'
+          - 'image_tree;1'
 
-                for i in range(n):
-                    # Build physics Hit with 'extras' preserved for filtering
-                    def h(which: Literal["1", "2", "3"]) -> Hit:
-                        x = A.get(f"x{which}")[i]
-                        y = A.get(f"y{which}")[i]
-                        z = A.get(f"z{which}")[i]
-                        t = A.get(f"t{which}")[i] * self.time_scale
-                        if self.unit_pos_is_mm:
-                            x, y, z = _mm_to_cm(x), _mm_to_cm(y), _mm_to_cm(z)
+        and then fall back to any key containing 'image_tree'.
+        """
+        if uproot is None:  # pragma: no cover - optional dep
+            raise RuntimeError(
+                "uproot is required to read ROOT files but is not installed. "
+                "Install ngimager with the 'root' extras or add uproot to your environment."
+            )
 
-                        rvec = np.array([float(x), float(y), float(z)], dtype=float)
-                        det = int(A.get(f"det{which}")[i]) if A.get(f"det{which}") is not None else 0
+        f = uproot.open(path)  # type: ignore[arg-type]
 
-                        elong = A.get(f"Elong{which}")
-                        L = float(elong[i]) if (self.keep_mevee and elong is not None) else 0.0
+        # Try exact and ROOT-suffixed keys first.
+        for cand in (self.tree_key, f"{self.tree_key};1"):
+            if cand in f:
+                return f[cand]
 
-                        # Preserve auxiliary fields for later filtering
-                        extras: Dict[str, Any] = {}
-                        for key in (f"dE{which}", f"psd{which}", f"Elong{which}", f"par{which}"):
-                            if A.get(key) is not None:
-                                val = A[key][i]
-                                if val is not None:
-                                    try:
-                                        extras[key] = float(val)
-                                    except Exception:
-                                        try:
-                                            extras[key] = int(val)
-                                        except Exception:
-                                            extras[key] = val
+        # Fallback: any key that contains tree_key.
+        for k in f.keys():
+            name = str(k)
+            if self.tree_key in name:
+                return f[name]
 
-                        return Hit(
-                            det_id=det,
+        raise KeyError(f"Could not find tree {self.tree_key!r} in ROOT file {path!r}")
+
+    # --- BaseAdapter API -----------------------------------------------
+
+    def iter_raw_events(self, path: str):
+        """
+        Yield raw coincidence windows as dicts:
+
+            {
+              "hits": [Hit, ...],
+              "multi": int,          # as stored in the ROOT tree, if present
+              "entry": int,          # global entry index
+              "source": "ROOT_NOVO_DDAQ",
+            }
+
+        This method is intentionally conservative and does **not** make
+        any physics decisions about which hits belong to neutron vs
+        gamma events; it simply exposes the coincidence window.
+        """
+        path = str(path)
+        tree = self._find_tree(path)
+
+        # Determine which hit indices (1,2,3,...) are present in this tree.
+        prefixes = ("x", "y", "z", "t", "dE", "psd", "det", "particle", "clipped")
+        hit_indices: set[int] = set()
+        for name in tree.keys():
+            name_str = str(name)
+            for p in prefixes:
+                if name_str.startswith(p):
+                    suffix = name_str[len(p):]
+                    if suffix.isdigit():
+                        hit_indices.add(int(suffix))
+
+        if not hit_indices:
+            # No per-hit branches found; nothing to yield.
+            return
+
+        indices = sorted(hit_indices)
+
+        # Restrict arrays to just the branches we actually need.
+        existing = set(str(n) for n in tree.keys())
+        branch_names: list[str] = []
+        if "multi" in existing:
+            branch_names.append("multi")
+        for idx in indices:
+            for p in prefixes:
+                key = f"{p}{idx}"
+                if key in existing:
+                    branch_names.append(key)
+
+        pos_scale = _CM_PER_MM if self.unit_pos_is_mm else 1.0
+        time_scale = self._time_scale
+
+        entry_offset = 0
+        # Stream in chunks to avoid loading the full file into RAM.
+        for arrays in tree.iterate(filter_name=branch_names, step_size="100 MB", library="np"):
+            # NOTE: uproot returns dict-like arrays with NumPy arrays as values.
+            multi_arr = arrays.get("multi")
+            # Determine the row count from any branch.
+            some_arr = next(iter(arrays.values()))
+            n_rows = len(some_arr)
+
+            for i in range(n_rows):
+                hits: list[Hit] = []
+
+                for idx in indices:
+                    # Minimal required fields; if positions or time are missing, skip this hit.
+                    try:
+                        x = arrays[f"x{idx}"][i]
+                        y = arrays[f"y{idx}"][i]
+                        z = arrays[f"z{idx}"][i]
+                        t = arrays[f"t{idx}"][i]
+                        det = arrays[f"det{idx}"][i]
+                    except KeyError:
+                        continue
+
+                    # Some entries may be "empty" placeholders; guard against obvious sentinels.
+                    try:
+                        det_id = int(det)
+                    except Exception:
+                        continue
+                    if det_id < 0:
+                        continue
+
+                    # Positions in cm
+                    x_cm = float(x) * pos_scale
+                    y_cm = float(y) * pos_scale
+                    z_cm = float(z) * pos_scale
+                    rvec = np.array([x_cm, y_cm, z_cm], dtype=float)
+
+                    # Times in ns
+                    t_ns = float(t) * time_scale
+
+                    # Use dE as light-like quantity (MeVee) for now.
+                    dE_arr = arrays.get(f"dE{idx}")
+                    L_mevee = float(dE_arr[i]) if dE_arr is not None else 0.0
+
+                    # Optional PSD / particle / clipped info goes into extras.
+                    extras: Dict[str, Any] = {}
+                    psd_arr = arrays.get(f"psd{idx}")
+                    if psd_arr is not None:
+                        extras["psd"] = float(psd_arr[i])
+
+                    part_code = None
+                    part_arr = arrays.get(f"particle{idx}")
+                    if part_arr is not None:
+                        try:
+                            part_code = int(part_arr[i])
+                            extras["particle_code"] = part_code
+                        except Exception:
+                            pass
+
+                    clipped_arr = arrays.get(f"clipped{idx}")
+                    if clipped_arr is not None:
+                        extras["clipped"] = bool(clipped_arr[i])
+
+                    # Map particle code (if present) to a simple hit type.
+                    h_type: Optional[str] = None
+                    if part_code == 1:
+                        h_type = "n"
+                    elif part_code == 2:
+                        h_type = "g"
+                    elif part_code == 3:
+                        h_type = "laser"
+
+                    # Resolve material from detector ID if mapping is available.
+                    material = self._material_resolver.material_for(det_id)
+
+                    hits.append(
+                        Hit(
+                            det_id=det_id,
                             r=rvec,
-                            t_ns=float(t),
-                            L=L,
-                            material=self.default_material,
+                            t_ns=t_ns,
+                            L=L_mevee,
+                            material=material,
+                            type=h_type,
                             extras=extras,
                         )
+                    )
 
-                    entry_meta = {
-                        "source": "ROOT",
-                        "file": path,
-                        "tree": getattr(tree, "name", str(self.tree_key)),
-                        "entry_index": int(i),
-                    }
+                if not hits:
+                    # Nothing usable in this coincidence window entry.
+                    continue
 
-                    has12 = all(A.get(k) is not None for k in ("x1", "y1", "z1", "t1", "x2", "y2", "z2", "t2"))
-                    has3  = all(A.get(k) is not None for k in ("x3", "y3", "z3", "t3"))
+                multi_val = int(multi_arr[i]) if multi_arr is not None else len(hits)
+                yield {
+                    "hits": hits,
+                    "multi": multi_val,
+                    "entry": entry_offset + i,
+                    "source": "ROOT_NOVO_DDAQ",
+                }
 
-                    if self.require_gamma_triples and has3:
-                        yield GammaEvent(h1=h("1"), h2=h("2"), h3=h("3"), meta=entry_meta)
-                        continue
+            entry_offset += n_rows
 
-                    # Permissive default: yield gamma if triple available, else neutron if double available
-                    if has3:
-                        yield GammaEvent(h1=h("1"), h2=h("2"), h3=h("3"), meta=entry_meta)
-                        continue
-                    if has12:
-                        yield NeutronEvent(h1=h("1"), h2=h("2"), meta=entry_meta)
+    def iter_events(self, path: str):
+        """
+        Placeholder: higher-level event shaping for NOVO DDAQ ROOT data.
+
+        For now, the ng-imager pipeline should consume `iter_raw_events`
+        and run the standard shaping / filtering stack on top. This method
+        is defined only to satisfy the BaseAdapter interface.
+        """
+        raise NotImplementedError(
+            "RootNovoDdaqAdapter.iter_events is not implemented yet; "
+            "use iter_raw_events() via a staged pipeline."
+        )
+
+
+# Backwards-compat alias; to be removed once config / factory use the new name.
+ROOTAdapter = RootNovoDdaqAdapter
 
 
 # ---------------------------------------------------------------------------
@@ -574,7 +668,7 @@ def make_adapter(cfg: Dict) -> BaseAdapter:
 
     Expected keys under [io.adapter]:
       type: "root" | "phits"
-      style: "Joey" | "Lena"            (ROOT-only)
+      style: "novo_ddaq" | "hvl_geant4"            (ROOT-only)
       unit_pos_is_mm: bool
       time_units: "ns" | "ps"
       require_gamma_triples: bool       (ROOT-only)
@@ -584,12 +678,10 @@ def make_adapter(cfg: Dict) -> BaseAdapter:
 
     if typ == "root":
         return ROOTAdapter(
-            style=cfg.get("style", "Joey"),
-            require_gamma_triples=bool(cfg.get("require_gamma_triples", False)),
             unit_pos_is_mm=bool(cfg.get("unit_pos_is_mm", True)),
-            keep_mevee=bool(cfg.get("keep_mevee", True)),
-            time_branch_units=cfg.get("time_units", "ns"),
-            default_material=cfg.get("default_material", "M600"),
+            time_units=cfg.get("time_units", "ns"),
+            default_material=cfg.get("default_material", "UNK"),
+            material_map=cfg.get("material_map"),
         )
 
     if typ == "phits":

@@ -1,0 +1,224 @@
+# ====================================================================
+# NOVO DDAQ ROOT processing example, neutrons from 14.8 MeV DT reaction
+#
+# This config drives the unified ngimager pipeline on:
+#   examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041.root
+#
+# It is intentionally simple and readable, and is meant to mirror
+# (approximately) the legacy image_settings.txt for this dataset.
+# ====================================================================
+
+[run]
+# High-level data source context
+source_type = "dt"          # "cf252" | "dt" | "proton_center" | "phits"
+
+# Which species to process
+neutrons = true
+gammas   = true
+
+# Operational toggles (can also be overridden by CLI flags)
+fast = true                   # use more aggressive thresholds / cone caps
+list = false                   # also write list-mode per-cone sparse images
+
+# Execution / performance
+workers     = 0                # 0 = auto
+chunk_cones = "auto"
+jit         = true
+progress    = true
+
+# Diagnostics verbosity
+# 0 = off, 1 = minimal (stage summaries + counters), 2 = verbose (per-stage details)
+diagnostics_level = 2
+
+# SBP imaging engine:
+#   "scan" – matrix scan across pixel-centered lines (continuous arcs)
+#   "poly" – perimeter sampling (faster, but may show dotted arcs)
+sbp_engine = "scan"
+
+# Safety cap for total imaged cones (after filtering and selection)
+max_cones = 50000
+
+
+[pipeline]
+# Where to stop the unified pipeline
+# "hits" | "events" | "cones" | "image"
+until = "image"
+
+
+[io]
+# Input PHITS usrdef tally and output HDF5 path
+input_format = "root_novo_ddaq"       # phits_usrdef | root_novo_ddaq | hdf5_ngimager
+input_path  = "examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041.root"
+output_path = "examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041_out.h5"
+hdf5_overwrite = true 
+
+[io.adapter]
+# ROOT (NOVO DDAQ) adapter: stream tabular rows with normalized units
+# type = "root"
+# style = "novo_ddaq"
+tree_key = "image_tree"
+meta_tree_key = "meta"
+unit_pos_is_mm = true
+require_gamma_triples = true
+keep_mevee = true
+time_branch_units = "ns"
+
+# NOTE: material-specific behavior (e.g. LUTs) is configured below in [detectors] and [energy].
+# If the adapter needs a per-detector material, it should ask cfg.detectors.
+
+[detectors]
+# Default material to assume if a detector ID is missing from material_map
+default_material = "OGS"
+
+# Map detector IDs to materials used in this PHITS_simple example.
+[detectors.material_map]
+0 = "OGS"
+1 = "M600"
+2 = "OGS"
+3 = "M600"
+4 = "OGS"
+5 = "OGS"
+6 = "M600"
+7 = "OGS"
+8 = "M600"
+9 = "OGS"
+10 = "OGS"
+11 = "M600"
+12 = "OGS"
+13 = "M600"
+
+# Optional future extension (not yet required in code):
+# [detectors.geometry]
+# 200 = { center_cm = [-3.6, 16.5, 0.35],  normal = [0.0, -1.0, 0.0] }
+# 210 = { center_cm = [-3.4, 16.8, 0.59],  normal = [0.0, -1.0, 0.0] }
+# ...
+
+[plane]
+origin = [0.0, 15.0, 0.0]   # a point on the plane;  y ≈ detector face coordinate
+normal = [0.0, 0.0, 1.0]    # +z
+u_axis = [1.0, 0.0, 0.0]    # x runs horizontal
+v_axis = [0.0, 1.0, 0.0]    # y runs vertical
+u_min = -100.0
+u_max =  100.0
+v_min = -100.0
+v_max =  100.0
+du = 0.5
+dv = 0.5
+
+[filters.hits]
+# Universal hit-level cuts applied before event shaping
+min_light_MeVee = 0.1
+max_light_MeVee = 200.0
+# Optional PSD window (applied only when hits carry a PSD value,
+# e.g. NOVO DDAQ ROOT data). If psd_min / psd_max are omitted or
+# commented out, no PSD-based cut is applied at this level.
+# PSD values are in [0, 1] for NOVO.
+# psd_min = 0.0
+# psd_max = 1.0
+
+bars_include      = []            # e.g. [200, 210, 220]
+bars_exclude      = []
+materials_include = []            # e.g. ["M600", "OGS"]
+materials_exclude = []
+
+[filters.hits.neutron]
+# optional overrides / additions for neutron hits
+# min_light_MeVee = 75.0
+# Example neutron PSD window (uncomment and tune as needed)
+# psd_min = 0.2
+# psd_max = 0.6
+
+[filters.hits.gamma]
+# Example gamma PSD window (uncomment and tune as needed)
+# psd_min = 0.0
+# psd_max = 0.2
+
+[filters.events]
+# universal event cuts
+tof_window_ns = [0.0, 30.0]
+
+[filters.events.neutron]
+# override only what you need; if empty, falls back to [filters.events]
+tof_window_ns = [0.0, 30.0]
+min_L1_MeVee = 0.1
+min_L2_MeVee = 0.1
+
+[filters.events.gamma]
+tof_window_ns = [0.0, 10.0]
+min_L_any_MeVee = 0.05
+
+[filters.cones]
+# universal cone cuts
+max_delta_theta_deg = 180.0
+max_incident_energy_MeV = 250.0   # global cap if desired
+
+[filters.cones.neutron]
+max_delta_theta_deg = 180.0
+max_incident_energy_MeV = 25.0
+
+[filters.cones.gamma]
+max_delta_theta_deg = 100.0
+max_incident_energy_MeV = 100.0 
+
+[fast]
+# More aggressive light thresholds
+min_L1_MeVee   = 0.8   # MeVee, first neutron scatter
+min_L2_MeVee   = 0.4   # MeVee, second neutron scatter
+min_L_any_MeVee = 0.2  # MeVee, any gamma or neutron deposit considered
+
+# Stop after this many cones have been built and imaged
+max_cones = 10000
+
+# Coarsen the imaging plane by this integer factor:
+# du' = du * plane_downsample, dv' = dv * plane_downsample
+plane_downsample = 4
+
+# SBP imaging engine:
+#   "scan" – matrix scan across pixel-centered lines (continuous arcs)
+#   "poly" – perimeter sampling (faster, but may show dotted arcs)
+sbp_engine = "poly"
+
+
+[energy]
+# Neutron energy strategy:
+# - "ELUT": use E(L) LUTs for the first scatter (per material)
+# - "ToF":  use time-of-flight to estimate neutron energy change
+# - "FixedEn": use a fixed incident energy (e.g. DT source)
+# - "Edep": treat Hit.L as deposited energy directly (e.g. PHITS Edep_MeV)
+strategy = "FixedEn"                 # ELUT | ToF | FixedEn | Edep
+
+# For neutrons, assume recoils are always protons (true) or consider also carbon recoils (false)
+force_proton_recoils = false      # true | false
+
+# Used only for strategy = "FixedEn"
+fixed_En_MeV = 14.8
+
+# LUT paths for any materials present. Extend freely for new materials.
+lut_paths.M600.proton = "data/lut/M600/lut_M600_proton_Birks.npz"
+lut_paths.M600.carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
+lut_paths.OGS.proton  = "data/lut/OGS/lut_OGS_proton_Birks.npz"
+lut_paths.OGS.carbon  = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
+
+[prior]
+type = "point"
+point = [0.0, 0.0, -109.6]
+strength = 1.0
+
+[uncertainty]
+enabled = false
+smearing = "thicken"
+sigma_doi_cm = 0.35
+sigma_transverse_cm = 0.346
+sigma_time_ns = 0.5
+use_lut_bands = false  # if true, read E_lo/E_hi from LUTs where available
+
+[vis]
+export_png_on_write    = true           # render images after reconstruction
+species                = ["n", "g", "all"]
+center_on_plane_center = true
+axis_units             = "mm"          # "cm" or "mm"
+filename_pattern       = "{stem}_{species}.{ext}"
+# flip_vertical          = true
+# extra_formats          = ["pdf"]
+# summed_dataset       = "/images/summed/n"  # advanced / legacy option
+

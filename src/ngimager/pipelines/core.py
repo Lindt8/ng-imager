@@ -133,15 +133,26 @@ def _apply_fast_overrides(cfg: Config, diag_level: int = 1) -> None:
 
 def _iter_source_events(cfg: Config) -> Iterable[Event]:
     """
-    Unified event source for real data.
+    Unified entry point for real-data event sources.
 
-    For now, all supported source types use the configured adapter to read
-    events from cfg.io.input_path. Synthetic / toy sources have been removed
-    from the production pipeline; use dedicated dev/test scripts instead.
+    PHITS usrdef  and  ROOT NOVO DDAQ  both use the raw-event → shaping → typed
+    pipeline (Stage 1 in run_pipeline).  Therefore `_iter_source_events` should
+    *not* call adapter.iter_events() for these formats.
 
-    - cfg.io.adapter.kind selects ROOT vs PHITS-style adapters.
-    - cfg.io.input_path is passed to the adapter for real data.
+    Instead, run_pipeline() handles:
+        adapter.iter_raw_events(...) →
+        hit-level filters →
+        is_reconstructable →
+        shape_events_for_cones →
+        shaped_to_typed_events
+
+    This helper is now used ONLY when an adapter truly yields already-typed
+    Event objects (future formats).  Today, that's none.
     """
+
+    # Future: if cfg.io.input_format == "hdf5_ngimager", then re-hydrate typed
+    # events here.  For now, RAW formats are handled entirely inside Stage 1,
+    # and `_iter_source_events` is bypassed.
     adapter_cfg: Dict[str, object] = dict(cfg.io.adapter)
 
     det_cfg = getattr(cfg, "detectors", None)
@@ -155,7 +166,19 @@ def _iter_source_events(cfg: Config) -> Iterable[Event]:
             adapter_cfg["default_material"] = default_mat
 
     adapter = make_adapter(adapter_cfg)
+
+    # IMPORTANT:
+    # PHITS usrdef  →  handled by Stage 1 (raw events)
+    # ROOT NOVO DDAQ → handled by Stage 1 (raw events)
+    if cfg.io.input_format in ("phits_usrdef", "root_novo_ddaq"):
+        raise RuntimeError(
+            "_iter_source_events() should not be used for PHITS or ROOT. "
+            "Stage 1 in run_pipeline() performs raw-event → typed-event shaping."
+        )
+
+    # Only for future adapters that yield fully-typed Event objects:
     return adapter.iter_events(str(cfg.io.input_path))
+
 
 
 def _build_cones_from_events(
@@ -411,7 +434,7 @@ def run_pipeline(
     counters: Dict[str, int] = {}
 
     # ---- Stage 1: adapter → raw events → hit-level filters → is_reconstructable ----
-    if cfg.io.input_format == "phits_usrdef":
+    if cfg.io.input_format in ("phits_usrdef", "root_novo_ddaq"):
         from ngimager.filters.shapers import shape_events_for_cones, ShapeConfig
         from ngimager.filters.to_typed_events import shaped_to_typed_events
         from ngimager.filters.hit_filters import apply_hit_filters, is_reconstructable
@@ -489,9 +512,17 @@ def run_pipeline(
         if diag_level >= 1:
             print("\n[stage2] Hits → shaped events → typed events")
 
+        # Shaper configuration:
+        #   - PHITS: use default policies (time-ascending for both species).
+        #   - ROOT NOVO DDAQ: keep neutrons time-ordered, but pick the
+        #     brightest 3 gamma hits when multiplicity > 3.
+        shape_cfg = ShapeConfig()
+        if cfg.io.input_format == "root_novo_ddaq":
+            shape_cfg.gamma_policy = "energy_desc"
+
         shaped_events, shape_diag = shape_events_for_cones(
             raw_events_after_filters,
-            ShapeConfig(),
+            shape_cfg,
             counters=counters,
         )
 

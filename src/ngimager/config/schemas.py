@@ -54,7 +54,7 @@ class IOCfg(BaseModel):
 
     [io]
     input_path   = "..."
-    input_format = "phits"         # "phits" | "root_novo_ddaq"
+    input_format = "phits_usrdef"  # "phits_usrdef" | "root_novo_ddaq" | "hdf5_ngimager"
     output_path  = "..."
     """
 
@@ -115,6 +115,8 @@ class HitSpeciesOverrides(BaseModel):
     """
     min_light_MeVee: Optional[float] = None
     max_light_MeVee: Optional[float] = None
+    psd_min: Optional[float] = None
+    psd_max: Optional[float] = None
     bars_include: Optional[List[int]] = None
     bars_exclude: Optional[List[int]] = None
     materials_include: Optional[List[str]] = None
@@ -130,6 +132,8 @@ class HitsFiltersCfg(BaseModel):
       [filters.hits]
       min_light_MeVee = 50.0
       max_light_MeVee = 1.0e6
+      psd_min         = 0.0
+      psd_max         = 1.0
       bars_include      = []
       bars_exclude      = []
       materials_include = []
@@ -137,6 +141,8 @@ class HitsFiltersCfg(BaseModel):
 
       [filters.hits.neutron]
       min_light_MeVee = 100.0   # optional override; others fall back to [filters.hits]
+      psd_min         = 0.2     # optional override; if omitted, uses [filters.hits]
+      psd_max         = 0.6
 
       [filters.hits.gamma]
       # optional overrides...
@@ -144,6 +150,8 @@ class HitsFiltersCfg(BaseModel):
     # Universal defaults
     min_light_MeVee: float = 0.0
     max_light_MeVee: float = 1.0e12
+    psd_min: Optional[float] = None
+    psd_max: Optional[float] = None
     bars_include: List[int] = Field(default_factory=list)
     bars_exclude: List[int] = Field(default_factory=list)
     materials_include: List[str] = Field(default_factory=list)
