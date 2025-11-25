@@ -4228,13 +4228,7 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ngimager/pipelines/core.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-891">891</a></span>
-<span class="normal"><a href="#__codelineno-0-892">892</a></span>
-<span class="normal"><a href="#__codelineno-0-893">893</a></span>
-<span class="normal"><a href="#__codelineno-0-894">894</a></span>
-<span class="normal"><a href="#__codelineno-0-895">895</a></span>
-<span class="normal"><a href="#__codelineno-0-896">896</a></span>
-<span class="normal"><a href="#__codelineno-0-897">897</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-897">897</a></span>
 <span class="normal"><a href="#__codelineno-0-898">898</a></span>
 <span class="normal"><a href="#__codelineno-0-899">899</a></span>
 <span class="normal"><a href="#__codelineno-0-900">900</a></span>
@@ -4265,44 +4259,50 @@
 <span class="normal"><a href="#__codelineno-0-925">925</a></span>
 <span class="normal"><a href="#__codelineno-0-926">926</a></span>
 <span class="normal"><a href="#__codelineno-0-927">927</a></span>
-<span class="normal"><a href="#__codelineno-0-928">928</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-891" name="__codelineno-0-891"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-<a id="__codelineno-0-892" name="__codelineno-0-892"></a><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span>
-<a id="__codelineno-0-893" name="__codelineno-0-893"></a>    <span class="n">cfg_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span>
-<a id="__codelineno-0-894" name="__codelineno-0-894"></a>        <span class="o">...</span><span class="p">,</span>
-<a id="__codelineno-0-895" name="__codelineno-0-895"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to TOML config file&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-896" name="__codelineno-0-896"></a>    <span class="p">),</span>
-<a id="__codelineno-0-897" name="__codelineno-0-897"></a>    <span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-898" name="__codelineno-0-898"></a>        <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-899" name="__codelineno-0-899"></a>        <span class="s2">&quot;--fast&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-900" name="__codelineno-0-900"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override [run].fast = true (use aggressive fast settings)&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-901" name="__codelineno-0-901"></a>    <span class="p">),</span>
-<a id="__codelineno-0-902" name="__codelineno-0-902"></a>    <span class="n">list_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-903" name="__codelineno-0-903"></a>        <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-904" name="__codelineno-0-904"></a>        <span class="s2">&quot;--list&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-905" name="__codelineno-0-905"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override [run].list = true (enable list-mode image output)&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-906" name="__codelineno-0-906"></a>    <span class="p">),</span>
-<a id="__codelineno-0-907" name="__codelineno-0-907"></a>    <span class="n">neutrons</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-908" name="__codelineno-0-908"></a>        <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-909" name="__codelineno-0-909"></a>        <span class="s2">&quot;--neutrons / --no-neutrons&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-910" name="__codelineno-0-910"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable or disable neutron processing; overrides [run].neutrons when set&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-911" name="__codelineno-0-911"></a>    <span class="p">),</span>
-<a id="__codelineno-0-912" name="__codelineno-0-912"></a>    <span class="n">gammas</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-913" name="__codelineno-0-913"></a>        <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-914" name="__codelineno-0-914"></a>        <span class="s2">&quot;--gammas / --no-gammas&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-915" name="__codelineno-0-915"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable or disable gamma processing; overrides [run].gammas when set&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-916" name="__codelineno-0-916"></a>    <span class="p">),</span>
-<a id="__codelineno-0-917" name="__codelineno-0-917"></a><span class="p">):</span>
-<a id="__codelineno-0-918" name="__codelineno-0-918"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-919" name="__codelineno-0-919"></a><span class="sd">    Run the unified ng-imager pipeline for a single config.</span>
-<a id="__codelineno-0-920" name="__codelineno-0-920"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-921" name="__codelineno-0-921"></a>    <span class="n">out_path</span> <span class="o">=</span> <span class="n">run_pipeline</span><span class="p">(</span>
-<a id="__codelineno-0-922" name="__codelineno-0-922"></a>        <span class="n">cfg_path</span><span class="p">,</span>
-<a id="__codelineno-0-923" name="__codelineno-0-923"></a>        <span class="n">fast</span><span class="o">=</span><span class="n">fast</span> <span class="k">if</span> <span class="n">fast</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-924" name="__codelineno-0-924"></a>        <span class="n">list_mode</span><span class="o">=</span><span class="n">list_mode</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-925" name="__codelineno-0-925"></a>        <span class="n">neutrons</span><span class="o">=</span><span class="n">neutrons</span><span class="p">,</span>
-<a id="__codelineno-0-926" name="__codelineno-0-926"></a>        <span class="n">gammas</span><span class="o">=</span><span class="n">gammas</span><span class="p">,</span>
-<a id="__codelineno-0-927" name="__codelineno-0-927"></a>    <span class="p">)</span>
-<a id="__codelineno-0-928" name="__codelineno-0-928"></a>    <span class="n">typer</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">))</span>
+<span class="normal"><a href="#__codelineno-0-928">928</a></span>
+<span class="normal"><a href="#__codelineno-0-929">929</a></span>
+<span class="normal"><a href="#__codelineno-0-930">930</a></span>
+<span class="normal"><a href="#__codelineno-0-931">931</a></span>
+<span class="normal"><a href="#__codelineno-0-932">932</a></span>
+<span class="normal"><a href="#__codelineno-0-933">933</a></span>
+<span class="normal"><a href="#__codelineno-0-934">934</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-897" name="__codelineno-0-897"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<a id="__codelineno-0-898" name="__codelineno-0-898"></a><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span>
+<a id="__codelineno-0-899" name="__codelineno-0-899"></a>    <span class="n">cfg_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span>
+<a id="__codelineno-0-900" name="__codelineno-0-900"></a>        <span class="o">...</span><span class="p">,</span>
+<a id="__codelineno-0-901" name="__codelineno-0-901"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to TOML config file&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-902" name="__codelineno-0-902"></a>    <span class="p">),</span>
+<a id="__codelineno-0-903" name="__codelineno-0-903"></a>    <span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
+<a id="__codelineno-0-904" name="__codelineno-0-904"></a>        <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-905" name="__codelineno-0-905"></a>        <span class="s2">&quot;--fast&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-906" name="__codelineno-0-906"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override [run].fast = true (use aggressive fast settings)&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-907" name="__codelineno-0-907"></a>    <span class="p">),</span>
+<a id="__codelineno-0-908" name="__codelineno-0-908"></a>    <span class="n">list_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
+<a id="__codelineno-0-909" name="__codelineno-0-909"></a>        <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-910" name="__codelineno-0-910"></a>        <span class="s2">&quot;--list&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-911" name="__codelineno-0-911"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override [run].list = true (enable list-mode image output)&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-912" name="__codelineno-0-912"></a>    <span class="p">),</span>
+<a id="__codelineno-0-913" name="__codelineno-0-913"></a>    <span class="n">neutrons</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
+<a id="__codelineno-0-914" name="__codelineno-0-914"></a>        <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-915" name="__codelineno-0-915"></a>        <span class="s2">&quot;--neutrons / --no-neutrons&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-916" name="__codelineno-0-916"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable or disable neutron processing; overrides [run].neutrons when set&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-917" name="__codelineno-0-917"></a>    <span class="p">),</span>
+<a id="__codelineno-0-918" name="__codelineno-0-918"></a>    <span class="n">gammas</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
+<a id="__codelineno-0-919" name="__codelineno-0-919"></a>        <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-920" name="__codelineno-0-920"></a>        <span class="s2">&quot;--gammas / --no-gammas&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-921" name="__codelineno-0-921"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable or disable gamma processing; overrides [run].gammas when set&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-922" name="__codelineno-0-922"></a>    <span class="p">),</span>
+<a id="__codelineno-0-923" name="__codelineno-0-923"></a><span class="p">):</span>
+<a id="__codelineno-0-924" name="__codelineno-0-924"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-925" name="__codelineno-0-925"></a><span class="sd">    Run the unified ng-imager pipeline for a single config.</span>
+<a id="__codelineno-0-926" name="__codelineno-0-926"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-927" name="__codelineno-0-927"></a>    <span class="n">out_path</span> <span class="o">=</span> <span class="n">run_pipeline</span><span class="p">(</span>
+<a id="__codelineno-0-928" name="__codelineno-0-928"></a>        <span class="n">cfg_path</span><span class="p">,</span>
+<a id="__codelineno-0-929" name="__codelineno-0-929"></a>        <span class="n">fast</span><span class="o">=</span><span class="n">fast</span> <span class="k">if</span> <span class="n">fast</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-930" name="__codelineno-0-930"></a>        <span class="n">list_mode</span><span class="o">=</span><span class="n">list_mode</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-931" name="__codelineno-0-931"></a>        <span class="n">neutrons</span><span class="o">=</span><span class="n">neutrons</span><span class="p">,</span>
+<a id="__codelineno-0-932" name="__codelineno-0-932"></a>        <span class="n">gammas</span><span class="o">=</span><span class="n">gammas</span><span class="p">,</span>
+<a id="__codelineno-0-933" name="__codelineno-0-933"></a>    <span class="p">)</span>
+<a id="__codelineno-0-934" name="__codelineno-0-934"></a>    <span class="n">typer</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">))</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -4898,7 +4898,13 @@ override the corresponding [run] fields when not None.</p>
 <span class="normal"><a href="#__codelineno-0-878">878</a></span>
 <span class="normal"><a href="#__codelineno-0-879">879</a></span>
 <span class="normal"><a href="#__codelineno-0-880">880</a></span>
-<span class="normal"><a href="#__codelineno-0-881">881</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_pipeline</span><span class="p">(</span>
+<span class="normal"><a href="#__codelineno-0-881">881</a></span>
+<span class="normal"><a href="#__codelineno-0-882">882</a></span>
+<span class="normal"><a href="#__codelineno-0-883">883</a></span>
+<span class="normal"><a href="#__codelineno-0-884">884</a></span>
+<span class="normal"><a href="#__codelineno-0-885">885</a></span>
+<span class="normal"><a href="#__codelineno-0-886">886</a></span>
+<span class="normal"><a href="#__codelineno-0-887">887</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_pipeline</span><span class="p">(</span>
 <a id="__codelineno-0-367" name="__codelineno-0-367"></a>    <span class="n">cfg_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <a id="__codelineno-0-368" name="__codelineno-0-368"></a>    <span class="o">*</span><span class="p">,</span>
 <a id="__codelineno-0-369" name="__codelineno-0-369"></a>    <span class="n">fast</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -5375,45 +5381,51 @@ override the corresponding [run] fields when not None.</p>
 <a id="__codelineno-0-840" name="__codelineno-0-840"></a>    <span class="c1"># Store counters into the HDF5 file for later inspection</span>
 <a id="__codelineno-0-841" name="__codelineno-0-841"></a>    <span class="n">write_counters</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">counters</span><span class="p">)</span>
 <a id="__codelineno-0-842" name="__codelineno-0-842"></a>
-<a id="__codelineno-0-843" name="__codelineno-0-843"></a>    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<a id="__codelineno-0-844" name="__codelineno-0-844"></a>
-<a id="__codelineno-0-845" name="__codelineno-0-845"></a>    <span class="c1"># Optional image export</span>
-<a id="__codelineno-0-846" name="__codelineno-0-846"></a>    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;vis&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;export_png_on_write&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-<a id="__codelineno-0-847" name="__codelineno-0-847"></a>        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-848" name="__codelineno-0-848"></a>            <span class="c1"># Species to render (n/g/all)</span>
-<a id="__codelineno-0-849" name="__codelineno-0-849"></a>            <span class="n">species</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;species&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">])</span>
+<a id="__codelineno-0-843" name="__codelineno-0-843"></a>    <span class="c1"># Optional diagnostics printout of counters (console only).</span>
+<a id="__codelineno-0-844" name="__codelineno-0-844"></a>    <span class="k">if</span> <span class="n">diag_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-0-845" name="__codelineno-0-845"></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[diagnostics] Counter summary:&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-846" name="__codelineno-0-846"></a>        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counters</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+<a id="__codelineno-0-847" name="__codelineno-0-847"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">counters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-848" name="__codelineno-0-848"></a>
+<a id="__codelineno-0-849" name="__codelineno-0-849"></a>    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 <a id="__codelineno-0-850" name="__codelineno-0-850"></a>
-<a id="__codelineno-0-851" name="__codelineno-0-851"></a>            <span class="c1"># Always include PNG; add extra formats from config (e.g. [&quot;pdf&quot;])</span>
-<a id="__codelineno-0-852" name="__codelineno-0-852"></a>            <span class="n">formats</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;png&quot;</span><span class="p">]</span>
-<a id="__codelineno-0-853" name="__codelineno-0-853"></a>            <span class="n">extra</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;extra_formats&quot;</span><span class="p">,</span> <span class="p">[])</span>
-<a id="__codelineno-0-854" name="__codelineno-0-854"></a>            <span class="k">for</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">extra</span><span class="p">:</span>
-<a id="__codelineno-0-855" name="__codelineno-0-855"></a>                <span class="n">fmt</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-<a id="__codelineno-0-856" name="__codelineno-0-856"></a>                <span class="k">if</span> <span class="n">fmt</span> <span class="ow">and</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">formats</span><span class="p">:</span>
-<a id="__codelineno-0-857" name="__codelineno-0-857"></a>                    <span class="n">formats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
-<a id="__codelineno-0-858" name="__codelineno-0-858"></a>
-<a id="__codelineno-0-859" name="__codelineno-0-859"></a>            <span class="n">image_paths</span> <span class="o">=</span> <span class="n">render_summed_images</span><span class="p">(</span>
-<a id="__codelineno-0-860" name="__codelineno-0-860"></a>                <span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">),</span>
-<a id="__codelineno-0-861" name="__codelineno-0-861"></a>                <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
-<a id="__codelineno-0-862" name="__codelineno-0-862"></a>                <span class="n">filename_pattern</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;filename_pattern&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{species}</span><span class="s2">_</span><span class="si">{stem}</span><span class="s2">.</span><span class="si">{ext}</span><span class="s2">&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-863" name="__codelineno-0-863"></a>                <span class="n">center_on_plane_center</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;center_on_plane_center&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-<a id="__codelineno-0-864" name="__codelineno-0-864"></a>                <span class="n">flip_vertical</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;flip_vertical&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-<a id="__codelineno-0-865" name="__codelineno-0-865"></a>                <span class="n">axis_units</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;axis_units&quot;</span><span class="p">,</span> <span class="s2">&quot;cm&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-866" name="__codelineno-0-866"></a>                <span class="n">cmap</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;cmap&quot;</span><span class="p">,</span> <span class="s2">&quot;cividis&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-867" name="__codelineno-0-867"></a>                <span class="n">formats</span><span class="o">=</span><span class="n">formats</span><span class="p">,</span>
-<a id="__codelineno-0-868" name="__codelineno-0-868"></a>            <span class="p">)</span>
-<a id="__codelineno-0-869" name="__codelineno-0-869"></a>
-<a id="__codelineno-0-870" name="__codelineno-0-870"></a>            <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">diagnostics_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-<a id="__codelineno-0-871" name="__codelineno-0-871"></a>                <span class="k">if</span> <span class="n">image_paths</span><span class="p">:</span>
-<a id="__codelineno-0-872" name="__codelineno-0-872"></a>                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[stage4] Wrote images: &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">image_paths</span><span class="p">))</span>
-<a id="__codelineno-0-873" name="__codelineno-0-873"></a>                <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-874" name="__codelineno-0-874"></a>                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[stage4] No /images/summed/* datasets found to visualize&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-875" name="__codelineno-0-875"></a>        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-0-851" name="__codelineno-0-851"></a>    <span class="c1"># Optional image export</span>
+<a id="__codelineno-0-852" name="__codelineno-0-852"></a>    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;vis&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;export_png_on_write&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+<a id="__codelineno-0-853" name="__codelineno-0-853"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-854" name="__codelineno-0-854"></a>            <span class="c1"># Species to render (n/g/all)</span>
+<a id="__codelineno-0-855" name="__codelineno-0-855"></a>            <span class="n">species</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;species&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">])</span>
+<a id="__codelineno-0-856" name="__codelineno-0-856"></a>
+<a id="__codelineno-0-857" name="__codelineno-0-857"></a>            <span class="c1"># Always include PNG; add extra formats from config (e.g. [&quot;pdf&quot;])</span>
+<a id="__codelineno-0-858" name="__codelineno-0-858"></a>            <span class="n">formats</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;png&quot;</span><span class="p">]</span>
+<a id="__codelineno-0-859" name="__codelineno-0-859"></a>            <span class="n">extra</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;extra_formats&quot;</span><span class="p">,</span> <span class="p">[])</span>
+<a id="__codelineno-0-860" name="__codelineno-0-860"></a>            <span class="k">for</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">extra</span><span class="p">:</span>
+<a id="__codelineno-0-861" name="__codelineno-0-861"></a>                <span class="n">fmt</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<a id="__codelineno-0-862" name="__codelineno-0-862"></a>                <span class="k">if</span> <span class="n">fmt</span> <span class="ow">and</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">formats</span><span class="p">:</span>
+<a id="__codelineno-0-863" name="__codelineno-0-863"></a>                    <span class="n">formats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+<a id="__codelineno-0-864" name="__codelineno-0-864"></a>
+<a id="__codelineno-0-865" name="__codelineno-0-865"></a>            <span class="n">image_paths</span> <span class="o">=</span> <span class="n">render_summed_images</span><span class="p">(</span>
+<a id="__codelineno-0-866" name="__codelineno-0-866"></a>                <span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">),</span>
+<a id="__codelineno-0-867" name="__codelineno-0-867"></a>                <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
+<a id="__codelineno-0-868" name="__codelineno-0-868"></a>                <span class="n">filename_pattern</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;filename_pattern&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{species}</span><span class="s2">_</span><span class="si">{stem}</span><span class="s2">.</span><span class="si">{ext}</span><span class="s2">&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-869" name="__codelineno-0-869"></a>                <span class="n">center_on_plane_center</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;center_on_plane_center&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-0-870" name="__codelineno-0-870"></a>                <span class="n">flip_vertical</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;flip_vertical&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-0-871" name="__codelineno-0-871"></a>                <span class="n">axis_units</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;axis_units&quot;</span><span class="p">,</span> <span class="s2">&quot;cm&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-872" name="__codelineno-0-872"></a>                <span class="n">cmap</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;cmap&quot;</span><span class="p">,</span> <span class="s2">&quot;cividis&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-873" name="__codelineno-0-873"></a>                <span class="n">formats</span><span class="o">=</span><span class="n">formats</span><span class="p">,</span>
+<a id="__codelineno-0-874" name="__codelineno-0-874"></a>            <span class="p">)</span>
+<a id="__codelineno-0-875" name="__codelineno-0-875"></a>
 <a id="__codelineno-0-876" name="__codelineno-0-876"></a>            <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">diagnostics_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-<a id="__codelineno-0-877" name="__codelineno-0-877"></a>                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[stage4] Image export failed: </span><span class="si">{</span><span class="n">e</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-878" name="__codelineno-0-878"></a>
-<a id="__codelineno-0-879" name="__codelineno-0-879"></a>
-<a id="__codelineno-0-880" name="__codelineno-0-880"></a>
-<a id="__codelineno-0-881" name="__codelineno-0-881"></a>    <span class="k">return</span> <span class="n">out_path</span>
+<a id="__codelineno-0-877" name="__codelineno-0-877"></a>                <span class="k">if</span> <span class="n">image_paths</span><span class="p">:</span>
+<a id="__codelineno-0-878" name="__codelineno-0-878"></a>                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[stage4] Wrote images: &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">image_paths</span><span class="p">))</span>
+<a id="__codelineno-0-879" name="__codelineno-0-879"></a>                <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-880" name="__codelineno-0-880"></a>                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[stage4] No /images/summed/* datasets found to visualize&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-881" name="__codelineno-0-881"></a>        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-0-882" name="__codelineno-0-882"></a>            <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">diagnostics_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-0-883" name="__codelineno-0-883"></a>                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[stage4] Image export failed: </span><span class="si">{</span><span class="n">e</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-884" name="__codelineno-0-884"></a>
+<a id="__codelineno-0-885" name="__codelineno-0-885"></a>
+<a id="__codelineno-0-886" name="__codelineno-0-886"></a>
+<a id="__codelineno-0-887" name="__codelineno-0-887"></a>    <span class="k">return</span> <span class="n">out_path</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -23869,13 +23881,7 @@ Follows primer equations for theta_CoM then lab mapping.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ngimager/pipelines/core.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-891">891</a></span>
-<span class="normal"><a href="#__codelineno-0-892">892</a></span>
-<span class="normal"><a href="#__codelineno-0-893">893</a></span>
-<span class="normal"><a href="#__codelineno-0-894">894</a></span>
-<span class="normal"><a href="#__codelineno-0-895">895</a></span>
-<span class="normal"><a href="#__codelineno-0-896">896</a></span>
-<span class="normal"><a href="#__codelineno-0-897">897</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-897">897</a></span>
 <span class="normal"><a href="#__codelineno-0-898">898</a></span>
 <span class="normal"><a href="#__codelineno-0-899">899</a></span>
 <span class="normal"><a href="#__codelineno-0-900">900</a></span>
@@ -23906,44 +23912,50 @@ Follows primer equations for theta_CoM then lab mapping.</p>
 <span class="normal"><a href="#__codelineno-0-925">925</a></span>
 <span class="normal"><a href="#__codelineno-0-926">926</a></span>
 <span class="normal"><a href="#__codelineno-0-927">927</a></span>
-<span class="normal"><a href="#__codelineno-0-928">928</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-891" name="__codelineno-0-891"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-<a id="__codelineno-0-892" name="__codelineno-0-892"></a><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span>
-<a id="__codelineno-0-893" name="__codelineno-0-893"></a>    <span class="n">cfg_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span>
-<a id="__codelineno-0-894" name="__codelineno-0-894"></a>        <span class="o">...</span><span class="p">,</span>
-<a id="__codelineno-0-895" name="__codelineno-0-895"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to TOML config file&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-896" name="__codelineno-0-896"></a>    <span class="p">),</span>
-<a id="__codelineno-0-897" name="__codelineno-0-897"></a>    <span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-898" name="__codelineno-0-898"></a>        <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-899" name="__codelineno-0-899"></a>        <span class="s2">&quot;--fast&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-900" name="__codelineno-0-900"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override [run].fast = true (use aggressive fast settings)&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-901" name="__codelineno-0-901"></a>    <span class="p">),</span>
-<a id="__codelineno-0-902" name="__codelineno-0-902"></a>    <span class="n">list_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-903" name="__codelineno-0-903"></a>        <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-904" name="__codelineno-0-904"></a>        <span class="s2">&quot;--list&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-905" name="__codelineno-0-905"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override [run].list = true (enable list-mode image output)&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-906" name="__codelineno-0-906"></a>    <span class="p">),</span>
-<a id="__codelineno-0-907" name="__codelineno-0-907"></a>    <span class="n">neutrons</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-908" name="__codelineno-0-908"></a>        <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-909" name="__codelineno-0-909"></a>        <span class="s2">&quot;--neutrons / --no-neutrons&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-910" name="__codelineno-0-910"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable or disable neutron processing; overrides [run].neutrons when set&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-911" name="__codelineno-0-911"></a>    <span class="p">),</span>
-<a id="__codelineno-0-912" name="__codelineno-0-912"></a>    <span class="n">gammas</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-913" name="__codelineno-0-913"></a>        <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-914" name="__codelineno-0-914"></a>        <span class="s2">&quot;--gammas / --no-gammas&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-915" name="__codelineno-0-915"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable or disable gamma processing; overrides [run].gammas when set&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-916" name="__codelineno-0-916"></a>    <span class="p">),</span>
-<a id="__codelineno-0-917" name="__codelineno-0-917"></a><span class="p">):</span>
-<a id="__codelineno-0-918" name="__codelineno-0-918"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-919" name="__codelineno-0-919"></a><span class="sd">    Run the unified ng-imager pipeline for a single config.</span>
-<a id="__codelineno-0-920" name="__codelineno-0-920"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-921" name="__codelineno-0-921"></a>    <span class="n">out_path</span> <span class="o">=</span> <span class="n">run_pipeline</span><span class="p">(</span>
-<a id="__codelineno-0-922" name="__codelineno-0-922"></a>        <span class="n">cfg_path</span><span class="p">,</span>
-<a id="__codelineno-0-923" name="__codelineno-0-923"></a>        <span class="n">fast</span><span class="o">=</span><span class="n">fast</span> <span class="k">if</span> <span class="n">fast</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-924" name="__codelineno-0-924"></a>        <span class="n">list_mode</span><span class="o">=</span><span class="n">list_mode</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-925" name="__codelineno-0-925"></a>        <span class="n">neutrons</span><span class="o">=</span><span class="n">neutrons</span><span class="p">,</span>
-<a id="__codelineno-0-926" name="__codelineno-0-926"></a>        <span class="n">gammas</span><span class="o">=</span><span class="n">gammas</span><span class="p">,</span>
-<a id="__codelineno-0-927" name="__codelineno-0-927"></a>    <span class="p">)</span>
-<a id="__codelineno-0-928" name="__codelineno-0-928"></a>    <span class="n">typer</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">))</span>
+<span class="normal"><a href="#__codelineno-0-928">928</a></span>
+<span class="normal"><a href="#__codelineno-0-929">929</a></span>
+<span class="normal"><a href="#__codelineno-0-930">930</a></span>
+<span class="normal"><a href="#__codelineno-0-931">931</a></span>
+<span class="normal"><a href="#__codelineno-0-932">932</a></span>
+<span class="normal"><a href="#__codelineno-0-933">933</a></span>
+<span class="normal"><a href="#__codelineno-0-934">934</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-897" name="__codelineno-0-897"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<a id="__codelineno-0-898" name="__codelineno-0-898"></a><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span>
+<a id="__codelineno-0-899" name="__codelineno-0-899"></a>    <span class="n">cfg_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span>
+<a id="__codelineno-0-900" name="__codelineno-0-900"></a>        <span class="o">...</span><span class="p">,</span>
+<a id="__codelineno-0-901" name="__codelineno-0-901"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to TOML config file&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-902" name="__codelineno-0-902"></a>    <span class="p">),</span>
+<a id="__codelineno-0-903" name="__codelineno-0-903"></a>    <span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
+<a id="__codelineno-0-904" name="__codelineno-0-904"></a>        <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-905" name="__codelineno-0-905"></a>        <span class="s2">&quot;--fast&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-906" name="__codelineno-0-906"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override [run].fast = true (use aggressive fast settings)&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-907" name="__codelineno-0-907"></a>    <span class="p">),</span>
+<a id="__codelineno-0-908" name="__codelineno-0-908"></a>    <span class="n">list_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
+<a id="__codelineno-0-909" name="__codelineno-0-909"></a>        <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-910" name="__codelineno-0-910"></a>        <span class="s2">&quot;--list&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-911" name="__codelineno-0-911"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Override [run].list = true (enable list-mode image output)&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-912" name="__codelineno-0-912"></a>    <span class="p">),</span>
+<a id="__codelineno-0-913" name="__codelineno-0-913"></a>    <span class="n">neutrons</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
+<a id="__codelineno-0-914" name="__codelineno-0-914"></a>        <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-915" name="__codelineno-0-915"></a>        <span class="s2">&quot;--neutrons / --no-neutrons&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-916" name="__codelineno-0-916"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable or disable neutron processing; overrides [run].neutrons when set&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-917" name="__codelineno-0-917"></a>    <span class="p">),</span>
+<a id="__codelineno-0-918" name="__codelineno-0-918"></a>    <span class="n">gammas</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
+<a id="__codelineno-0-919" name="__codelineno-0-919"></a>        <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-920" name="__codelineno-0-920"></a>        <span class="s2">&quot;--gammas / --no-gammas&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-921" name="__codelineno-0-921"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Enable or disable gamma processing; overrides [run].gammas when set&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-922" name="__codelineno-0-922"></a>    <span class="p">),</span>
+<a id="__codelineno-0-923" name="__codelineno-0-923"></a><span class="p">):</span>
+<a id="__codelineno-0-924" name="__codelineno-0-924"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-925" name="__codelineno-0-925"></a><span class="sd">    Run the unified ng-imager pipeline for a single config.</span>
+<a id="__codelineno-0-926" name="__codelineno-0-926"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-927" name="__codelineno-0-927"></a>    <span class="n">out_path</span> <span class="o">=</span> <span class="n">run_pipeline</span><span class="p">(</span>
+<a id="__codelineno-0-928" name="__codelineno-0-928"></a>        <span class="n">cfg_path</span><span class="p">,</span>
+<a id="__codelineno-0-929" name="__codelineno-0-929"></a>        <span class="n">fast</span><span class="o">=</span><span class="n">fast</span> <span class="k">if</span> <span class="n">fast</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-930" name="__codelineno-0-930"></a>        <span class="n">list_mode</span><span class="o">=</span><span class="n">list_mode</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-931" name="__codelineno-0-931"></a>        <span class="n">neutrons</span><span class="o">=</span><span class="n">neutrons</span><span class="p">,</span>
+<a id="__codelineno-0-932" name="__codelineno-0-932"></a>        <span class="n">gammas</span><span class="o">=</span><span class="n">gammas</span><span class="p">,</span>
+<a id="__codelineno-0-933" name="__codelineno-0-933"></a>    <span class="p">)</span>
+<a id="__codelineno-0-934" name="__codelineno-0-934"></a>    <span class="n">typer</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">))</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -24539,7 +24551,13 @@ override the corresponding [run] fields when not None.</p>
 <span class="normal"><a href="#__codelineno-0-878">878</a></span>
 <span class="normal"><a href="#__codelineno-0-879">879</a></span>
 <span class="normal"><a href="#__codelineno-0-880">880</a></span>
-<span class="normal"><a href="#__codelineno-0-881">881</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_pipeline</span><span class="p">(</span>
+<span class="normal"><a href="#__codelineno-0-881">881</a></span>
+<span class="normal"><a href="#__codelineno-0-882">882</a></span>
+<span class="normal"><a href="#__codelineno-0-883">883</a></span>
+<span class="normal"><a href="#__codelineno-0-884">884</a></span>
+<span class="normal"><a href="#__codelineno-0-885">885</a></span>
+<span class="normal"><a href="#__codelineno-0-886">886</a></span>
+<span class="normal"><a href="#__codelineno-0-887">887</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-366" name="__codelineno-0-366"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_pipeline</span><span class="p">(</span>
 <a id="__codelineno-0-367" name="__codelineno-0-367"></a>    <span class="n">cfg_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <a id="__codelineno-0-368" name="__codelineno-0-368"></a>    <span class="o">*</span><span class="p">,</span>
 <a id="__codelineno-0-369" name="__codelineno-0-369"></a>    <span class="n">fast</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -25016,45 +25034,51 @@ override the corresponding [run] fields when not None.</p>
 <a id="__codelineno-0-840" name="__codelineno-0-840"></a>    <span class="c1"># Store counters into the HDF5 file for later inspection</span>
 <a id="__codelineno-0-841" name="__codelineno-0-841"></a>    <span class="n">write_counters</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">counters</span><span class="p">)</span>
 <a id="__codelineno-0-842" name="__codelineno-0-842"></a>
-<a id="__codelineno-0-843" name="__codelineno-0-843"></a>    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<a id="__codelineno-0-844" name="__codelineno-0-844"></a>
-<a id="__codelineno-0-845" name="__codelineno-0-845"></a>    <span class="c1"># Optional image export</span>
-<a id="__codelineno-0-846" name="__codelineno-0-846"></a>    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;vis&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;export_png_on_write&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-<a id="__codelineno-0-847" name="__codelineno-0-847"></a>        <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-848" name="__codelineno-0-848"></a>            <span class="c1"># Species to render (n/g/all)</span>
-<a id="__codelineno-0-849" name="__codelineno-0-849"></a>            <span class="n">species</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;species&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">])</span>
+<a id="__codelineno-0-843" name="__codelineno-0-843"></a>    <span class="c1"># Optional diagnostics printout of counters (console only).</span>
+<a id="__codelineno-0-844" name="__codelineno-0-844"></a>    <span class="k">if</span> <span class="n">diag_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-0-845" name="__codelineno-0-845"></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[diagnostics] Counter summary:&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-846" name="__codelineno-0-846"></a>        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counters</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+<a id="__codelineno-0-847" name="__codelineno-0-847"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">counters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-848" name="__codelineno-0-848"></a>
+<a id="__codelineno-0-849" name="__codelineno-0-849"></a>    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 <a id="__codelineno-0-850" name="__codelineno-0-850"></a>
-<a id="__codelineno-0-851" name="__codelineno-0-851"></a>            <span class="c1"># Always include PNG; add extra formats from config (e.g. [&quot;pdf&quot;])</span>
-<a id="__codelineno-0-852" name="__codelineno-0-852"></a>            <span class="n">formats</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;png&quot;</span><span class="p">]</span>
-<a id="__codelineno-0-853" name="__codelineno-0-853"></a>            <span class="n">extra</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;extra_formats&quot;</span><span class="p">,</span> <span class="p">[])</span>
-<a id="__codelineno-0-854" name="__codelineno-0-854"></a>            <span class="k">for</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">extra</span><span class="p">:</span>
-<a id="__codelineno-0-855" name="__codelineno-0-855"></a>                <span class="n">fmt</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-<a id="__codelineno-0-856" name="__codelineno-0-856"></a>                <span class="k">if</span> <span class="n">fmt</span> <span class="ow">and</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">formats</span><span class="p">:</span>
-<a id="__codelineno-0-857" name="__codelineno-0-857"></a>                    <span class="n">formats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
-<a id="__codelineno-0-858" name="__codelineno-0-858"></a>
-<a id="__codelineno-0-859" name="__codelineno-0-859"></a>            <span class="n">image_paths</span> <span class="o">=</span> <span class="n">render_summed_images</span><span class="p">(</span>
-<a id="__codelineno-0-860" name="__codelineno-0-860"></a>                <span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">),</span>
-<a id="__codelineno-0-861" name="__codelineno-0-861"></a>                <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
-<a id="__codelineno-0-862" name="__codelineno-0-862"></a>                <span class="n">filename_pattern</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;filename_pattern&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{species}</span><span class="s2">_</span><span class="si">{stem}</span><span class="s2">.</span><span class="si">{ext}</span><span class="s2">&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-863" name="__codelineno-0-863"></a>                <span class="n">center_on_plane_center</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;center_on_plane_center&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-<a id="__codelineno-0-864" name="__codelineno-0-864"></a>                <span class="n">flip_vertical</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;flip_vertical&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
-<a id="__codelineno-0-865" name="__codelineno-0-865"></a>                <span class="n">axis_units</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;axis_units&quot;</span><span class="p">,</span> <span class="s2">&quot;cm&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-866" name="__codelineno-0-866"></a>                <span class="n">cmap</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;cmap&quot;</span><span class="p">,</span> <span class="s2">&quot;cividis&quot;</span><span class="p">),</span>
-<a id="__codelineno-0-867" name="__codelineno-0-867"></a>                <span class="n">formats</span><span class="o">=</span><span class="n">formats</span><span class="p">,</span>
-<a id="__codelineno-0-868" name="__codelineno-0-868"></a>            <span class="p">)</span>
-<a id="__codelineno-0-869" name="__codelineno-0-869"></a>
-<a id="__codelineno-0-870" name="__codelineno-0-870"></a>            <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">diagnostics_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-<a id="__codelineno-0-871" name="__codelineno-0-871"></a>                <span class="k">if</span> <span class="n">image_paths</span><span class="p">:</span>
-<a id="__codelineno-0-872" name="__codelineno-0-872"></a>                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[stage4] Wrote images: &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">image_paths</span><span class="p">))</span>
-<a id="__codelineno-0-873" name="__codelineno-0-873"></a>                <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-874" name="__codelineno-0-874"></a>                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[stage4] No /images/summed/* datasets found to visualize&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-875" name="__codelineno-0-875"></a>        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-0-851" name="__codelineno-0-851"></a>    <span class="c1"># Optional image export</span>
+<a id="__codelineno-0-852" name="__codelineno-0-852"></a>    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;vis&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;export_png_on_write&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+<a id="__codelineno-0-853" name="__codelineno-0-853"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-0-854" name="__codelineno-0-854"></a>            <span class="c1"># Species to render (n/g/all)</span>
+<a id="__codelineno-0-855" name="__codelineno-0-855"></a>            <span class="n">species</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;species&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">])</span>
+<a id="__codelineno-0-856" name="__codelineno-0-856"></a>
+<a id="__codelineno-0-857" name="__codelineno-0-857"></a>            <span class="c1"># Always include PNG; add extra formats from config (e.g. [&quot;pdf&quot;])</span>
+<a id="__codelineno-0-858" name="__codelineno-0-858"></a>            <span class="n">formats</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;png&quot;</span><span class="p">]</span>
+<a id="__codelineno-0-859" name="__codelineno-0-859"></a>            <span class="n">extra</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;extra_formats&quot;</span><span class="p">,</span> <span class="p">[])</span>
+<a id="__codelineno-0-860" name="__codelineno-0-860"></a>            <span class="k">for</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">extra</span><span class="p">:</span>
+<a id="__codelineno-0-861" name="__codelineno-0-861"></a>                <span class="n">fmt</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<a id="__codelineno-0-862" name="__codelineno-0-862"></a>                <span class="k">if</span> <span class="n">fmt</span> <span class="ow">and</span> <span class="n">fmt</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">formats</span><span class="p">:</span>
+<a id="__codelineno-0-863" name="__codelineno-0-863"></a>                    <span class="n">formats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmt</span><span class="p">)</span>
+<a id="__codelineno-0-864" name="__codelineno-0-864"></a>
+<a id="__codelineno-0-865" name="__codelineno-0-865"></a>            <span class="n">image_paths</span> <span class="o">=</span> <span class="n">render_summed_images</span><span class="p">(</span>
+<a id="__codelineno-0-866" name="__codelineno-0-866"></a>                <span class="nb">str</span><span class="p">(</span><span class="n">out_path</span><span class="p">),</span>
+<a id="__codelineno-0-867" name="__codelineno-0-867"></a>                <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
+<a id="__codelineno-0-868" name="__codelineno-0-868"></a>                <span class="n">filename_pattern</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;filename_pattern&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{species}</span><span class="s2">_</span><span class="si">{stem}</span><span class="s2">.</span><span class="si">{ext}</span><span class="s2">&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-869" name="__codelineno-0-869"></a>                <span class="n">center_on_plane_center</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;center_on_plane_center&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-0-870" name="__codelineno-0-870"></a>                <span class="n">flip_vertical</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;flip_vertical&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-0-871" name="__codelineno-0-871"></a>                <span class="n">axis_units</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;axis_units&quot;</span><span class="p">,</span> <span class="s2">&quot;cm&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-872" name="__codelineno-0-872"></a>                <span class="n">cmap</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">vis</span><span class="p">,</span> <span class="s2">&quot;cmap&quot;</span><span class="p">,</span> <span class="s2">&quot;cividis&quot;</span><span class="p">),</span>
+<a id="__codelineno-0-873" name="__codelineno-0-873"></a>                <span class="n">formats</span><span class="o">=</span><span class="n">formats</span><span class="p">,</span>
+<a id="__codelineno-0-874" name="__codelineno-0-874"></a>            <span class="p">)</span>
+<a id="__codelineno-0-875" name="__codelineno-0-875"></a>
 <a id="__codelineno-0-876" name="__codelineno-0-876"></a>            <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">diagnostics_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-<a id="__codelineno-0-877" name="__codelineno-0-877"></a>                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[stage4] Image export failed: </span><span class="si">{</span><span class="n">e</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-878" name="__codelineno-0-878"></a>
-<a id="__codelineno-0-879" name="__codelineno-0-879"></a>
-<a id="__codelineno-0-880" name="__codelineno-0-880"></a>
-<a id="__codelineno-0-881" name="__codelineno-0-881"></a>    <span class="k">return</span> <span class="n">out_path</span>
+<a id="__codelineno-0-877" name="__codelineno-0-877"></a>                <span class="k">if</span> <span class="n">image_paths</span><span class="p">:</span>
+<a id="__codelineno-0-878" name="__codelineno-0-878"></a>                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[stage4] Wrote images: &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">image_paths</span><span class="p">))</span>
+<a id="__codelineno-0-879" name="__codelineno-0-879"></a>                <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-880" name="__codelineno-0-880"></a>                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[stage4] No /images/summed/* datasets found to visualize&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-881" name="__codelineno-0-881"></a>        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-0-882" name="__codelineno-0-882"></a>            <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">diagnostics_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+<a id="__codelineno-0-883" name="__codelineno-0-883"></a>                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[stage4] Image export failed: </span><span class="si">{</span><span class="n">e</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-884" name="__codelineno-0-884"></a>
+<a id="__codelineno-0-885" name="__codelineno-0-885"></a>
+<a id="__codelineno-0-886" name="__codelineno-0-886"></a>
+<a id="__codelineno-0-887" name="__codelineno-0-887"></a>    <span class="k">return</span> <span class="n">out_path</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
