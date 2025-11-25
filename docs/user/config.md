@@ -162,6 +162,23 @@ For NOVO DDAQ ROOT files with an `image_tree` and `meta` tree:
 Material assignment (e.g. M600 vs OGS) is still configured via [detectors]; the ROOT adapter consults those mappings when constructing Hit objects.
 
 
+### 4.3. [io.extra_text_files] Extra text metadata files
+
+Sometimes it is useful to carry additional text configuration or metadata files forward into the HDF5 output (e.g. a PHITS input deck, DAQ config files, or auxiliary calibration notes). You can specify these via an optional table:
+
+```toml
+[io.extra_text_files]
+# key = "path/to/text/file"
+phits_input = "phits/input/deck.inp"
+daq_config  = "daq/config/daq_settings.txt"
+```
+
+- Keys become dataset names under /meta/extra_text/{key}.
+- Values are file paths. If they are relative, they are interpreted relative to the location of the TOML config file.
+- Each dataset stores the full file contents as a single UTF-8 string.
+
+If `[io.extra_text_files]` is omitted or empty, no extra text metadata is embedded.
+
 ---
 
 ## 5. [detectors] – Material Mapping

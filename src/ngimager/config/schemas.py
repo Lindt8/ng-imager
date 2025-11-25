@@ -64,6 +64,20 @@ class IOCfg(BaseModel):
 
     # Adapter-specific sub-config, e.g. [io.adapter]
     adapter: Dict[str, Any] = Field(default_factory=dict)
+    restart_path: Optional[str] = None  # Not yet implemented
+    hdf5_overwrite: bool = False  # Not yet implemented
+
+    # Optional extra text metadata files to embed into the HDF5.
+    #
+    # Populated from a TOML table:
+    #
+    #   [io.extra_text_files]
+    #   phits_input = "path/to/phits.inp"
+    #   daq_config  = "path/to/daq_config.txt"
+    #
+    # Keys become dataset names under /meta/extra_text; values are file
+    # paths (relative to the TOML config file unless absolute).
+    extra_text_files: Dict[str, str] = Field(default_factory=dict)
 
 class DetectorsCfg(BaseModel):
     """

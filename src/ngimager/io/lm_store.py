@@ -83,7 +83,53 @@ def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File
         "README",
         data=np.array(readme_text, dtype=h5py.string_dtype()),
     )
-    
+
+    # ------------------------------------------------------------------
+    # Optional extra text metadata files from config
+    # ------------------------------------------------------------------
+    extra_files = getattr(getattr(cfg, "io", None), "extra_text_files", {}) or {}
+    if extra_files:
+        extra_grp = meta.require_group("extra_text")
+
+        # For traceability, store a simple label→path mapping as an attribute.
+        # We keep it human-readable, but the real payload is in the datasets.
+        try:
+            mapping_strings = [
+                f"{label}::{path}" for label, path in extra_files.items()
+            ]
+            extra_grp.attrs["source_paths"] = np.array(
+                mapping_strings,
+                dtype=h5py.string_dtype(),
+            )
+        except Exception:
+            # If anything goes wrong with the attribute, just skip it;
+            # the individual datasets are more important.
+            pass
+
+        # Resolve relative paths against the TOML config directory.
+        cfg_dir = Path(cfg_path).resolve().parent
+
+        for label, path_str in extra_files.items():
+            # Be conservative about dataset names: forbid slashes.
+            ds_name = str(label).replace("/", "_")
+
+            try:
+                p = Path(path_str)
+                if not p.is_absolute():
+                    p = (cfg_dir / p).resolve()
+                with p.open("r", encoding="utf-8") as fh:
+                    txt = fh.read()
+                data = np.array(txt, dtype=h5py.string_dtype())
+            except Exception as exc:
+                # On failure, still create a small diagnostic dataset instead
+                # of aborting the whole run.
+                msg = f"[ngimager] Failed to read file {path_str!r}: {exc}"
+                data = np.array(msg, dtype=h5py.string_dtype())
+
+            if ds_name in extra_grp:
+                del extra_grp[ds_name]
+            extra_grp.create_dataset(ds_name, data=data)
+
     return f
 
 

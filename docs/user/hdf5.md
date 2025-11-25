@@ -61,6 +61,31 @@ Datasets:
 - `/meta/readme` — a short README (array of strings) summarizing the layout and
   pointing to the online documentation. (You are here, welcome.)
 
+### Extra text metadata 
+
+If `[io.extra_text_files]` is set in the TOML config, ng-imager will
+embed those files under:
+
+- `/meta/extra_text/{key}`
+
+Each dataset is a single variable-length UTF-8 string containing the full contents of the corresponding file.
+
+For example, with:
+
+```toml
+[io.extra_text_files]
+phits_input = "phits/input/deck.inp"
+daq_config  = "daq/config/daq_settings.txt"
+```
+
+you would get:
+
+- `/meta/extra_text/phits_input`
+- `/meta/extra_text/daq_config`
+
+storing the PHITS input deck and DAQ config text, respectively.
+
+
 ### Counters
 
 Counters are stored as simple datasets under `/meta/counters`:

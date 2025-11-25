@@ -36,7 +36,7 @@ diagnostics_level = 2
 sbp_engine = "scan"
 
 # Safety cap for total imaged cones (after filtering and selection)
-max_cones = 50000
+# max_cones = 50000
 
 
 [pipeline]
@@ -65,6 +65,17 @@ time_branch_units = "ns"
 
 # NOTE: material-specific behavior (e.g. LUTs) is configured below in [detectors] and [energy].
 # If the adapter needs a per-detector material, it should ask cfg.detectors.
+
+[io.extra_text_files]
+# Sometimes it is useful to carry additional text configuration or metadata
+# files forward into the HDF5 output (e.g. a PHITS input deck, DAQ config
+# files, or auxiliary calibration notes). You can specify these here.
+# Values are file paths. If they are relative, they are interpreted relative
+# to the location of the TOML config file.
+# key = "path/to/text/file"
+# phits_input = "phits/input/deck.inp"
+# daq_config  = "daq/config/daq_settings.txt"
+legacy_settings = "../imaging_datasets/NOVO_experiment_DT_at_PTB/legacy_code/image_settings14.txt"
 
 [detectors]
 # Default material to assume if a detector ID is missing from material_map
@@ -185,7 +196,7 @@ sbp_engine = "poly"
 # - "ToF":  use time-of-flight to estimate neutron energy change
 # - "FixedEn": use a fixed incident energy (e.g. DT source)
 # - "Edep": treat Hit.L as deposited energy directly (e.g. PHITS Edep_MeV)
-strategy = "FixedEn"                 # ELUT | ToF | FixedEn | Edep
+strategy = "ELUT"                 # ELUT | ToF | FixedEn | Edep
 
 # For neutrons, assume recoils are always protons (true) or consider also carbon recoils (false)
 force_proton_recoils = false      # true | false
