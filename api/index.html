@@ -7933,79 +7933,79 @@ engine = "poly":
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ngimager/imaging/sbp.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-445">445</a></span>
-<span class="normal"><a href="#__codelineno-0-446">446</a></span>
-<span class="normal"><a href="#__codelineno-0-447">447</a></span>
-<span class="normal"><a href="#__codelineno-0-448">448</a></span>
-<span class="normal"><a href="#__codelineno-0-449">449</a></span>
-<span class="normal"><a href="#__codelineno-0-450">450</a></span>
-<span class="normal"><a href="#__codelineno-0-451">451</a></span>
-<span class="normal"><a href="#__codelineno-0-452">452</a></span>
-<span class="normal"><a href="#__codelineno-0-453">453</a></span>
-<span class="normal"><a href="#__codelineno-0-454">454</a></span>
-<span class="normal"><a href="#__codelineno-0-455">455</a></span>
-<span class="normal"><a href="#__codelineno-0-456">456</a></span>
-<span class="normal"><a href="#__codelineno-0-457">457</a></span>
-<span class="normal"><a href="#__codelineno-0-458">458</a></span>
-<span class="normal"><a href="#__codelineno-0-459">459</a></span>
-<span class="normal"><a href="#__codelineno-0-460">460</a></span>
-<span class="normal"><a href="#__codelineno-0-461">461</a></span>
-<span class="normal"><a href="#__codelineno-0-462">462</a></span>
-<span class="normal"><a href="#__codelineno-0-463">463</a></span>
-<span class="normal"><a href="#__codelineno-0-464">464</a></span>
-<span class="normal"><a href="#__codelineno-0-465">465</a></span>
-<span class="normal"><a href="#__codelineno-0-466">466</a></span>
-<span class="normal"><a href="#__codelineno-0-467">467</a></span>
-<span class="normal"><a href="#__codelineno-0-468">468</a></span>
-<span class="normal"><a href="#__codelineno-0-469">469</a></span>
-<span class="normal"><a href="#__codelineno-0-470">470</a></span>
-<span class="normal"><a href="#__codelineno-0-471">471</a></span>
-<span class="normal"><a href="#__codelineno-0-472">472</a></span>
-<span class="normal"><a href="#__codelineno-0-473">473</a></span>
-<span class="normal"><a href="#__codelineno-0-474">474</a></span>
-<span class="normal"><a href="#__codelineno-0-475">475</a></span>
-<span class="normal"><a href="#__codelineno-0-476">476</a></span>
-<span class="normal"><a href="#__codelineno-0-477">477</a></span>
-<span class="normal"><a href="#__codelineno-0-478">478</a></span>
-<span class="normal"><a href="#__codelineno-0-479">479</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-479">479</a></span>
 <span class="normal"><a href="#__codelineno-0-480">480</a></span>
-<span class="normal"><a href="#__codelineno-0-481">481</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-445" name="__codelineno-0-445"></a><span class="k">def</span><span class="w"> </span><span class="nf">cone_to_indices</span><span class="p">(</span>
-<a id="__codelineno-0-446" name="__codelineno-0-446"></a>    <span class="n">c</span><span class="p">:</span> <span class="n">Cone</span><span class="p">,</span>
-<a id="__codelineno-0-447" name="__codelineno-0-447"></a>    <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">,</span>
-<a id="__codelineno-0-448" name="__codelineno-0-448"></a>    <span class="n">engine</span><span class="p">:</span> <span class="n">SBPEngine</span> <span class="o">=</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-449" name="__codelineno-0-449"></a>    <span class="n">n_poly</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">360</span><span class="p">,</span>
-<a id="__codelineno-0-450" name="__codelineno-0-450"></a>    <span class="n">use_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-451" name="__codelineno-0-451"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<a id="__codelineno-0-452" name="__codelineno-0-452"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-453" name="__codelineno-0-453"></a><span class="sd">    Unified entry point: cone → flat pixel indices.</span>
-<a id="__codelineno-0-454" name="__codelineno-0-454"></a>
-<a id="__codelineno-0-455" name="__codelineno-0-455"></a><span class="sd">    engine = &quot;scan&quot;:</span>
-<a id="__codelineno-0-456" name="__codelineno-0-456"></a><span class="sd">        Use matrix-math scanning across rows/columns (continuous arcs).</span>
-<a id="__codelineno-0-457" name="__codelineno-0-457"></a><span class="sd">    engine = &quot;poly&quot;:</span>
-<a id="__codelineno-0-458" name="__codelineno-0-458"></a><span class="sd">        Use ellipse parameterization when possible, falling back to</span>
-<a id="__codelineno-0-459" name="__codelineno-0-459"></a><span class="sd">        general ray sampling for non-elliptic conics.</span>
-<a id="__codelineno-0-460" name="__codelineno-0-460"></a>
-<a id="__codelineno-0-461" name="__codelineno-0-461"></a><span class="sd">    use_jit:</span>
-<a id="__codelineno-0-462" name="__codelineno-0-462"></a><span class="sd">        When True and numba is available, the &quot;scan&quot; engine uses a JIT-</span>
-<a id="__codelineno-0-463" name="__codelineno-0-463"></a><span class="sd">        compiled inner loop; otherwise the pure-Python scan is used.</span>
-<a id="__codelineno-0-464" name="__codelineno-0-464"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-465" name="__codelineno-0-465"></a>    <span class="n">M</span> <span class="o">=</span> <span class="n">_cone_matrix</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
-<a id="__codelineno-0-466" name="__codelineno-0-466"></a>    <span class="n">Q</span> <span class="o">=</span> <span class="n">_conic_Q</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">apex</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
-<a id="__codelineno-0-467" name="__codelineno-0-467"></a>
-<a id="__codelineno-0-468" name="__codelineno-0-468"></a>    <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">&quot;scan&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-469" name="__codelineno-0-469"></a>        <span class="k">if</span> <span class="n">use_jit</span> <span class="ow">and</span> <span class="n">_scan_conic_core_numba</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-470" name="__codelineno-0-470"></a>            <span class="k">return</span> <span class="n">_scan_conic_indices_numba</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
-<a id="__codelineno-0-471" name="__codelineno-0-471"></a>        <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-472" name="__codelineno-0-472"></a>            <span class="k">return</span> <span class="n">_scan_conic_indices_python</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
-<a id="__codelineno-0-473" name="__codelineno-0-473"></a>
-<a id="__codelineno-0-474" name="__codelineno-0-474"></a>    <span class="c1"># Default: &quot;poly&quot; perimeter sampling</span>
-<a id="__codelineno-0-475" name="__codelineno-0-475"></a>    <span class="n">el</span> <span class="o">=</span> <span class="n">_ellipse_from_Q</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
-<a id="__codelineno-0-476" name="__codelineno-0-476"></a>    <span class="k">if</span> <span class="n">el</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-477" name="__codelineno-0-477"></a>        <span class="c1"># Fallback: general ray sampling around the cone axis</span>
-<a id="__codelineno-0-478" name="__codelineno-0-478"></a>        <span class="k">return</span> <span class="n">_ray_sample_indices</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">apex</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">n_phi</span><span class="o">=</span><span class="mi">720</span><span class="p">)</span>
-<a id="__codelineno-0-479" name="__codelineno-0-479"></a>    <span class="n">uv0</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">el</span>
-<a id="__codelineno-0-480" name="__codelineno-0-480"></a>    <span class="n">pts</span> <span class="o">=</span> <span class="n">_ellipse_poly</span><span class="p">(</span><span class="n">uv0</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n_poly</span><span class="p">)</span>
-<a id="__codelineno-0-481" name="__codelineno-0-481"></a>    <span class="k">return</span> <span class="n">_pixels_from_poly</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-481">481</a></span>
+<span class="normal"><a href="#__codelineno-0-482">482</a></span>
+<span class="normal"><a href="#__codelineno-0-483">483</a></span>
+<span class="normal"><a href="#__codelineno-0-484">484</a></span>
+<span class="normal"><a href="#__codelineno-0-485">485</a></span>
+<span class="normal"><a href="#__codelineno-0-486">486</a></span>
+<span class="normal"><a href="#__codelineno-0-487">487</a></span>
+<span class="normal"><a href="#__codelineno-0-488">488</a></span>
+<span class="normal"><a href="#__codelineno-0-489">489</a></span>
+<span class="normal"><a href="#__codelineno-0-490">490</a></span>
+<span class="normal"><a href="#__codelineno-0-491">491</a></span>
+<span class="normal"><a href="#__codelineno-0-492">492</a></span>
+<span class="normal"><a href="#__codelineno-0-493">493</a></span>
+<span class="normal"><a href="#__codelineno-0-494">494</a></span>
+<span class="normal"><a href="#__codelineno-0-495">495</a></span>
+<span class="normal"><a href="#__codelineno-0-496">496</a></span>
+<span class="normal"><a href="#__codelineno-0-497">497</a></span>
+<span class="normal"><a href="#__codelineno-0-498">498</a></span>
+<span class="normal"><a href="#__codelineno-0-499">499</a></span>
+<span class="normal"><a href="#__codelineno-0-500">500</a></span>
+<span class="normal"><a href="#__codelineno-0-501">501</a></span>
+<span class="normal"><a href="#__codelineno-0-502">502</a></span>
+<span class="normal"><a href="#__codelineno-0-503">503</a></span>
+<span class="normal"><a href="#__codelineno-0-504">504</a></span>
+<span class="normal"><a href="#__codelineno-0-505">505</a></span>
+<span class="normal"><a href="#__codelineno-0-506">506</a></span>
+<span class="normal"><a href="#__codelineno-0-507">507</a></span>
+<span class="normal"><a href="#__codelineno-0-508">508</a></span>
+<span class="normal"><a href="#__codelineno-0-509">509</a></span>
+<span class="normal"><a href="#__codelineno-0-510">510</a></span>
+<span class="normal"><a href="#__codelineno-0-511">511</a></span>
+<span class="normal"><a href="#__codelineno-0-512">512</a></span>
+<span class="normal"><a href="#__codelineno-0-513">513</a></span>
+<span class="normal"><a href="#__codelineno-0-514">514</a></span>
+<span class="normal"><a href="#__codelineno-0-515">515</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-479" name="__codelineno-0-479"></a><span class="k">def</span><span class="w"> </span><span class="nf">cone_to_indices</span><span class="p">(</span>
+<a id="__codelineno-0-480" name="__codelineno-0-480"></a>    <span class="n">c</span><span class="p">:</span> <span class="n">Cone</span><span class="p">,</span>
+<a id="__codelineno-0-481" name="__codelineno-0-481"></a>    <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">,</span>
+<a id="__codelineno-0-482" name="__codelineno-0-482"></a>    <span class="n">engine</span><span class="p">:</span> <span class="n">SBPEngine</span> <span class="o">=</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-483" name="__codelineno-0-483"></a>    <span class="n">n_poly</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">360</span><span class="p">,</span>
+<a id="__codelineno-0-484" name="__codelineno-0-484"></a>    <span class="n">use_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-485" name="__codelineno-0-485"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<a id="__codelineno-0-486" name="__codelineno-0-486"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-487" name="__codelineno-0-487"></a><span class="sd">    Unified entry point: cone → flat pixel indices.</span>
+<a id="__codelineno-0-488" name="__codelineno-0-488"></a>
+<a id="__codelineno-0-489" name="__codelineno-0-489"></a><span class="sd">    engine = &quot;scan&quot;:</span>
+<a id="__codelineno-0-490" name="__codelineno-0-490"></a><span class="sd">        Use matrix-math scanning across rows/columns (continuous arcs).</span>
+<a id="__codelineno-0-491" name="__codelineno-0-491"></a><span class="sd">    engine = &quot;poly&quot;:</span>
+<a id="__codelineno-0-492" name="__codelineno-0-492"></a><span class="sd">        Use ellipse parameterization when possible, falling back to</span>
+<a id="__codelineno-0-493" name="__codelineno-0-493"></a><span class="sd">        general ray sampling for non-elliptic conics.</span>
+<a id="__codelineno-0-494" name="__codelineno-0-494"></a>
+<a id="__codelineno-0-495" name="__codelineno-0-495"></a><span class="sd">    use_jit:</span>
+<a id="__codelineno-0-496" name="__codelineno-0-496"></a><span class="sd">        When True and numba is available, the &quot;scan&quot; engine uses a JIT-</span>
+<a id="__codelineno-0-497" name="__codelineno-0-497"></a><span class="sd">        compiled inner loop; otherwise the pure-Python scan is used.</span>
+<a id="__codelineno-0-498" name="__codelineno-0-498"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-499" name="__codelineno-0-499"></a>    <span class="n">M</span> <span class="o">=</span> <span class="n">_cone_matrix</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
+<a id="__codelineno-0-500" name="__codelineno-0-500"></a>    <span class="n">Q</span> <span class="o">=</span> <span class="n">_conic_Q</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">apex</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
+<a id="__codelineno-0-501" name="__codelineno-0-501"></a>
+<a id="__codelineno-0-502" name="__codelineno-0-502"></a>    <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">&quot;scan&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-503" name="__codelineno-0-503"></a>        <span class="k">if</span> <span class="n">use_jit</span> <span class="ow">and</span> <span class="n">_scan_conic_core_numba</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-504" name="__codelineno-0-504"></a>            <span class="k">return</span> <span class="n">_scan_conic_indices_numba</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
+<a id="__codelineno-0-505" name="__codelineno-0-505"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-506" name="__codelineno-0-506"></a>            <span class="k">return</span> <span class="n">_scan_conic_indices_python</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
+<a id="__codelineno-0-507" name="__codelineno-0-507"></a>
+<a id="__codelineno-0-508" name="__codelineno-0-508"></a>    <span class="c1"># Default: &quot;poly&quot; perimeter sampling</span>
+<a id="__codelineno-0-509" name="__codelineno-0-509"></a>    <span class="n">el</span> <span class="o">=</span> <span class="n">_ellipse_from_Q</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
+<a id="__codelineno-0-510" name="__codelineno-0-510"></a>    <span class="k">if</span> <span class="n">el</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-511" name="__codelineno-0-511"></a>        <span class="c1"># Fallback: general ray sampling around the cone axis</span>
+<a id="__codelineno-0-512" name="__codelineno-0-512"></a>        <span class="k">return</span> <span class="n">_ray_sample_indices</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">apex</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">n_phi</span><span class="o">=</span><span class="mi">720</span><span class="p">)</span>
+<a id="__codelineno-0-513" name="__codelineno-0-513"></a>    <span class="n">uv0</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">el</span>
+<a id="__codelineno-0-514" name="__codelineno-0-514"></a>    <span class="n">pts</span> <span class="o">=</span> <span class="n">_ellipse_poly</span><span class="p">(</span><span class="n">uv0</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n_poly</span><span class="p">)</span>
+<a id="__codelineno-0-515" name="__codelineno-0-515"></a>    <span class="k">return</span> <span class="n">_pixels_from_poly</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -8036,41 +8036,7 @@ engine = "poly":
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ngimager/imaging/sbp.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-519">519</a></span>
-<span class="normal"><a href="#__codelineno-0-520">520</a></span>
-<span class="normal"><a href="#__codelineno-0-521">521</a></span>
-<span class="normal"><a href="#__codelineno-0-522">522</a></span>
-<span class="normal"><a href="#__codelineno-0-523">523</a></span>
-<span class="normal"><a href="#__codelineno-0-524">524</a></span>
-<span class="normal"><a href="#__codelineno-0-525">525</a></span>
-<span class="normal"><a href="#__codelineno-0-526">526</a></span>
-<span class="normal"><a href="#__codelineno-0-527">527</a></span>
-<span class="normal"><a href="#__codelineno-0-528">528</a></span>
-<span class="normal"><a href="#__codelineno-0-529">529</a></span>
-<span class="normal"><a href="#__codelineno-0-530">530</a></span>
-<span class="normal"><a href="#__codelineno-0-531">531</a></span>
-<span class="normal"><a href="#__codelineno-0-532">532</a></span>
-<span class="normal"><a href="#__codelineno-0-533">533</a></span>
-<span class="normal"><a href="#__codelineno-0-534">534</a></span>
-<span class="normal"><a href="#__codelineno-0-535">535</a></span>
-<span class="normal"><a href="#__codelineno-0-536">536</a></span>
-<span class="normal"><a href="#__codelineno-0-537">537</a></span>
-<span class="normal"><a href="#__codelineno-0-538">538</a></span>
-<span class="normal"><a href="#__codelineno-0-539">539</a></span>
-<span class="normal"><a href="#__codelineno-0-540">540</a></span>
-<span class="normal"><a href="#__codelineno-0-541">541</a></span>
-<span class="normal"><a href="#__codelineno-0-542">542</a></span>
-<span class="normal"><a href="#__codelineno-0-543">543</a></span>
-<span class="normal"><a href="#__codelineno-0-544">544</a></span>
-<span class="normal"><a href="#__codelineno-0-545">545</a></span>
-<span class="normal"><a href="#__codelineno-0-546">546</a></span>
-<span class="normal"><a href="#__codelineno-0-547">547</a></span>
-<span class="normal"><a href="#__codelineno-0-548">548</a></span>
-<span class="normal"><a href="#__codelineno-0-549">549</a></span>
-<span class="normal"><a href="#__codelineno-0-550">550</a></span>
-<span class="normal"><a href="#__codelineno-0-551">551</a></span>
-<span class="normal"><a href="#__codelineno-0-552">552</a></span>
-<span class="normal"><a href="#__codelineno-0-553">553</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-553">553</a></span>
 <span class="normal"><a href="#__codelineno-0-554">554</a></span>
 <span class="normal"><a href="#__codelineno-0-555">555</a></span>
 <span class="normal"><a href="#__codelineno-0-556">556</a></span>
@@ -8131,102 +8097,136 @@ engine = "poly":
 <span class="normal"><a href="#__codelineno-0-611">611</a></span>
 <span class="normal"><a href="#__codelineno-0-612">612</a></span>
 <span class="normal"><a href="#__codelineno-0-613">613</a></span>
-<span class="normal"><a href="#__codelineno-0-614">614</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-519" name="__codelineno-0-519"></a><span class="k">def</span><span class="w"> </span><span class="nf">reconstruct_sbp</span><span class="p">(</span>
-<a id="__codelineno-0-520" name="__codelineno-0-520"></a>    <span class="n">cones</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Cone</span><span class="p">],</span>
-<a id="__codelineno-0-521" name="__codelineno-0-521"></a>    <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">,</span>
-<a id="__codelineno-0-522" name="__codelineno-0-522"></a>    <span class="n">list_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-523" name="__codelineno-0-523"></a>    <span class="n">uncertainty_mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="s2">&quot;thicken&quot;</span><span class="p">,</span> <span class="s2">&quot;weighted&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;off&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-524" name="__codelineno-0-524"></a>    <span class="n">workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-525" name="__codelineno-0-525"></a>    <span class="n">chunk_cones</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-526" name="__codelineno-0-526"></a>    <span class="n">progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-527" name="__codelineno-0-527"></a>    <span class="n">n_poly</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">360</span><span class="p">,</span>
-<a id="__codelineno-0-528" name="__codelineno-0-528"></a>    <span class="n">sbp_engine</span><span class="p">:</span> <span class="n">SBPEngine</span> <span class="o">=</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-529" name="__codelineno-0-529"></a>    <span class="n">use_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-530" name="__codelineno-0-530"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReconResult</span><span class="p">:</span>
-<a id="__codelineno-0-531" name="__codelineno-0-531"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-532" name="__codelineno-0-532"></a><span class="sd">    Parallel SBP (analytic conic). If workers==0, runs single-process.</span>
-<a id="__codelineno-0-533" name="__codelineno-0-533"></a>
-<a id="__codelineno-0-534" name="__codelineno-0-534"></a><span class="sd">    sbp_engine:</span>
-<a id="__codelineno-0-535" name="__codelineno-0-535"></a><span class="sd">        &quot;poly&quot; – perimeter parametric ellipse (with ray fallback).</span>
-<a id="__codelineno-0-536" name="__codelineno-0-536"></a><span class="sd">        &quot;scan&quot; – matrix-math scan across pixel-centered lines (continuous arcs).</span>
-<a id="__codelineno-0-537" name="__codelineno-0-537"></a>
-<a id="__codelineno-0-538" name="__codelineno-0-538"></a><span class="sd">    use_jit:</span>
-<a id="__codelineno-0-539" name="__codelineno-0-539"></a><span class="sd">        When True and numba is available, use a JIT-compiled inner loop</span>
-<a id="__codelineno-0-540" name="__codelineno-0-540"></a><span class="sd">        for the &quot;scan&quot; engine to accelerate the row/column solving.</span>
-<a id="__codelineno-0-541" name="__codelineno-0-541"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-542" name="__codelineno-0-542"></a>    <span class="c1"># Normalize inputs</span>
-<a id="__codelineno-0-543" name="__codelineno-0-543"></a>    <span class="n">cones_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cones</span><span class="p">)</span>
-<a id="__codelineno-0-544" name="__codelineno-0-544"></a>    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cones_list</span><span class="p">)</span>
-<a id="__codelineno-0-545" name="__codelineno-0-545"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
-<a id="__codelineno-0-546" name="__codelineno-0-546"></a>    <span class="n">flat_len</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">nv</span> <span class="o">*</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span>
-<a id="__codelineno-0-547" name="__codelineno-0-547"></a>
-<a id="__codelineno-0-548" name="__codelineno-0-548"></a>    <span class="k">if</span> <span class="n">N</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-549" name="__codelineno-0-549"></a>        <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
-<a id="__codelineno-0-550" name="__codelineno-0-550"></a>
-<a id="__codelineno-0-551" name="__codelineno-0-551"></a>    <span class="k">if</span> <span class="n">workers</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-552" name="__codelineno-0-552"></a>        <span class="n">workers</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-0-553" name="__codelineno-0-553"></a>    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-<a id="__codelineno-0-554" name="__codelineno-0-554"></a>        <span class="n">workers</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">workers</span><span class="p">)</span>
-<a id="__codelineno-0-555" name="__codelineno-0-555"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-556" name="__codelineno-0-556"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;workers must be int or &#39;auto&#39;&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-557" name="__codelineno-0-557"></a>
-<a id="__codelineno-0-558" name="__codelineno-0-558"></a>    <span class="c1"># Single-process path (also good for debugging)</span>
-<a id="__codelineno-0-559" name="__codelineno-0-559"></a>    <span class="k">if</span> <span class="n">workers</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">N</span> <span class="o">&lt;</span> <span class="mi">1500</span><span class="p">:</span>
-<a id="__codelineno-0-560" name="__codelineno-0-560"></a>        <span class="n">hit_count</span> <span class="o">=</span> <span class="mi">0</span>
-<a id="__codelineno-0-561" name="__codelineno-0-561"></a>        <span class="n">lm</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span>
-<a id="__codelineno-0-562" name="__codelineno-0-562"></a>        <span class="n">it</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">cones_list</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;SBP&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;cone&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">progress</span> <span class="ow">and</span> <span class="n">tqdm</span> <span class="k">else</span> <span class="n">cones_list</span>
-<a id="__codelineno-0-563" name="__codelineno-0-563"></a>        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
-<a id="__codelineno-0-564" name="__codelineno-0-564"></a>            <span class="n">idx</span> <span class="o">=</span> <span class="n">cone_to_indices</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">sbp_engine</span><span class="p">,</span> <span class="n">n_poly</span><span class="o">=</span><span class="n">n_poly</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">use_jit</span><span class="p">)</span>
-<a id="__codelineno-0-565" name="__codelineno-0-565"></a>            <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
-<a id="__codelineno-0-566" name="__codelineno-0-566"></a>                <span class="n">hit_count</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-567" name="__codelineno-0-567"></a>                <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-0-568" name="__codelineno-0-568"></a>                <span class="k">if</span> <span class="n">lm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-569" name="__codelineno-0-569"></a>                    <span class="n">lm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-<a id="__codelineno-0-570" name="__codelineno-0-570"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SBP: </span><span class="si">{</span><span class="n">hit_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2"> cones intersected the plane&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-571" name="__codelineno-0-571"></a>        <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lm</span><span class="p">)</span>
-<a id="__codelineno-0-572" name="__codelineno-0-572"></a>
-<a id="__codelineno-0-573" name="__codelineno-0-573"></a>    <span class="c1"># Multi-process path</span>
-<a id="__codelineno-0-574" name="__codelineno-0-574"></a>    <span class="k">if</span> <span class="n">chunk_cones</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-575" name="__codelineno-0-575"></a>        <span class="n">chunk_cones</span> <span class="o">=</span> <span class="n">_auto_chunk_size</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">workers</span><span class="p">)</span>
-<a id="__codelineno-0-576" name="__codelineno-0-576"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-577" name="__codelineno-0-577"></a>        <span class="n">chunk_cones</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk_cones</span><span class="p">)</span>
-<a id="__codelineno-0-578" name="__codelineno-0-578"></a>
-<a id="__codelineno-0-579" name="__codelineno-0-579"></a>    <span class="c1"># Chunk the work</span>
-<a id="__codelineno-0-580" name="__codelineno-0-580"></a>    <span class="n">chunks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Cone</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="n">cones_list</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">chunk_cones</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">chunk_cones</span><span class="p">)]</span>
+<span class="normal"><a href="#__codelineno-0-614">614</a></span>
+<span class="normal"><a href="#__codelineno-0-615">615</a></span>
+<span class="normal"><a href="#__codelineno-0-616">616</a></span>
+<span class="normal"><a href="#__codelineno-0-617">617</a></span>
+<span class="normal"><a href="#__codelineno-0-618">618</a></span>
+<span class="normal"><a href="#__codelineno-0-619">619</a></span>
+<span class="normal"><a href="#__codelineno-0-620">620</a></span>
+<span class="normal"><a href="#__codelineno-0-621">621</a></span>
+<span class="normal"><a href="#__codelineno-0-622">622</a></span>
+<span class="normal"><a href="#__codelineno-0-623">623</a></span>
+<span class="normal"><a href="#__codelineno-0-624">624</a></span>
+<span class="normal"><a href="#__codelineno-0-625">625</a></span>
+<span class="normal"><a href="#__codelineno-0-626">626</a></span>
+<span class="normal"><a href="#__codelineno-0-627">627</a></span>
+<span class="normal"><a href="#__codelineno-0-628">628</a></span>
+<span class="normal"><a href="#__codelineno-0-629">629</a></span>
+<span class="normal"><a href="#__codelineno-0-630">630</a></span>
+<span class="normal"><a href="#__codelineno-0-631">631</a></span>
+<span class="normal"><a href="#__codelineno-0-632">632</a></span>
+<span class="normal"><a href="#__codelineno-0-633">633</a></span>
+<span class="normal"><a href="#__codelineno-0-634">634</a></span>
+<span class="normal"><a href="#__codelineno-0-635">635</a></span>
+<span class="normal"><a href="#__codelineno-0-636">636</a></span>
+<span class="normal"><a href="#__codelineno-0-637">637</a></span>
+<span class="normal"><a href="#__codelineno-0-638">638</a></span>
+<span class="normal"><a href="#__codelineno-0-639">639</a></span>
+<span class="normal"><a href="#__codelineno-0-640">640</a></span>
+<span class="normal"><a href="#__codelineno-0-641">641</a></span>
+<span class="normal"><a href="#__codelineno-0-642">642</a></span>
+<span class="normal"><a href="#__codelineno-0-643">643</a></span>
+<span class="normal"><a href="#__codelineno-0-644">644</a></span>
+<span class="normal"><a href="#__codelineno-0-645">645</a></span>
+<span class="normal"><a href="#__codelineno-0-646">646</a></span>
+<span class="normal"><a href="#__codelineno-0-647">647</a></span>
+<span class="normal"><a href="#__codelineno-0-648">648</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-553" name="__codelineno-0-553"></a><span class="k">def</span><span class="w"> </span><span class="nf">reconstruct_sbp</span><span class="p">(</span>
+<a id="__codelineno-0-554" name="__codelineno-0-554"></a>    <span class="n">cones</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Cone</span><span class="p">],</span>
+<a id="__codelineno-0-555" name="__codelineno-0-555"></a>    <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">,</span>
+<a id="__codelineno-0-556" name="__codelineno-0-556"></a>    <span class="n">list_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-557" name="__codelineno-0-557"></a>    <span class="n">uncertainty_mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="s2">&quot;thicken&quot;</span><span class="p">,</span> <span class="s2">&quot;weighted&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;off&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-558" name="__codelineno-0-558"></a>    <span class="n">workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-559" name="__codelineno-0-559"></a>    <span class="n">chunk_cones</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-560" name="__codelineno-0-560"></a>    <span class="n">progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-561" name="__codelineno-0-561"></a>    <span class="n">n_poly</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">360</span><span class="p">,</span>
+<a id="__codelineno-0-562" name="__codelineno-0-562"></a>    <span class="n">sbp_engine</span><span class="p">:</span> <span class="n">SBPEngine</span> <span class="o">=</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-563" name="__codelineno-0-563"></a>    <span class="n">use_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-564" name="__codelineno-0-564"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReconResult</span><span class="p">:</span>
+<a id="__codelineno-0-565" name="__codelineno-0-565"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-566" name="__codelineno-0-566"></a><span class="sd">    Parallel SBP (analytic conic). If workers==0, runs single-process.</span>
+<a id="__codelineno-0-567" name="__codelineno-0-567"></a>
+<a id="__codelineno-0-568" name="__codelineno-0-568"></a><span class="sd">    sbp_engine:</span>
+<a id="__codelineno-0-569" name="__codelineno-0-569"></a><span class="sd">        &quot;poly&quot; – perimeter parametric ellipse (with ray fallback).</span>
+<a id="__codelineno-0-570" name="__codelineno-0-570"></a><span class="sd">        &quot;scan&quot; – matrix-math scan across pixel-centered lines (continuous arcs).</span>
+<a id="__codelineno-0-571" name="__codelineno-0-571"></a>
+<a id="__codelineno-0-572" name="__codelineno-0-572"></a><span class="sd">    use_jit:</span>
+<a id="__codelineno-0-573" name="__codelineno-0-573"></a><span class="sd">        When True and numba is available, use a JIT-compiled inner loop</span>
+<a id="__codelineno-0-574" name="__codelineno-0-574"></a><span class="sd">        for the &quot;scan&quot; engine to accelerate the row/column solving.</span>
+<a id="__codelineno-0-575" name="__codelineno-0-575"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-576" name="__codelineno-0-576"></a>    <span class="c1"># Normalize inputs</span>
+<a id="__codelineno-0-577" name="__codelineno-0-577"></a>    <span class="n">cones_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cones</span><span class="p">)</span>
+<a id="__codelineno-0-578" name="__codelineno-0-578"></a>    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cones_list</span><span class="p">)</span>
+<a id="__codelineno-0-579" name="__codelineno-0-579"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+<a id="__codelineno-0-580" name="__codelineno-0-580"></a>    <span class="n">flat_len</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">nv</span> <span class="o">*</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span>
 <a id="__codelineno-0-581" name="__codelineno-0-581"></a>
-<a id="__codelineno-0-582" name="__codelineno-0-582"></a>    <span class="c1"># Progress bar over chunks</span>
-<a id="__codelineno-0-583" name="__codelineno-0-583"></a>    <span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;SBP x</span><span class="si">{</span><span class="n">workers</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;chunk&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">progress</span> <span class="ow">and</span> <span class="n">tqdm</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-582" name="__codelineno-0-582"></a>    <span class="k">if</span> <span class="n">N</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-583" name="__codelineno-0-583"></a>        <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 <a id="__codelineno-0-584" name="__codelineno-0-584"></a>
-<a id="__codelineno-0-585" name="__codelineno-0-585"></a>    <span class="n">flat_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">flat_len</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
-<a id="__codelineno-0-586" name="__codelineno-0-586"></a>    <span class="n">lm_all</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span>
-<a id="__codelineno-0-587" name="__codelineno-0-587"></a>
-<a id="__codelineno-0-588" name="__codelineno-0-588"></a>    <span class="c1"># Use spawn-friendly ProcessPoolExecutor</span>
-<a id="__codelineno-0-589" name="__codelineno-0-589"></a>    <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-<a id="__codelineno-0-590" name="__codelineno-0-590"></a>        <span class="n">futs</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-0-591" name="__codelineno-0-591"></a>            <span class="n">ex</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
-<a id="__codelineno-0-592" name="__codelineno-0-592"></a>                <span class="n">_process_chunk</span><span class="p">,</span>
-<a id="__codelineno-0-593" name="__codelineno-0-593"></a>                <span class="n">ch</span><span class="p">,</span>
-<a id="__codelineno-0-594" name="__codelineno-0-594"></a>                <span class="n">plane</span><span class="p">,</span>
-<a id="__codelineno-0-595" name="__codelineno-0-595"></a>                <span class="n">list_mode</span><span class="p">,</span>
-<a id="__codelineno-0-596" name="__codelineno-0-596"></a>                <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span>
-<a id="__codelineno-0-597" name="__codelineno-0-597"></a>                <span class="n">n_poly</span><span class="p">,</span>
-<a id="__codelineno-0-598" name="__codelineno-0-598"></a>                <span class="n">sbp_engine</span><span class="p">,</span>
-<a id="__codelineno-0-599" name="__codelineno-0-599"></a>                <span class="n">use_jit</span><span class="p">,</span>
-<a id="__codelineno-0-600" name="__codelineno-0-600"></a>            <span class="p">)</span>
-<a id="__codelineno-0-601" name="__codelineno-0-601"></a>            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">chunks</span>
-<a id="__codelineno-0-602" name="__codelineno-0-602"></a>        <span class="p">]</span>
-<a id="__codelineno-0-603" name="__codelineno-0-603"></a>        <span class="k">for</span> <span class="n">fut</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futs</span><span class="p">):</span>
-<a id="__codelineno-0-604" name="__codelineno-0-604"></a>            <span class="n">flat_counts</span><span class="p">,</span> <span class="n">lm_list</span> <span class="o">=</span> <span class="n">fut</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<a id="__codelineno-0-605" name="__codelineno-0-605"></a>            <span class="n">flat_total</span> <span class="o">+=</span> <span class="n">flat_counts</span>
-<a id="__codelineno-0-606" name="__codelineno-0-606"></a>            <span class="k">if</span> <span class="n">lm_all</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">lm_list</span><span class="p">:</span>
-<a id="__codelineno-0-607" name="__codelineno-0-607"></a>                <span class="n">lm_all</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">lm_list</span><span class="p">)</span>
-<a id="__codelineno-0-608" name="__codelineno-0-608"></a>            <span class="k">if</span> <span class="n">pbar</span><span class="p">:</span>
-<a id="__codelineno-0-609" name="__codelineno-0-609"></a>                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-0-610" name="__codelineno-0-610"></a>    <span class="k">if</span> <span class="n">pbar</span><span class="p">:</span>
-<a id="__codelineno-0-611" name="__codelineno-0-611"></a>        <span class="n">pbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a id="__codelineno-0-585" name="__codelineno-0-585"></a>    <span class="k">if</span> <span class="n">workers</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-586" name="__codelineno-0-586"></a>        <span class="n">workers</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-587" name="__codelineno-0-587"></a>    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+<a id="__codelineno-0-588" name="__codelineno-0-588"></a>        <span class="n">workers</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">workers</span><span class="p">)</span>
+<a id="__codelineno-0-589" name="__codelineno-0-589"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-590" name="__codelineno-0-590"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;workers must be int or &#39;auto&#39;&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-591" name="__codelineno-0-591"></a>
+<a id="__codelineno-0-592" name="__codelineno-0-592"></a>    <span class="c1"># Single-process path (also good for debugging)</span>
+<a id="__codelineno-0-593" name="__codelineno-0-593"></a>    <span class="k">if</span> <span class="n">workers</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">N</span> <span class="o">&lt;</span> <span class="mi">1500</span><span class="p">:</span>
+<a id="__codelineno-0-594" name="__codelineno-0-594"></a>        <span class="n">hit_count</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-0-595" name="__codelineno-0-595"></a>        <span class="n">lm</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-596" name="__codelineno-0-596"></a>        <span class="n">it</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">cones_list</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;SBP&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;cone&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">progress</span> <span class="ow">and</span> <span class="n">tqdm</span> <span class="k">else</span> <span class="n">cones_list</span>
+<a id="__codelineno-0-597" name="__codelineno-0-597"></a>        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+<a id="__codelineno-0-598" name="__codelineno-0-598"></a>            <span class="n">idx</span> <span class="o">=</span> <span class="n">cone_to_indices</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">sbp_engine</span><span class="p">,</span> <span class="n">n_poly</span><span class="o">=</span><span class="n">n_poly</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">use_jit</span><span class="p">)</span>
+<a id="__codelineno-0-599" name="__codelineno-0-599"></a>            <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+<a id="__codelineno-0-600" name="__codelineno-0-600"></a>                <span class="n">hit_count</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-0-601" name="__codelineno-0-601"></a>                <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-602" name="__codelineno-0-602"></a>                <span class="k">if</span> <span class="n">lm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-603" name="__codelineno-0-603"></a>                    <span class="n">lm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+<a id="__codelineno-0-604" name="__codelineno-0-604"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SBP: </span><span class="si">{</span><span class="n">hit_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2"> cones intersected the plane&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-605" name="__codelineno-0-605"></a>        <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lm</span><span class="p">)</span>
+<a id="__codelineno-0-606" name="__codelineno-0-606"></a>
+<a id="__codelineno-0-607" name="__codelineno-0-607"></a>    <span class="c1"># Multi-process path</span>
+<a id="__codelineno-0-608" name="__codelineno-0-608"></a>    <span class="k">if</span> <span class="n">chunk_cones</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-609" name="__codelineno-0-609"></a>        <span class="n">chunk_cones</span> <span class="o">=</span> <span class="n">_auto_chunk_size</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">workers</span><span class="p">)</span>
+<a id="__codelineno-0-610" name="__codelineno-0-610"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-611" name="__codelineno-0-611"></a>        <span class="n">chunk_cones</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk_cones</span><span class="p">)</span>
 <a id="__codelineno-0-612" name="__codelineno-0-612"></a>
-<a id="__codelineno-0-613" name="__codelineno-0-613"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">flat_total</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">)</span>
-<a id="__codelineno-0-614" name="__codelineno-0-614"></a>    <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lm_all</span><span class="p">)</span>
+<a id="__codelineno-0-613" name="__codelineno-0-613"></a>    <span class="c1"># Chunk the work</span>
+<a id="__codelineno-0-614" name="__codelineno-0-614"></a>    <span class="n">chunks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Cone</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="n">cones_list</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">chunk_cones</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">chunk_cones</span><span class="p">)]</span>
+<a id="__codelineno-0-615" name="__codelineno-0-615"></a>
+<a id="__codelineno-0-616" name="__codelineno-0-616"></a>    <span class="c1"># Progress bar over chunks</span>
+<a id="__codelineno-0-617" name="__codelineno-0-617"></a>    <span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;SBP x</span><span class="si">{</span><span class="n">workers</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;chunk&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">progress</span> <span class="ow">and</span> <span class="n">tqdm</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-618" name="__codelineno-0-618"></a>
+<a id="__codelineno-0-619" name="__codelineno-0-619"></a>    <span class="n">flat_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">flat_len</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+<a id="__codelineno-0-620" name="__codelineno-0-620"></a>    <span class="n">lm_all</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-621" name="__codelineno-0-621"></a>
+<a id="__codelineno-0-622" name="__codelineno-0-622"></a>    <span class="c1"># Use spawn-friendly ProcessPoolExecutor</span>
+<a id="__codelineno-0-623" name="__codelineno-0-623"></a>    <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+<a id="__codelineno-0-624" name="__codelineno-0-624"></a>        <span class="n">futs</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-0-625" name="__codelineno-0-625"></a>            <span class="n">ex</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+<a id="__codelineno-0-626" name="__codelineno-0-626"></a>                <span class="n">_process_chunk</span><span class="p">,</span>
+<a id="__codelineno-0-627" name="__codelineno-0-627"></a>                <span class="n">ch</span><span class="p">,</span>
+<a id="__codelineno-0-628" name="__codelineno-0-628"></a>                <span class="n">plane</span><span class="p">,</span>
+<a id="__codelineno-0-629" name="__codelineno-0-629"></a>                <span class="n">list_mode</span><span class="p">,</span>
+<a id="__codelineno-0-630" name="__codelineno-0-630"></a>                <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span>
+<a id="__codelineno-0-631" name="__codelineno-0-631"></a>                <span class="n">n_poly</span><span class="p">,</span>
+<a id="__codelineno-0-632" name="__codelineno-0-632"></a>                <span class="n">sbp_engine</span><span class="p">,</span>
+<a id="__codelineno-0-633" name="__codelineno-0-633"></a>                <span class="n">use_jit</span><span class="p">,</span>
+<a id="__codelineno-0-634" name="__codelineno-0-634"></a>            <span class="p">)</span>
+<a id="__codelineno-0-635" name="__codelineno-0-635"></a>            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">chunks</span>
+<a id="__codelineno-0-636" name="__codelineno-0-636"></a>        <span class="p">]</span>
+<a id="__codelineno-0-637" name="__codelineno-0-637"></a>        <span class="k">for</span> <span class="n">fut</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futs</span><span class="p">):</span>
+<a id="__codelineno-0-638" name="__codelineno-0-638"></a>            <span class="n">flat_counts</span><span class="p">,</span> <span class="n">lm_list</span> <span class="o">=</span> <span class="n">fut</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<a id="__codelineno-0-639" name="__codelineno-0-639"></a>            <span class="n">flat_total</span> <span class="o">+=</span> <span class="n">flat_counts</span>
+<a id="__codelineno-0-640" name="__codelineno-0-640"></a>            <span class="k">if</span> <span class="n">lm_all</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">lm_list</span><span class="p">:</span>
+<a id="__codelineno-0-641" name="__codelineno-0-641"></a>                <span class="n">lm_all</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">lm_list</span><span class="p">)</span>
+<a id="__codelineno-0-642" name="__codelineno-0-642"></a>            <span class="k">if</span> <span class="n">pbar</span><span class="p">:</span>
+<a id="__codelineno-0-643" name="__codelineno-0-643"></a>                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-644" name="__codelineno-0-644"></a>    <span class="k">if</span> <span class="n">pbar</span><span class="p">:</span>
+<a id="__codelineno-0-645" name="__codelineno-0-645"></a>        <span class="n">pbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a id="__codelineno-0-646" name="__codelineno-0-646"></a>
+<a id="__codelineno-0-647" name="__codelineno-0-647"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">flat_total</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">)</span>
+<a id="__codelineno-0-648" name="__codelineno-0-648"></a>    <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lm_all</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -17435,79 +17435,79 @@ engine = "poly":
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ngimager/imaging/sbp.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-445">445</a></span>
-<span class="normal"><a href="#__codelineno-0-446">446</a></span>
-<span class="normal"><a href="#__codelineno-0-447">447</a></span>
-<span class="normal"><a href="#__codelineno-0-448">448</a></span>
-<span class="normal"><a href="#__codelineno-0-449">449</a></span>
-<span class="normal"><a href="#__codelineno-0-450">450</a></span>
-<span class="normal"><a href="#__codelineno-0-451">451</a></span>
-<span class="normal"><a href="#__codelineno-0-452">452</a></span>
-<span class="normal"><a href="#__codelineno-0-453">453</a></span>
-<span class="normal"><a href="#__codelineno-0-454">454</a></span>
-<span class="normal"><a href="#__codelineno-0-455">455</a></span>
-<span class="normal"><a href="#__codelineno-0-456">456</a></span>
-<span class="normal"><a href="#__codelineno-0-457">457</a></span>
-<span class="normal"><a href="#__codelineno-0-458">458</a></span>
-<span class="normal"><a href="#__codelineno-0-459">459</a></span>
-<span class="normal"><a href="#__codelineno-0-460">460</a></span>
-<span class="normal"><a href="#__codelineno-0-461">461</a></span>
-<span class="normal"><a href="#__codelineno-0-462">462</a></span>
-<span class="normal"><a href="#__codelineno-0-463">463</a></span>
-<span class="normal"><a href="#__codelineno-0-464">464</a></span>
-<span class="normal"><a href="#__codelineno-0-465">465</a></span>
-<span class="normal"><a href="#__codelineno-0-466">466</a></span>
-<span class="normal"><a href="#__codelineno-0-467">467</a></span>
-<span class="normal"><a href="#__codelineno-0-468">468</a></span>
-<span class="normal"><a href="#__codelineno-0-469">469</a></span>
-<span class="normal"><a href="#__codelineno-0-470">470</a></span>
-<span class="normal"><a href="#__codelineno-0-471">471</a></span>
-<span class="normal"><a href="#__codelineno-0-472">472</a></span>
-<span class="normal"><a href="#__codelineno-0-473">473</a></span>
-<span class="normal"><a href="#__codelineno-0-474">474</a></span>
-<span class="normal"><a href="#__codelineno-0-475">475</a></span>
-<span class="normal"><a href="#__codelineno-0-476">476</a></span>
-<span class="normal"><a href="#__codelineno-0-477">477</a></span>
-<span class="normal"><a href="#__codelineno-0-478">478</a></span>
-<span class="normal"><a href="#__codelineno-0-479">479</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-479">479</a></span>
 <span class="normal"><a href="#__codelineno-0-480">480</a></span>
-<span class="normal"><a href="#__codelineno-0-481">481</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-445" name="__codelineno-0-445"></a><span class="k">def</span><span class="w"> </span><span class="nf">cone_to_indices</span><span class="p">(</span>
-<a id="__codelineno-0-446" name="__codelineno-0-446"></a>    <span class="n">c</span><span class="p">:</span> <span class="n">Cone</span><span class="p">,</span>
-<a id="__codelineno-0-447" name="__codelineno-0-447"></a>    <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">,</span>
-<a id="__codelineno-0-448" name="__codelineno-0-448"></a>    <span class="n">engine</span><span class="p">:</span> <span class="n">SBPEngine</span> <span class="o">=</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-449" name="__codelineno-0-449"></a>    <span class="n">n_poly</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">360</span><span class="p">,</span>
-<a id="__codelineno-0-450" name="__codelineno-0-450"></a>    <span class="n">use_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-451" name="__codelineno-0-451"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<a id="__codelineno-0-452" name="__codelineno-0-452"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-453" name="__codelineno-0-453"></a><span class="sd">    Unified entry point: cone → flat pixel indices.</span>
-<a id="__codelineno-0-454" name="__codelineno-0-454"></a>
-<a id="__codelineno-0-455" name="__codelineno-0-455"></a><span class="sd">    engine = &quot;scan&quot;:</span>
-<a id="__codelineno-0-456" name="__codelineno-0-456"></a><span class="sd">        Use matrix-math scanning across rows/columns (continuous arcs).</span>
-<a id="__codelineno-0-457" name="__codelineno-0-457"></a><span class="sd">    engine = &quot;poly&quot;:</span>
-<a id="__codelineno-0-458" name="__codelineno-0-458"></a><span class="sd">        Use ellipse parameterization when possible, falling back to</span>
-<a id="__codelineno-0-459" name="__codelineno-0-459"></a><span class="sd">        general ray sampling for non-elliptic conics.</span>
-<a id="__codelineno-0-460" name="__codelineno-0-460"></a>
-<a id="__codelineno-0-461" name="__codelineno-0-461"></a><span class="sd">    use_jit:</span>
-<a id="__codelineno-0-462" name="__codelineno-0-462"></a><span class="sd">        When True and numba is available, the &quot;scan&quot; engine uses a JIT-</span>
-<a id="__codelineno-0-463" name="__codelineno-0-463"></a><span class="sd">        compiled inner loop; otherwise the pure-Python scan is used.</span>
-<a id="__codelineno-0-464" name="__codelineno-0-464"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-465" name="__codelineno-0-465"></a>    <span class="n">M</span> <span class="o">=</span> <span class="n">_cone_matrix</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
-<a id="__codelineno-0-466" name="__codelineno-0-466"></a>    <span class="n">Q</span> <span class="o">=</span> <span class="n">_conic_Q</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">apex</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
-<a id="__codelineno-0-467" name="__codelineno-0-467"></a>
-<a id="__codelineno-0-468" name="__codelineno-0-468"></a>    <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">&quot;scan&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-469" name="__codelineno-0-469"></a>        <span class="k">if</span> <span class="n">use_jit</span> <span class="ow">and</span> <span class="n">_scan_conic_core_numba</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-470" name="__codelineno-0-470"></a>            <span class="k">return</span> <span class="n">_scan_conic_indices_numba</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
-<a id="__codelineno-0-471" name="__codelineno-0-471"></a>        <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-472" name="__codelineno-0-472"></a>            <span class="k">return</span> <span class="n">_scan_conic_indices_python</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
-<a id="__codelineno-0-473" name="__codelineno-0-473"></a>
-<a id="__codelineno-0-474" name="__codelineno-0-474"></a>    <span class="c1"># Default: &quot;poly&quot; perimeter sampling</span>
-<a id="__codelineno-0-475" name="__codelineno-0-475"></a>    <span class="n">el</span> <span class="o">=</span> <span class="n">_ellipse_from_Q</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
-<a id="__codelineno-0-476" name="__codelineno-0-476"></a>    <span class="k">if</span> <span class="n">el</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-477" name="__codelineno-0-477"></a>        <span class="c1"># Fallback: general ray sampling around the cone axis</span>
-<a id="__codelineno-0-478" name="__codelineno-0-478"></a>        <span class="k">return</span> <span class="n">_ray_sample_indices</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">apex</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">n_phi</span><span class="o">=</span><span class="mi">720</span><span class="p">)</span>
-<a id="__codelineno-0-479" name="__codelineno-0-479"></a>    <span class="n">uv0</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">el</span>
-<a id="__codelineno-0-480" name="__codelineno-0-480"></a>    <span class="n">pts</span> <span class="o">=</span> <span class="n">_ellipse_poly</span><span class="p">(</span><span class="n">uv0</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n_poly</span><span class="p">)</span>
-<a id="__codelineno-0-481" name="__codelineno-0-481"></a>    <span class="k">return</span> <span class="n">_pixels_from_poly</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-481">481</a></span>
+<span class="normal"><a href="#__codelineno-0-482">482</a></span>
+<span class="normal"><a href="#__codelineno-0-483">483</a></span>
+<span class="normal"><a href="#__codelineno-0-484">484</a></span>
+<span class="normal"><a href="#__codelineno-0-485">485</a></span>
+<span class="normal"><a href="#__codelineno-0-486">486</a></span>
+<span class="normal"><a href="#__codelineno-0-487">487</a></span>
+<span class="normal"><a href="#__codelineno-0-488">488</a></span>
+<span class="normal"><a href="#__codelineno-0-489">489</a></span>
+<span class="normal"><a href="#__codelineno-0-490">490</a></span>
+<span class="normal"><a href="#__codelineno-0-491">491</a></span>
+<span class="normal"><a href="#__codelineno-0-492">492</a></span>
+<span class="normal"><a href="#__codelineno-0-493">493</a></span>
+<span class="normal"><a href="#__codelineno-0-494">494</a></span>
+<span class="normal"><a href="#__codelineno-0-495">495</a></span>
+<span class="normal"><a href="#__codelineno-0-496">496</a></span>
+<span class="normal"><a href="#__codelineno-0-497">497</a></span>
+<span class="normal"><a href="#__codelineno-0-498">498</a></span>
+<span class="normal"><a href="#__codelineno-0-499">499</a></span>
+<span class="normal"><a href="#__codelineno-0-500">500</a></span>
+<span class="normal"><a href="#__codelineno-0-501">501</a></span>
+<span class="normal"><a href="#__codelineno-0-502">502</a></span>
+<span class="normal"><a href="#__codelineno-0-503">503</a></span>
+<span class="normal"><a href="#__codelineno-0-504">504</a></span>
+<span class="normal"><a href="#__codelineno-0-505">505</a></span>
+<span class="normal"><a href="#__codelineno-0-506">506</a></span>
+<span class="normal"><a href="#__codelineno-0-507">507</a></span>
+<span class="normal"><a href="#__codelineno-0-508">508</a></span>
+<span class="normal"><a href="#__codelineno-0-509">509</a></span>
+<span class="normal"><a href="#__codelineno-0-510">510</a></span>
+<span class="normal"><a href="#__codelineno-0-511">511</a></span>
+<span class="normal"><a href="#__codelineno-0-512">512</a></span>
+<span class="normal"><a href="#__codelineno-0-513">513</a></span>
+<span class="normal"><a href="#__codelineno-0-514">514</a></span>
+<span class="normal"><a href="#__codelineno-0-515">515</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-479" name="__codelineno-0-479"></a><span class="k">def</span><span class="w"> </span><span class="nf">cone_to_indices</span><span class="p">(</span>
+<a id="__codelineno-0-480" name="__codelineno-0-480"></a>    <span class="n">c</span><span class="p">:</span> <span class="n">Cone</span><span class="p">,</span>
+<a id="__codelineno-0-481" name="__codelineno-0-481"></a>    <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">,</span>
+<a id="__codelineno-0-482" name="__codelineno-0-482"></a>    <span class="n">engine</span><span class="p">:</span> <span class="n">SBPEngine</span> <span class="o">=</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-483" name="__codelineno-0-483"></a>    <span class="n">n_poly</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">360</span><span class="p">,</span>
+<a id="__codelineno-0-484" name="__codelineno-0-484"></a>    <span class="n">use_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-485" name="__codelineno-0-485"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<a id="__codelineno-0-486" name="__codelineno-0-486"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-487" name="__codelineno-0-487"></a><span class="sd">    Unified entry point: cone → flat pixel indices.</span>
+<a id="__codelineno-0-488" name="__codelineno-0-488"></a>
+<a id="__codelineno-0-489" name="__codelineno-0-489"></a><span class="sd">    engine = &quot;scan&quot;:</span>
+<a id="__codelineno-0-490" name="__codelineno-0-490"></a><span class="sd">        Use matrix-math scanning across rows/columns (continuous arcs).</span>
+<a id="__codelineno-0-491" name="__codelineno-0-491"></a><span class="sd">    engine = &quot;poly&quot;:</span>
+<a id="__codelineno-0-492" name="__codelineno-0-492"></a><span class="sd">        Use ellipse parameterization when possible, falling back to</span>
+<a id="__codelineno-0-493" name="__codelineno-0-493"></a><span class="sd">        general ray sampling for non-elliptic conics.</span>
+<a id="__codelineno-0-494" name="__codelineno-0-494"></a>
+<a id="__codelineno-0-495" name="__codelineno-0-495"></a><span class="sd">    use_jit:</span>
+<a id="__codelineno-0-496" name="__codelineno-0-496"></a><span class="sd">        When True and numba is available, the &quot;scan&quot; engine uses a JIT-</span>
+<a id="__codelineno-0-497" name="__codelineno-0-497"></a><span class="sd">        compiled inner loop; otherwise the pure-Python scan is used.</span>
+<a id="__codelineno-0-498" name="__codelineno-0-498"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-499" name="__codelineno-0-499"></a>    <span class="n">M</span> <span class="o">=</span> <span class="n">_cone_matrix</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
+<a id="__codelineno-0-500" name="__codelineno-0-500"></a>    <span class="n">Q</span> <span class="o">=</span> <span class="n">_conic_Q</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">apex</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
+<a id="__codelineno-0-501" name="__codelineno-0-501"></a>
+<a id="__codelineno-0-502" name="__codelineno-0-502"></a>    <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s2">&quot;scan&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-503" name="__codelineno-0-503"></a>        <span class="k">if</span> <span class="n">use_jit</span> <span class="ow">and</span> <span class="n">_scan_conic_core_numba</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-504" name="__codelineno-0-504"></a>            <span class="k">return</span> <span class="n">_scan_conic_indices_numba</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
+<a id="__codelineno-0-505" name="__codelineno-0-505"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-506" name="__codelineno-0-506"></a>            <span class="k">return</span> <span class="n">_scan_conic_indices_python</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
+<a id="__codelineno-0-507" name="__codelineno-0-507"></a>
+<a id="__codelineno-0-508" name="__codelineno-0-508"></a>    <span class="c1"># Default: &quot;poly&quot; perimeter sampling</span>
+<a id="__codelineno-0-509" name="__codelineno-0-509"></a>    <span class="n">el</span> <span class="o">=</span> <span class="n">_ellipse_from_Q</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
+<a id="__codelineno-0-510" name="__codelineno-0-510"></a>    <span class="k">if</span> <span class="n">el</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-511" name="__codelineno-0-511"></a>        <span class="c1"># Fallback: general ray sampling around the cone axis</span>
+<a id="__codelineno-0-512" name="__codelineno-0-512"></a>        <span class="k">return</span> <span class="n">_ray_sample_indices</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">apex</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">dir</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">n_phi</span><span class="o">=</span><span class="mi">720</span><span class="p">)</span>
+<a id="__codelineno-0-513" name="__codelineno-0-513"></a>    <span class="n">uv0</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">el</span>
+<a id="__codelineno-0-514" name="__codelineno-0-514"></a>    <span class="n">pts</span> <span class="o">=</span> <span class="n">_ellipse_poly</span><span class="p">(</span><span class="n">uv0</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n_poly</span><span class="p">)</span>
+<a id="__codelineno-0-515" name="__codelineno-0-515"></a>    <span class="k">return</span> <span class="n">_pixels_from_poly</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -17538,41 +17538,7 @@ engine = "poly":
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>ngimager/imaging/sbp.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-519">519</a></span>
-<span class="normal"><a href="#__codelineno-0-520">520</a></span>
-<span class="normal"><a href="#__codelineno-0-521">521</a></span>
-<span class="normal"><a href="#__codelineno-0-522">522</a></span>
-<span class="normal"><a href="#__codelineno-0-523">523</a></span>
-<span class="normal"><a href="#__codelineno-0-524">524</a></span>
-<span class="normal"><a href="#__codelineno-0-525">525</a></span>
-<span class="normal"><a href="#__codelineno-0-526">526</a></span>
-<span class="normal"><a href="#__codelineno-0-527">527</a></span>
-<span class="normal"><a href="#__codelineno-0-528">528</a></span>
-<span class="normal"><a href="#__codelineno-0-529">529</a></span>
-<span class="normal"><a href="#__codelineno-0-530">530</a></span>
-<span class="normal"><a href="#__codelineno-0-531">531</a></span>
-<span class="normal"><a href="#__codelineno-0-532">532</a></span>
-<span class="normal"><a href="#__codelineno-0-533">533</a></span>
-<span class="normal"><a href="#__codelineno-0-534">534</a></span>
-<span class="normal"><a href="#__codelineno-0-535">535</a></span>
-<span class="normal"><a href="#__codelineno-0-536">536</a></span>
-<span class="normal"><a href="#__codelineno-0-537">537</a></span>
-<span class="normal"><a href="#__codelineno-0-538">538</a></span>
-<span class="normal"><a href="#__codelineno-0-539">539</a></span>
-<span class="normal"><a href="#__codelineno-0-540">540</a></span>
-<span class="normal"><a href="#__codelineno-0-541">541</a></span>
-<span class="normal"><a href="#__codelineno-0-542">542</a></span>
-<span class="normal"><a href="#__codelineno-0-543">543</a></span>
-<span class="normal"><a href="#__codelineno-0-544">544</a></span>
-<span class="normal"><a href="#__codelineno-0-545">545</a></span>
-<span class="normal"><a href="#__codelineno-0-546">546</a></span>
-<span class="normal"><a href="#__codelineno-0-547">547</a></span>
-<span class="normal"><a href="#__codelineno-0-548">548</a></span>
-<span class="normal"><a href="#__codelineno-0-549">549</a></span>
-<span class="normal"><a href="#__codelineno-0-550">550</a></span>
-<span class="normal"><a href="#__codelineno-0-551">551</a></span>
-<span class="normal"><a href="#__codelineno-0-552">552</a></span>
-<span class="normal"><a href="#__codelineno-0-553">553</a></span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-553">553</a></span>
 <span class="normal"><a href="#__codelineno-0-554">554</a></span>
 <span class="normal"><a href="#__codelineno-0-555">555</a></span>
 <span class="normal"><a href="#__codelineno-0-556">556</a></span>
@@ -17633,102 +17599,136 @@ engine = "poly":
 <span class="normal"><a href="#__codelineno-0-611">611</a></span>
 <span class="normal"><a href="#__codelineno-0-612">612</a></span>
 <span class="normal"><a href="#__codelineno-0-613">613</a></span>
-<span class="normal"><a href="#__codelineno-0-614">614</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-519" name="__codelineno-0-519"></a><span class="k">def</span><span class="w"> </span><span class="nf">reconstruct_sbp</span><span class="p">(</span>
-<a id="__codelineno-0-520" name="__codelineno-0-520"></a>    <span class="n">cones</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Cone</span><span class="p">],</span>
-<a id="__codelineno-0-521" name="__codelineno-0-521"></a>    <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">,</span>
-<a id="__codelineno-0-522" name="__codelineno-0-522"></a>    <span class="n">list_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-523" name="__codelineno-0-523"></a>    <span class="n">uncertainty_mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="s2">&quot;thicken&quot;</span><span class="p">,</span> <span class="s2">&quot;weighted&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;off&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-524" name="__codelineno-0-524"></a>    <span class="n">workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-525" name="__codelineno-0-525"></a>    <span class="n">chunk_cones</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-526" name="__codelineno-0-526"></a>    <span class="n">progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<a id="__codelineno-0-527" name="__codelineno-0-527"></a>    <span class="n">n_poly</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">360</span><span class="p">,</span>
-<a id="__codelineno-0-528" name="__codelineno-0-528"></a>    <span class="n">sbp_engine</span><span class="p">:</span> <span class="n">SBPEngine</span> <span class="o">=</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-529" name="__codelineno-0-529"></a>    <span class="n">use_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-<a id="__codelineno-0-530" name="__codelineno-0-530"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReconResult</span><span class="p">:</span>
-<a id="__codelineno-0-531" name="__codelineno-0-531"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-532" name="__codelineno-0-532"></a><span class="sd">    Parallel SBP (analytic conic). If workers==0, runs single-process.</span>
-<a id="__codelineno-0-533" name="__codelineno-0-533"></a>
-<a id="__codelineno-0-534" name="__codelineno-0-534"></a><span class="sd">    sbp_engine:</span>
-<a id="__codelineno-0-535" name="__codelineno-0-535"></a><span class="sd">        &quot;poly&quot; – perimeter parametric ellipse (with ray fallback).</span>
-<a id="__codelineno-0-536" name="__codelineno-0-536"></a><span class="sd">        &quot;scan&quot; – matrix-math scan across pixel-centered lines (continuous arcs).</span>
-<a id="__codelineno-0-537" name="__codelineno-0-537"></a>
-<a id="__codelineno-0-538" name="__codelineno-0-538"></a><span class="sd">    use_jit:</span>
-<a id="__codelineno-0-539" name="__codelineno-0-539"></a><span class="sd">        When True and numba is available, use a JIT-compiled inner loop</span>
-<a id="__codelineno-0-540" name="__codelineno-0-540"></a><span class="sd">        for the &quot;scan&quot; engine to accelerate the row/column solving.</span>
-<a id="__codelineno-0-541" name="__codelineno-0-541"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-542" name="__codelineno-0-542"></a>    <span class="c1"># Normalize inputs</span>
-<a id="__codelineno-0-543" name="__codelineno-0-543"></a>    <span class="n">cones_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cones</span><span class="p">)</span>
-<a id="__codelineno-0-544" name="__codelineno-0-544"></a>    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cones_list</span><span class="p">)</span>
-<a id="__codelineno-0-545" name="__codelineno-0-545"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
-<a id="__codelineno-0-546" name="__codelineno-0-546"></a>    <span class="n">flat_len</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">nv</span> <span class="o">*</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span>
-<a id="__codelineno-0-547" name="__codelineno-0-547"></a>
-<a id="__codelineno-0-548" name="__codelineno-0-548"></a>    <span class="k">if</span> <span class="n">N</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-549" name="__codelineno-0-549"></a>        <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
-<a id="__codelineno-0-550" name="__codelineno-0-550"></a>
-<a id="__codelineno-0-551" name="__codelineno-0-551"></a>    <span class="k">if</span> <span class="n">workers</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-552" name="__codelineno-0-552"></a>        <span class="n">workers</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-0-553" name="__codelineno-0-553"></a>    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-<a id="__codelineno-0-554" name="__codelineno-0-554"></a>        <span class="n">workers</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">workers</span><span class="p">)</span>
-<a id="__codelineno-0-555" name="__codelineno-0-555"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-556" name="__codelineno-0-556"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;workers must be int or &#39;auto&#39;&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-557" name="__codelineno-0-557"></a>
-<a id="__codelineno-0-558" name="__codelineno-0-558"></a>    <span class="c1"># Single-process path (also good for debugging)</span>
-<a id="__codelineno-0-559" name="__codelineno-0-559"></a>    <span class="k">if</span> <span class="n">workers</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">N</span> <span class="o">&lt;</span> <span class="mi">1500</span><span class="p">:</span>
-<a id="__codelineno-0-560" name="__codelineno-0-560"></a>        <span class="n">hit_count</span> <span class="o">=</span> <span class="mi">0</span>
-<a id="__codelineno-0-561" name="__codelineno-0-561"></a>        <span class="n">lm</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span>
-<a id="__codelineno-0-562" name="__codelineno-0-562"></a>        <span class="n">it</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">cones_list</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;SBP&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;cone&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">progress</span> <span class="ow">and</span> <span class="n">tqdm</span> <span class="k">else</span> <span class="n">cones_list</span>
-<a id="__codelineno-0-563" name="__codelineno-0-563"></a>        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
-<a id="__codelineno-0-564" name="__codelineno-0-564"></a>            <span class="n">idx</span> <span class="o">=</span> <span class="n">cone_to_indices</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">sbp_engine</span><span class="p">,</span> <span class="n">n_poly</span><span class="o">=</span><span class="n">n_poly</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">use_jit</span><span class="p">)</span>
-<a id="__codelineno-0-565" name="__codelineno-0-565"></a>            <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
-<a id="__codelineno-0-566" name="__codelineno-0-566"></a>                <span class="n">hit_count</span> <span class="o">+=</span> <span class="mi">1</span>
-<a id="__codelineno-0-567" name="__codelineno-0-567"></a>                <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-0-568" name="__codelineno-0-568"></a>                <span class="k">if</span> <span class="n">lm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-569" name="__codelineno-0-569"></a>                    <span class="n">lm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-<a id="__codelineno-0-570" name="__codelineno-0-570"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SBP: </span><span class="si">{</span><span class="n">hit_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2"> cones intersected the plane&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-571" name="__codelineno-0-571"></a>        <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lm</span><span class="p">)</span>
-<a id="__codelineno-0-572" name="__codelineno-0-572"></a>
-<a id="__codelineno-0-573" name="__codelineno-0-573"></a>    <span class="c1"># Multi-process path</span>
-<a id="__codelineno-0-574" name="__codelineno-0-574"></a>    <span class="k">if</span> <span class="n">chunk_cones</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-575" name="__codelineno-0-575"></a>        <span class="n">chunk_cones</span> <span class="o">=</span> <span class="n">_auto_chunk_size</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">workers</span><span class="p">)</span>
-<a id="__codelineno-0-576" name="__codelineno-0-576"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-577" name="__codelineno-0-577"></a>        <span class="n">chunk_cones</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk_cones</span><span class="p">)</span>
-<a id="__codelineno-0-578" name="__codelineno-0-578"></a>
-<a id="__codelineno-0-579" name="__codelineno-0-579"></a>    <span class="c1"># Chunk the work</span>
-<a id="__codelineno-0-580" name="__codelineno-0-580"></a>    <span class="n">chunks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Cone</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="n">cones_list</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">chunk_cones</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">chunk_cones</span><span class="p">)]</span>
+<span class="normal"><a href="#__codelineno-0-614">614</a></span>
+<span class="normal"><a href="#__codelineno-0-615">615</a></span>
+<span class="normal"><a href="#__codelineno-0-616">616</a></span>
+<span class="normal"><a href="#__codelineno-0-617">617</a></span>
+<span class="normal"><a href="#__codelineno-0-618">618</a></span>
+<span class="normal"><a href="#__codelineno-0-619">619</a></span>
+<span class="normal"><a href="#__codelineno-0-620">620</a></span>
+<span class="normal"><a href="#__codelineno-0-621">621</a></span>
+<span class="normal"><a href="#__codelineno-0-622">622</a></span>
+<span class="normal"><a href="#__codelineno-0-623">623</a></span>
+<span class="normal"><a href="#__codelineno-0-624">624</a></span>
+<span class="normal"><a href="#__codelineno-0-625">625</a></span>
+<span class="normal"><a href="#__codelineno-0-626">626</a></span>
+<span class="normal"><a href="#__codelineno-0-627">627</a></span>
+<span class="normal"><a href="#__codelineno-0-628">628</a></span>
+<span class="normal"><a href="#__codelineno-0-629">629</a></span>
+<span class="normal"><a href="#__codelineno-0-630">630</a></span>
+<span class="normal"><a href="#__codelineno-0-631">631</a></span>
+<span class="normal"><a href="#__codelineno-0-632">632</a></span>
+<span class="normal"><a href="#__codelineno-0-633">633</a></span>
+<span class="normal"><a href="#__codelineno-0-634">634</a></span>
+<span class="normal"><a href="#__codelineno-0-635">635</a></span>
+<span class="normal"><a href="#__codelineno-0-636">636</a></span>
+<span class="normal"><a href="#__codelineno-0-637">637</a></span>
+<span class="normal"><a href="#__codelineno-0-638">638</a></span>
+<span class="normal"><a href="#__codelineno-0-639">639</a></span>
+<span class="normal"><a href="#__codelineno-0-640">640</a></span>
+<span class="normal"><a href="#__codelineno-0-641">641</a></span>
+<span class="normal"><a href="#__codelineno-0-642">642</a></span>
+<span class="normal"><a href="#__codelineno-0-643">643</a></span>
+<span class="normal"><a href="#__codelineno-0-644">644</a></span>
+<span class="normal"><a href="#__codelineno-0-645">645</a></span>
+<span class="normal"><a href="#__codelineno-0-646">646</a></span>
+<span class="normal"><a href="#__codelineno-0-647">647</a></span>
+<span class="normal"><a href="#__codelineno-0-648">648</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-553" name="__codelineno-0-553"></a><span class="k">def</span><span class="w"> </span><span class="nf">reconstruct_sbp</span><span class="p">(</span>
+<a id="__codelineno-0-554" name="__codelineno-0-554"></a>    <span class="n">cones</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Cone</span><span class="p">],</span>
+<a id="__codelineno-0-555" name="__codelineno-0-555"></a>    <span class="n">plane</span><span class="p">:</span> <span class="n">Plane</span><span class="p">,</span>
+<a id="__codelineno-0-556" name="__codelineno-0-556"></a>    <span class="n">list_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-557" name="__codelineno-0-557"></a>    <span class="n">uncertainty_mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;off&quot;</span><span class="p">,</span> <span class="s2">&quot;thicken&quot;</span><span class="p">,</span> <span class="s2">&quot;weighted&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;off&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-558" name="__codelineno-0-558"></a>    <span class="n">workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-559" name="__codelineno-0-559"></a>    <span class="n">chunk_cones</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-560" name="__codelineno-0-560"></a>    <span class="n">progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-561" name="__codelineno-0-561"></a>    <span class="n">n_poly</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">360</span><span class="p">,</span>
+<a id="__codelineno-0-562" name="__codelineno-0-562"></a>    <span class="n">sbp_engine</span><span class="p">:</span> <span class="n">SBPEngine</span> <span class="o">=</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-563" name="__codelineno-0-563"></a>    <span class="n">use_jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-0-564" name="__codelineno-0-564"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ReconResult</span><span class="p">:</span>
+<a id="__codelineno-0-565" name="__codelineno-0-565"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-0-566" name="__codelineno-0-566"></a><span class="sd">    Parallel SBP (analytic conic). If workers==0, runs single-process.</span>
+<a id="__codelineno-0-567" name="__codelineno-0-567"></a>
+<a id="__codelineno-0-568" name="__codelineno-0-568"></a><span class="sd">    sbp_engine:</span>
+<a id="__codelineno-0-569" name="__codelineno-0-569"></a><span class="sd">        &quot;poly&quot; – perimeter parametric ellipse (with ray fallback).</span>
+<a id="__codelineno-0-570" name="__codelineno-0-570"></a><span class="sd">        &quot;scan&quot; – matrix-math scan across pixel-centered lines (continuous arcs).</span>
+<a id="__codelineno-0-571" name="__codelineno-0-571"></a>
+<a id="__codelineno-0-572" name="__codelineno-0-572"></a><span class="sd">    use_jit:</span>
+<a id="__codelineno-0-573" name="__codelineno-0-573"></a><span class="sd">        When True and numba is available, use a JIT-compiled inner loop</span>
+<a id="__codelineno-0-574" name="__codelineno-0-574"></a><span class="sd">        for the &quot;scan&quot; engine to accelerate the row/column solving.</span>
+<a id="__codelineno-0-575" name="__codelineno-0-575"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-576" name="__codelineno-0-576"></a>    <span class="c1"># Normalize inputs</span>
+<a id="__codelineno-0-577" name="__codelineno-0-577"></a>    <span class="n">cones_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cones</span><span class="p">)</span>
+<a id="__codelineno-0-578" name="__codelineno-0-578"></a>    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cones_list</span><span class="p">)</span>
+<a id="__codelineno-0-579" name="__codelineno-0-579"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+<a id="__codelineno-0-580" name="__codelineno-0-580"></a>    <span class="n">flat_len</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">nv</span> <span class="o">*</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span>
 <a id="__codelineno-0-581" name="__codelineno-0-581"></a>
-<a id="__codelineno-0-582" name="__codelineno-0-582"></a>    <span class="c1"># Progress bar over chunks</span>
-<a id="__codelineno-0-583" name="__codelineno-0-583"></a>    <span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;SBP x</span><span class="si">{</span><span class="n">workers</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;chunk&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">progress</span> <span class="ow">and</span> <span class="n">tqdm</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-582" name="__codelineno-0-582"></a>    <span class="k">if</span> <span class="n">N</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-583" name="__codelineno-0-583"></a>        <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 <a id="__codelineno-0-584" name="__codelineno-0-584"></a>
-<a id="__codelineno-0-585" name="__codelineno-0-585"></a>    <span class="n">flat_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">flat_len</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
-<a id="__codelineno-0-586" name="__codelineno-0-586"></a>    <span class="n">lm_all</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span>
-<a id="__codelineno-0-587" name="__codelineno-0-587"></a>
-<a id="__codelineno-0-588" name="__codelineno-0-588"></a>    <span class="c1"># Use spawn-friendly ProcessPoolExecutor</span>
-<a id="__codelineno-0-589" name="__codelineno-0-589"></a>    <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-<a id="__codelineno-0-590" name="__codelineno-0-590"></a>        <span class="n">futs</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-0-591" name="__codelineno-0-591"></a>            <span class="n">ex</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
-<a id="__codelineno-0-592" name="__codelineno-0-592"></a>                <span class="n">_process_chunk</span><span class="p">,</span>
-<a id="__codelineno-0-593" name="__codelineno-0-593"></a>                <span class="n">ch</span><span class="p">,</span>
-<a id="__codelineno-0-594" name="__codelineno-0-594"></a>                <span class="n">plane</span><span class="p">,</span>
-<a id="__codelineno-0-595" name="__codelineno-0-595"></a>                <span class="n">list_mode</span><span class="p">,</span>
-<a id="__codelineno-0-596" name="__codelineno-0-596"></a>                <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span>
-<a id="__codelineno-0-597" name="__codelineno-0-597"></a>                <span class="n">n_poly</span><span class="p">,</span>
-<a id="__codelineno-0-598" name="__codelineno-0-598"></a>                <span class="n">sbp_engine</span><span class="p">,</span>
-<a id="__codelineno-0-599" name="__codelineno-0-599"></a>                <span class="n">use_jit</span><span class="p">,</span>
-<a id="__codelineno-0-600" name="__codelineno-0-600"></a>            <span class="p">)</span>
-<a id="__codelineno-0-601" name="__codelineno-0-601"></a>            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">chunks</span>
-<a id="__codelineno-0-602" name="__codelineno-0-602"></a>        <span class="p">]</span>
-<a id="__codelineno-0-603" name="__codelineno-0-603"></a>        <span class="k">for</span> <span class="n">fut</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futs</span><span class="p">):</span>
-<a id="__codelineno-0-604" name="__codelineno-0-604"></a>            <span class="n">flat_counts</span><span class="p">,</span> <span class="n">lm_list</span> <span class="o">=</span> <span class="n">fut</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<a id="__codelineno-0-605" name="__codelineno-0-605"></a>            <span class="n">flat_total</span> <span class="o">+=</span> <span class="n">flat_counts</span>
-<a id="__codelineno-0-606" name="__codelineno-0-606"></a>            <span class="k">if</span> <span class="n">lm_all</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">lm_list</span><span class="p">:</span>
-<a id="__codelineno-0-607" name="__codelineno-0-607"></a>                <span class="n">lm_all</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">lm_list</span><span class="p">)</span>
-<a id="__codelineno-0-608" name="__codelineno-0-608"></a>            <span class="k">if</span> <span class="n">pbar</span><span class="p">:</span>
-<a id="__codelineno-0-609" name="__codelineno-0-609"></a>                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<a id="__codelineno-0-610" name="__codelineno-0-610"></a>    <span class="k">if</span> <span class="n">pbar</span><span class="p">:</span>
-<a id="__codelineno-0-611" name="__codelineno-0-611"></a>        <span class="n">pbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a id="__codelineno-0-585" name="__codelineno-0-585"></a>    <span class="k">if</span> <span class="n">workers</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-586" name="__codelineno-0-586"></a>        <span class="n">workers</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-587" name="__codelineno-0-587"></a>    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">workers</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+<a id="__codelineno-0-588" name="__codelineno-0-588"></a>        <span class="n">workers</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">workers</span><span class="p">)</span>
+<a id="__codelineno-0-589" name="__codelineno-0-589"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-590" name="__codelineno-0-590"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;workers must be int or &#39;auto&#39;&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-591" name="__codelineno-0-591"></a>
+<a id="__codelineno-0-592" name="__codelineno-0-592"></a>    <span class="c1"># Single-process path (also good for debugging)</span>
+<a id="__codelineno-0-593" name="__codelineno-0-593"></a>    <span class="k">if</span> <span class="n">workers</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">N</span> <span class="o">&lt;</span> <span class="mi">1500</span><span class="p">:</span>
+<a id="__codelineno-0-594" name="__codelineno-0-594"></a>        <span class="n">hit_count</span> <span class="o">=</span> <span class="mi">0</span>
+<a id="__codelineno-0-595" name="__codelineno-0-595"></a>        <span class="n">lm</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-596" name="__codelineno-0-596"></a>        <span class="n">it</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">cones_list</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;SBP&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;cone&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">progress</span> <span class="ow">and</span> <span class="n">tqdm</span> <span class="k">else</span> <span class="n">cones_list</span>
+<a id="__codelineno-0-597" name="__codelineno-0-597"></a>        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+<a id="__codelineno-0-598" name="__codelineno-0-598"></a>            <span class="n">idx</span> <span class="o">=</span> <span class="n">cone_to_indices</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">sbp_engine</span><span class="p">,</span> <span class="n">n_poly</span><span class="o">=</span><span class="n">n_poly</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">use_jit</span><span class="p">)</span>
+<a id="__codelineno-0-599" name="__codelineno-0-599"></a>            <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+<a id="__codelineno-0-600" name="__codelineno-0-600"></a>                <span class="n">hit_count</span> <span class="o">+=</span> <span class="mi">1</span>
+<a id="__codelineno-0-601" name="__codelineno-0-601"></a>                <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">at</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-602" name="__codelineno-0-602"></a>                <span class="k">if</span> <span class="n">lm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-603" name="__codelineno-0-603"></a>                    <span class="n">lm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+<a id="__codelineno-0-604" name="__codelineno-0-604"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SBP: </span><span class="si">{</span><span class="n">hit_count</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2"> cones intersected the plane&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-605" name="__codelineno-0-605"></a>        <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lm</span><span class="p">)</span>
+<a id="__codelineno-0-606" name="__codelineno-0-606"></a>
+<a id="__codelineno-0-607" name="__codelineno-0-607"></a>    <span class="c1"># Multi-process path</span>
+<a id="__codelineno-0-608" name="__codelineno-0-608"></a>    <span class="k">if</span> <span class="n">chunk_cones</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-609" name="__codelineno-0-609"></a>        <span class="n">chunk_cones</span> <span class="o">=</span> <span class="n">_auto_chunk_size</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">workers</span><span class="p">)</span>
+<a id="__codelineno-0-610" name="__codelineno-0-610"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-611" name="__codelineno-0-611"></a>        <span class="n">chunk_cones</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chunk_cones</span><span class="p">)</span>
 <a id="__codelineno-0-612" name="__codelineno-0-612"></a>
-<a id="__codelineno-0-613" name="__codelineno-0-613"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">flat_total</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">)</span>
-<a id="__codelineno-0-614" name="__codelineno-0-614"></a>    <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lm_all</span><span class="p">)</span>
+<a id="__codelineno-0-613" name="__codelineno-0-613"></a>    <span class="c1"># Chunk the work</span>
+<a id="__codelineno-0-614" name="__codelineno-0-614"></a>    <span class="n">chunks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Cone</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="n">cones_list</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">chunk_cones</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">chunk_cones</span><span class="p">)]</span>
+<a id="__codelineno-0-615" name="__codelineno-0-615"></a>
+<a id="__codelineno-0-616" name="__codelineno-0-616"></a>    <span class="c1"># Progress bar over chunks</span>
+<a id="__codelineno-0-617" name="__codelineno-0-617"></a>    <span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;SBP x</span><span class="si">{</span><span class="n">workers</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;chunk&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">progress</span> <span class="ow">and</span> <span class="n">tqdm</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-618" name="__codelineno-0-618"></a>
+<a id="__codelineno-0-619" name="__codelineno-0-619"></a>    <span class="n">flat_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">flat_len</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+<a id="__codelineno-0-620" name="__codelineno-0-620"></a>    <span class="n">lm_all</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">list_mode</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-621" name="__codelineno-0-621"></a>
+<a id="__codelineno-0-622" name="__codelineno-0-622"></a>    <span class="c1"># Use spawn-friendly ProcessPoolExecutor</span>
+<a id="__codelineno-0-623" name="__codelineno-0-623"></a>    <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+<a id="__codelineno-0-624" name="__codelineno-0-624"></a>        <span class="n">futs</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-0-625" name="__codelineno-0-625"></a>            <span class="n">ex</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+<a id="__codelineno-0-626" name="__codelineno-0-626"></a>                <span class="n">_process_chunk</span><span class="p">,</span>
+<a id="__codelineno-0-627" name="__codelineno-0-627"></a>                <span class="n">ch</span><span class="p">,</span>
+<a id="__codelineno-0-628" name="__codelineno-0-628"></a>                <span class="n">plane</span><span class="p">,</span>
+<a id="__codelineno-0-629" name="__codelineno-0-629"></a>                <span class="n">list_mode</span><span class="p">,</span>
+<a id="__codelineno-0-630" name="__codelineno-0-630"></a>                <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">,</span>
+<a id="__codelineno-0-631" name="__codelineno-0-631"></a>                <span class="n">n_poly</span><span class="p">,</span>
+<a id="__codelineno-0-632" name="__codelineno-0-632"></a>                <span class="n">sbp_engine</span><span class="p">,</span>
+<a id="__codelineno-0-633" name="__codelineno-0-633"></a>                <span class="n">use_jit</span><span class="p">,</span>
+<a id="__codelineno-0-634" name="__codelineno-0-634"></a>            <span class="p">)</span>
+<a id="__codelineno-0-635" name="__codelineno-0-635"></a>            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">chunks</span>
+<a id="__codelineno-0-636" name="__codelineno-0-636"></a>        <span class="p">]</span>
+<a id="__codelineno-0-637" name="__codelineno-0-637"></a>        <span class="k">for</span> <span class="n">fut</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futs</span><span class="p">):</span>
+<a id="__codelineno-0-638" name="__codelineno-0-638"></a>            <span class="n">flat_counts</span><span class="p">,</span> <span class="n">lm_list</span> <span class="o">=</span> <span class="n">fut</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+<a id="__codelineno-0-639" name="__codelineno-0-639"></a>            <span class="n">flat_total</span> <span class="o">+=</span> <span class="n">flat_counts</span>
+<a id="__codelineno-0-640" name="__codelineno-0-640"></a>            <span class="k">if</span> <span class="n">lm_all</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">lm_list</span><span class="p">:</span>
+<a id="__codelineno-0-641" name="__codelineno-0-641"></a>                <span class="n">lm_all</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">lm_list</span><span class="p">)</span>
+<a id="__codelineno-0-642" name="__codelineno-0-642"></a>            <span class="k">if</span> <span class="n">pbar</span><span class="p">:</span>
+<a id="__codelineno-0-643" name="__codelineno-0-643"></a>                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-0-644" name="__codelineno-0-644"></a>    <span class="k">if</span> <span class="n">pbar</span><span class="p">:</span>
+<a id="__codelineno-0-645" name="__codelineno-0-645"></a>        <span class="n">pbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<a id="__codelineno-0-646" name="__codelineno-0-646"></a>
+<a id="__codelineno-0-647" name="__codelineno-0-647"></a>    <span class="n">img</span> <span class="o">=</span> <span class="n">flat_total</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">plane</span><span class="o">.</span><span class="n">nv</span><span class="p">,</span> <span class="n">plane</span><span class="o">.</span><span class="n">nu</span><span class="p">)</span>
+<a id="__codelineno-0-648" name="__codelineno-0-648"></a>    <span class="k">return</span> <span class="n">ReconResult</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">lm_all</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
