@@ -171,7 +171,7 @@ max_cones = 20000
 
 # Coarsen the imaging plane by this integer factor:
 # du' = du * plane_downsample, dv' = dv * plane_downsample
-plane_downsample = 1
+plane_downsample = 4
 
 # SBP imaging engine:
 #   "scan" – matrix scan across pixel-centered lines (continuous arcs)
