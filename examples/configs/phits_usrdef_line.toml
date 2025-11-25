@@ -64,6 +64,17 @@ require_gamma_triples = true
 # NOTE: material-specific behavior (e.g. LUTs) is configured below in [detectors] and [energy].
 # If the adapter needs a per-detector material, it should ask cfg.detectors.
 
+[io.extra_text_files]
+# Sometimes it is useful to carry additional text configuration or metadata
+# files forward into the HDF5 output (e.g. a PHITS input deck, DAQ config
+# files, or auxiliary calibration notes). You can specify these here.
+# Values are file paths. If they are relative, they are interpreted relative
+# to the location of the TOML config file.
+# key = "path/to/text/file"
+# phits_input = "phits/input/deck.inp"
+# daq_config  = "daq/config/daq_settings.txt"
+phits_out = "../imaging_datasets/PHITS_toy_line_source/phits.out"
+
 [detectors]
 # Default material to assume if a detector ID is missing from material_map
 default_material = "OGS"
@@ -206,4 +217,11 @@ filename_pattern       = "{stem}_{species}.{ext}"
 # flip_vertical          = true
 # extra_formats          = ["pdf"]
 # summed_dataset       = "/images/summed/n"  # advanced / legacy option
+
+[vis.projections]
+enabled      = true
+roi_u_min_cm =  0.0
+roi_u_max_cm =  8.0
+roi_v_min_cm = -5.0
+roi_v_max_cm = 10.0
 

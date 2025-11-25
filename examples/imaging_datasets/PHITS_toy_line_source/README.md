@@ -13,3 +13,4 @@ The source is a "line source" of 14.1 MeV neutrons (10^7 histories).  It is cent
 
 The produced `usrdef.out` file from this tally contains two-fold neutron coincident event data.  This file is then processed by `ng-imager`, where the neutrons event cones are created and imaged.  
 
+![](usrdef_out_n.png)
