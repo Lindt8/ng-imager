@@ -11,6 +11,8 @@ In this particular run, from the detector array's frame of reference and the exp
 
 TO-DO
 
+![](aautoSorted_coinc_detector_DT-14p8MeV_000041_out_n.png)
+
 ### Legacy code processing
 
 To process this experimental data into cones then an image using the legacy code, it is executed as follows:

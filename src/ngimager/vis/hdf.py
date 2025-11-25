@@ -382,36 +382,112 @@ def render_summed_images(
 
             # ----------------- Projections -----------------
             if projections and ax_top is not None and ax_left is not None:
-                # u-projection (top)
-                ax_top.plot(u_centers_plot, proj_u, label="all")
+                # -------------------------
+                # U-projection (top panel)
+                # -------------------------
+                # Primary axis: "all"
+                line_all_u, = ax_top.plot(
+                    u_centers_plot,
+                    proj_u,
+                    color="C0",
+                    label="all",
+                )
+                ax_top.set_ylabel("Σ counts (over v)")
+                ax_top.grid(alpha=0.2)
+
                 if proj_u_roi is not None:
-                    ax_top.plot(
+                    # Secondary y-axis: scaled to ROI only
+                    ax_top2 = ax_top.twinx()
+                    line_roi_u, = ax_top2.plot(
                         u_centers_plot,
                         proj_u_roi,
                         linestyle="--",
+                        color="C1",
                         label="ROI",
                     )
-                ax_top.set_ylabel("Σ counts (over v)")
-                ax_top.grid(alpha=0.2)
-                if proj_u_roi is not None:
+
+                    # Tight y-limits based on nonzero ROI values
+                    nz = proj_u_roi[proj_u_roi > 0]
+                    if nz.size > 0:
+                        ymin, ymax = float(nz.min()), float(nz.max())
+                        pad = 0.05 * (ymax - ymin) if ymax > ymin else max(ymax * 0.1, 1.0)
+                        ax_top2.set_ylim(ymin - pad, ymax + pad)
+                    else:
+                        ax_top2.set_ylim(0.0, 1.0)
+
+                    # Inside ticks on the right, colored to match ROI curve
+                    ax_top2.yaxis.set_label_position("right")
+                    ax_top2.yaxis.tick_right()
+                    ax_top2.tick_params(
+                        axis="y",
+                        direction="out",
+                        pad=3,  # small positive: just inside the frame
+                        colors="C1",
+                        labelcolor="C1",
+                    )
+                    ax_top2.set_ylabel("")
+
+                    # Legend showing both curves, built from primary & secondary handles
+                    ax_top.legend(
+                        [line_all_u, line_roi_u],
+                        ["all", "ROI"],
+                        loc="upper right",
+                        fontsize=8,
+                    )
+                else:
                     ax_top.legend(loc="upper right", fontsize=8)
 
-                # v-projection (left)
-                ax_left.plot(proj_v, v_centers_plot, label="all")
+                # -------------------------
+                # V-projection (left panel)
+                # -------------------------
+                # Primary axis: "all"
+                line_all_v, = ax_left.plot(
+                    proj_v,
+                    v_centers_plot,
+                    color="C0",
+                    label="all",
+                )
+
+                ax_left.invert_xaxis()
+                ax_left.set_xlabel("Σ counts (over u)")
+                ax_left.set_ylabel(axis_labels[1])  # v-label lives here
+                ax_left.grid(alpha=0.2)
+
                 if proj_v_roi is not None:
-                    ax_left.plot(
+                    # Secondary x-axis (top): scaled to ROI only
+                    ax_left2 = ax_left.twiny()
+                    line_roi_v, = ax_left2.plot(
                         proj_v_roi,
                         v_centers_plot,
                         linestyle="--",
+                        color="C1",
                         label="ROI",
                     )
-                # Flip so zero is on the RIGHT side of this subplot
-                ax_left.invert_xaxis()
-                ax_left.set_xlabel("Σ counts (over u)")
-                # v-axis label lives here when projections are enabled
-                ax_left.set_ylabel(axis_labels[1])
-                ax_left.grid(alpha=0.2)
 
+                    # Tight x-limits from nonzero ROI
+                    nz = proj_v_roi[proj_v_roi > 0]
+                    if nz.size > 0:
+                        xmin, xmax = float(nz.min()), float(nz.max())
+                        pad = 0.05 * (xmax - xmin) if xmax > xmin else max(xmax * 0.1, 1.0)
+                        ax_left2.set_xlim(xmin - pad, xmax + pad)
+                    else:
+                        ax_left2.set_xlim(0.0, 1.0)
+
+                    # Keep "zero on the right" for secondary axis as well
+                    ax_left2.invert_xaxis()
+
+                    # Inside ticks at the top edge, in ROI color
+                    ax_left2.xaxis.set_label_position("top")
+                    ax_left2.xaxis.tick_top()
+                    ax_left2.tick_params(
+                        axis="x",
+                        direction="out",
+                        pad=3,  # small positive: just inside
+                        colors="C1",
+                        labelcolor="C1",
+                    )
+                    ax_left2.set_xlabel("")
+                    ax_left2.set_ylabel("")
 
             # Suptitle for the whole figure
             species_label = {
