@@ -41,6 +41,7 @@ from ngimager.io.adapters import make_adapter
 from ngimager.io.lm_store import (
     write_init,
     write_summed,
+    write_projections,
     write_cones,
     write_lm_indices,
     write_events_hits,
@@ -762,6 +763,25 @@ def run_pipeline(
 
     img_n = None
     img_g = None
+    
+    # Projection / ROI configuration (for HDF5 + visualization)
+    vis_cfg = getattr(cfg, "vis", None)
+    proj_cfg = getattr(vis_cfg, "projections", None) if vis_cfg is not None else None
+
+    projections_enabled = bool(
+        getattr(proj_cfg, "enabled", False)
+    ) if proj_cfg is not None else False
+
+    roi: tuple[float, float, float, float] | None = None
+    if projections_enabled and proj_cfg is not None:
+        u0 = getattr(proj_cfg, "roi_u_min_cm", None)
+        u1 = getattr(proj_cfg, "roi_u_max_cm", None)
+        v0 = getattr(proj_cfg, "roi_v_min_cm", None)
+        v1 = getattr(proj_cfg, "roi_v_max_cm", None)
+        # Only use ROI if all four bounds are provided
+        if None not in (u0, u1, v0, v1):
+            roi = (float(u0), float(u1), float(v0), float(v1))
+
 
     # --- 4a. Neutron-only image ---
     if cones_n:
@@ -842,6 +862,16 @@ def run_pipeline(
                 "sum=", float(img_all.sum()),
                 "shape=", img_all.shape,
             )
+            
+    # --- 4c.1. 1D projections (optional) ------------------------------------
+    if projections_enabled:
+        if img_n is not None:
+            write_projections(f, "n", img_n, roi=roi)
+        if img_g is not None:
+            write_projections(f, "g", img_g, roi=roi)
+        if img_all is not None:
+            write_projections(f, "all", img_all, roi=roi)
+
 
     # --- 4d. List-mode extras: explicit cone → pixel mapping + event survival ---
     if cfg.run.list and len(cones_for_sbp) > 0:
@@ -890,12 +920,21 @@ def run_pipeline(
             image_paths = render_summed_images(
                 str(out_path),
                 species=species,
-                filename_pattern=getattr(cfg.vis, "filename_pattern", "{species}_{stem}.{ext}"),
+                filename_pattern=getattr(
+                    cfg.vis,
+                    "filename_pattern",
+                    "{species}_{stem}.{ext}",
+                ),
                 center_on_plane_center=getattr(cfg.vis, "center_on_plane_center", True),
                 flip_vertical=getattr(cfg.vis, "flip_vertical", True),
                 axis_units=getattr(cfg.vis, "axis_units", "cm"),
                 cmap=getattr(cfg.vis, "cmap", "cividis"),
                 formats=formats,
+                projections=projections_enabled,
+                roi_u_min_cm=roi[0] if roi is not None else None,
+                roi_u_max_cm=roi[1] if roi is not None else None,
+                roi_v_min_cm=roi[2] if roi is not None else None,
+                roi_v_max_cm=roi[3] if roi is not None else None,
             )
 
             if cfg.run.diagnostics_level >= 1:

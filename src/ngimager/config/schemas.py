@@ -306,6 +306,29 @@ class UncertaintyCfg(BaseModel):
     sigma_time_ns: float = 0.5
     use_lut_bands: bool = False
 
+
+class VisProjectionsCfg(BaseModel):
+    """
+    Configuration for 1D u/v projections of the summed images.
+
+    All coordinates are in the native imaging-plane units (cm), matching
+    the [plane] section and /meta.grid.* attributes in the HDF5 output.
+    """
+
+    # Enable computation and storage of 1D projections in the HDF5 file,
+    # and use them when rendering images (u/v side panels).
+    enabled: bool = False
+
+    # Optional rectangular region-of-interest (ROI) in (u, v) coordinates.
+    # If all four are provided, ROI-limited projections are computed by
+    # summing only pixels whose centers fall inside this window.
+    roi_u_min_cm: float | None = None
+    roi_u_max_cm: float | None = None
+    roi_v_min_cm: float | None = None
+    roi_v_max_cm: float | None = None
+
+
+
 class VisCfg(BaseModel):
     """
     Visualization configuration.
@@ -358,6 +381,9 @@ class VisCfg(BaseModel):
     # when export_png_on_write is true; any extra formats listed here will be
     # written alongside (e.g. ["pdf"]).
     extra_formats: list[str] = Field(default_factory=list)
+
+    # Optional 1D u/v projections and ROI configuration.
+    projections: VisProjectionsCfg = Field(default_factory=VisProjectionsCfg)
 
 
 

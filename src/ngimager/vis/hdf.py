@@ -1,31 +1,36 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Sequence, Literal, Optional
 
 import h5py
-import matplotlib.pyplot as plt
 import numpy as np
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-_SPECIES_LABEL = {
-    "n": "Neutron",
-    "g": "Gamma",
-    "all": "Neutron + Gamma",
-}
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+from matplotlib.patches import Rectangle
 
 
-def _safe_get_attr(attrs: h5py.AttributeManager, key: str, default: float | None = None) -> float | None:
-    if key not in attrs:
-        return default
+def _count_cones_for_species(f: h5py.File, species: str) -> Optional[int]:
+    """
+    Count how many cones of the requested species exist in /cones/species.
+
+    species="n"   → number of cones with code 0
+    species="g"   → number of cones with code 1
+    species="all" → total number of cones
+    """
     try:
-        return float(attrs[key])
+        ds = f["cones"]["species"]
+        arr = np.asarray(ds[:], dtype=np.uint8)
     except Exception:
-        return default
+        return None
+
+    if species == "n":
+        return int(np.count_nonzero(arr == 0))
+    if species == "g":
+        return int(np.count_nonzero(arr == 1))
+    if species == "all":
+        return int(arr.size)
+    return None
 
 
 def _basis_world_name(vec: np.ndarray, tol: float = 1e-3) -> Optional[str]:
@@ -37,7 +42,7 @@ def _basis_world_name(vec: np.ndarray, tol: float = 1e-3) -> Optional[str]:
     if not np.all(np.isfinite(v)):
         return None
     norm = np.linalg.norm(v)
-    if norm == 0:
+    if norm == 0.0:
         return None
     v = v / norm
 
@@ -54,72 +59,68 @@ def _basis_world_name(vec: np.ndarray, tol: float = 1e-3) -> Optional[str]:
         if d > best_dot:
             best_dot = d
             best_name = name
+
     if best_dot >= 1.0 - tol:
         return best_name
     return None
 
 
-def _image_axes_from_meta(
-    meta: Optional[h5py.Group],
-    *,
-    center_on_plane_center: bool = True,
-    axis_units: str = "cm",
-) -> tuple[Optional[tuple[float, float, float, float]], str, str, float, float]:
+def _axes_from_meta(
+    attrs: h5py.AttributeManager,
+    center_on_plane_center: bool,
+    axis_units: Literal["cm", "mm"],
+) -> tuple[
+    tuple[float, float, float, float],     # extent (u_min, u_max, v_min, v_max) in plot units
+    tuple[str, str],                       # axis_labels (xlabel, ylabel)
+    tuple[float, float],                   # pixel_sizes (du_plot, dv_plot)
+    tuple[float, float, float, float],     # uv_range_cm (u_min_cm, u_max_cm, v_min_cm, v_max_cm)
+]:
     """
-    Derive imshow extent and axis labels from /meta attributes.
-
-    Returns (extent, xlabel, ylabel, du, dv), where:
-      - extent is (u_min, u_max, v_min, v_max) in requested units,
-        or None if we cannot infer physical axes.
-      - du, dv are the pixel sizes in those same units (>=0, or 0 if unknown).
+    Build the imshow extent, axis labels (with world-axis hints when possible),
+    pixel sizes, and native (cm) ranges from /meta.
     """
-    if meta is None:
-        return None, "u [pixels]", "v [pixels]", 0.0, 0.0
+    u_min_cm = float(attrs["grid.u_min"])
+    u_max_cm = float(attrs["grid.u_max"])
+    v_min_cm = float(attrs["grid.v_min"])
+    v_max_cm = float(attrs["grid.v_max"])
+    du_cm = float(attrs["grid.du"])
+    dv_cm = float(attrs["grid.dv"])
 
-    attrs = meta.attrs
+    u0 = u_min_cm
+    u1 = u_max_cm
+    v0 = v_min_cm
+    v1 = v_max_cm
 
-    u_min = _safe_get_attr(attrs, "grid.u_min")
-    u_max = _safe_get_attr(attrs, "grid.u_max")
-    v_min = _safe_get_attr(attrs, "grid.v_min")
-    v_max = _safe_get_attr(attrs, "grid.v_max")
-    du = _safe_get_attr(attrs, "grid.du", 0.0) or 0.0
-    dv = _safe_get_attr(attrs, "grid.dv", 0.0) or 0.0
+    if center_on_plane_center:
+        u_mid = 0.5 * (u0 + u1)
+        v_mid = 0.5 * (v0 + v1)
+        u0 -= u_mid
+        u1 -= u_mid
+        v0 -= v_mid
+        v1 -= v_mid
 
-    if None in (u_min, u_max, v_min, v_max):
-        extent = None
-    else:
-        if center_on_plane_center:
-            u_center = 0.5 * (u_min + u_max)  # type: ignore[operator]
-            v_center = 0.5 * (v_min + v_max)  # type: ignore[operator]
-        else:
-            u_center = 0.0
-            v_center = 0.0
-        extent = (
-            float(u_min - u_center),  # type: ignore[operator,arg-type]
-            float(u_max - u_center),  # type: ignore[operator,arg-type]
-            float(v_min - v_center),  # type: ignore[operator,arg-type]
-            float(v_max - v_center),  # type: ignore[operator,arg-type]
-        )
+    # Plot units (cm or mm)
+    scale = 10.0 if axis_units == "mm" else 1.0
+    unit_str = axis_units
 
-    # Convert to requested units (cm → mm if needed)
-    scale = 1.0
-    unit_str = "cm"
-    if axis_units == "mm":
-        scale = 10.0
-        unit_str = "mm"
+    u0_plot = u0 * scale
+    u1_plot = u1 * scale
+    v0_plot = v0 * scale
+    v1_plot = v1 * scale
 
-    if extent is not None:
-        extent = tuple(scale * x for x in extent)  # type: ignore[assignment]
-    du *= scale
-    dv *= scale
+    du_plot = du_cm * scale
+    dv_plot = dv_cm * scale
+
+    extent = (u0_plot, u1_plot, v0_plot, v1_plot)
 
     # Try to infer world-axis alignment for u, v
-    eu = attrs.get("plane.eu")
-    ev = attrs.get("plane.ev")
-    u_world = _basis_world_name(np.asarray(eu)) if eu is not None else None
-    v_world = _basis_world_name(np.asarray(ev)) if ev is not None else None
+    u_world = None
+    v_world = None
+    if "plane.eu" in attrs:
+        u_world = _basis_world_name(np.asarray(attrs["plane.eu"]))
+    if "plane.ev" in attrs:
+        v_world = _basis_world_name(np.asarray(attrs["plane.ev"]))
 
-    # Labels: include both u/v and world axes when aligned
     if u_world and v_world:
         xlabel = f"u / {u_world} [{unit_str}]"
         ylabel = f"v / {v_world} [{unit_str}]"
@@ -133,307 +134,310 @@ def _image_axes_from_meta(
         xlabel = f"u [{unit_str}]"
         ylabel = f"v [{unit_str}]"
 
-    return extent, xlabel, ylabel, du, dv
+    axis_labels = (xlabel, ylabel)
+    uv_range_cm = (u_min_cm, u_max_cm, v_min_cm, v_max_cm)
 
+    return extent, axis_labels, (du_plot, dv_plot), uv_range_cm
 
-def _cone_counts(meta: Optional[h5py.Group]) -> dict[str, Optional[int]]:
-    """
-    Fetch simple cone counts from /meta/counters if present.
-
-    Returns dict with keys "n" and "g", each mapping to an int or None.
-    """
-    counts: dict[str, Optional[int]] = {"n": None, "g": None}
-    if meta is None or "counters" not in meta:
-        return counts
-
-    counters = meta["counters"]
-    for key, species in (("s3_cones_kept_n", "n"), ("s3_cones_kept_g", "g")):
-        if key in counters:
-            try:
-                value = int(counters[key][()])
-            except Exception:
-                value = None
-            counts[species] = value
-
-    return counts
-
-
-def _render_single_image(
-    data: np.ndarray,
-    out_path: Path,
-    *,
-    extent: Optional[tuple[float, float, float, float]],
-    xlabel: str,
-    ylabel: str,
-    title: str,
-    subtitle: Optional[str] = None,
-    count_text: Optional[str] = None,
-    flip_vertical: bool = False,
-    rasterized: bool = False,
-    cmap: str = "cividis",
-    du: float = 0.0,
-    dv: float = 0.0,
-    unit_str: str = "cm",
-) -> None:
-    """
-    Internal helper: render a 2D array to an image file.
-    """
-    if flip_vertical:
-        data = np.flipud(data)
-
-    fig, ax = plt.subplots(figsize=(6, 5))
-
-    if extent is not None:
-        im = ax.imshow(data, origin="lower", extent=extent, rasterized=rasterized, cmap=cmap)
-    else:
-        im = ax.imshow(data, origin="lower", rasterized=rasterized, cmap=cmap)
-
-    cbar = fig.colorbar(im, ax=ax)
-
-    # Colorbar label with pixel area if known
-    if du > 0.0 and dv > 0.0:
-        cbar.set_label(f"counts per {du:.2f} × {dv:.2f} {unit_str}² pixel")
-    else:
-        cbar.set_label("counts")
-
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_title(title)
-
-    lines = []
-    if subtitle:
-        lines.append(subtitle)
-    if count_text:
-        lines.append(count_text)
-
-    if lines:
-        ax.text(
-            0.99,
-            0.99,
-            "\n".join(lines),
-            transform=ax.transAxes,
-            ha="right",
-            va="top",
-            fontsize=9,
-            bbox=dict(boxstyle="round,pad=0.2", facecolor="white", alpha=0.75),
-        )
-
-    fig.tight_layout()
-    fig.savefig(out_path)
-    plt.close(fig)
-
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
-
-def save_summed_png(
-    h5_path: str | Path,
-    out_png: Optional[str] = None,
-    dataset: str = "/images/summed/n",
-) -> str:
-    """
-    Render a single 2D dataset from HDF5 to a PNG.
-
-    Historically this was used for `/images/summed/*`, but it will accept any
-    2D dataset path. Axes are labeled using the imaging-plane metadata when
-    available; otherwise pixel indices are used.
-
-    This function is mainly for CLI helpers; new code should prefer
-    `render_summed_images` when working with /images/summed/{n,g,all}.
-    """
-    h5_path = Path(h5_path)
-
-    if out_png is None:
-        out_path = h5_path.with_suffix(".png")
-    else:
-        out_path = Path(out_png)
-
-    with h5py.File(h5_path, "r") as f:
-        if dataset not in f:
-            raise KeyError(f"Dataset {dataset!r} not found in {h5_path}")
-        data = np.asarray(f[dataset])
-        if data.ndim != 2:
-            raise ValueError(f"Dataset {dataset!r} is not 2D (shape={data.shape!r})")
-
-        meta = f["meta"] if "meta" in f else None
-        extent, xlabel, ylabel, du, dv = _image_axes_from_meta(meta, center_on_plane_center=True, axis_units="cm")
-
-        _render_single_image(
-            data,
-            out_path,
-            extent=extent,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            title=dataset,
-            subtitle=str(h5_path.name),
-            count_text=None,
-            flip_vertical=False,
-            rasterized=False,
-            cmap="cividis",
-            du=du,
-            dv=dv,
-            unit_str="cm",
-        )
-
-    return str(out_path)
 
 
 def render_summed_images(
     h5_path: str | Path,
     species: Sequence[str] = ("n", "g", "all"),
-    *,
     filename_pattern: str = "{species}_{stem}.{ext}",
     center_on_plane_center: bool = True,
     flip_vertical: bool = True,
-    axis_units: str = "cm",
+    axis_units: Literal["cm", "mm"] = "cm",
     cmap: str = "cividis",
     formats: Sequence[str] = ("png",),
+    projections: bool = False,
+    roi_u_min_cm: float | None = None,
+    roi_u_max_cm: float | None = None,
+    roi_v_min_cm: float | None = None,
+    roi_v_max_cm: float | None = None,
 ) -> list[Path]:
     """
-    Render one or more `/images/summed/{n,g,all}` datasets from an ng-imager
-    HDF5 file.
+    Render `/images/summed/*` datasets from an ng-imager HDF5 file to image files.
 
-    Parameters
-    ----------
-    h5_path:
-        Path to the ng-imager HDF5 output file.
-    species:
-        Iterable of species strings: any combination of "n", "g", "all".
-        If "all" is requested but only one of n/g is present, the "all" image
-        is skipped to avoid redundant copies.
-    filename_pattern:
-        Format string for output filenames. It may reference:
-          - {stem}:    stem of the HDF5 file name
-          - {species}: "n", "g", or "all"
-          - {ext}:     file extension (e.g. "png", "pdf")
-    center_on_plane_center:
-        If True, shift the plotting coordinates so that (u, v) = (0, 0) is at
-        the imaging plane center.
-    flip_vertical:
-        If True, flip the plotted image vertically relative to the natural
-        v-axis orientation. This is mainly useful for comparison with legacy
-        images.
-    axis_units:
-        Units for axes ("cm" or "mm"). Values are derived from /meta, which
-        stores geometry in centimeters; "mm" rescales labels by 10.
-    cmap:
-        Matplotlib colormap name (e.g. "cividis").
-    formats:
-        Iterable of output formats (e.g. ["png", "pdf"]).
-
-    Returns
-    -------
-    list[Path]
-        A list of written image paths.
+    When `projections=True`, each figure shows:
+      - the main 2D image (u vs v),
+      - a 1D projection along u **above** the image,
+      - a 1D projection along v **to the left** of the image,
+      - an optional ROI rectangle (if roi_*_cm are provided),
+      - an annotation of the number of cones contributing to that species.
     """
+
     h5_path = Path(h5_path)
+    stem = h5_path.stem
 
-    # Deduplicate species while preserving order, and only keep known keys
-    requested_species = []
+    # Normalize species and formats
+    species_list: list[str] = []
     for s in species:
-        if s in ("n", "g", "all") and s not in requested_species:
-            requested_species.append(s)
+        s = str(s).lower()
+        if s in ("n", "g", "all") and s not in species_list:
+            species_list.append(s)
 
-    if not requested_species:
-        return []
-
-    # Deduplicate formats while preserving order
     fmt_list: list[str] = []
     for fmt in formats:
-        ext = str(fmt).lower()
-        if not ext:
-            continue
-        if ext not in fmt_list:
-            fmt_list.append(ext)
+        fmt = str(fmt).lower().lstrip(".")
+        if fmt and fmt not in fmt_list:
+            fmt_list.append(fmt)
+    if not fmt_list:
+        fmt_list = ["png"]
+
+    # ROI rectangle in cm
+    roi_cm: tuple[float, float, float, float] | None = None
+    if (
+        roi_u_min_cm is not None
+        and roi_u_max_cm is not None
+        and roi_v_min_cm is not None
+        and roi_v_max_cm is not None
+    ):
+        roi_cm = (
+            float(roi_u_min_cm),
+            float(roi_u_max_cm),
+            float(roi_v_min_cm),
+            float(roi_v_max_cm),
+        )
 
     out_paths: list[Path] = []
 
     with h5py.File(h5_path, "r") as f:
-        meta = f["meta"] if "meta" in f else None
-        extent, xlabel, ylabel, du, dv = _image_axes_from_meta(
-            meta,
-            center_on_plane_center=center_on_plane_center,
-            axis_units=axis_units,
-        )
-        unit_str = "mm" if axis_units == "mm" else "cm"
-        counts = _cone_counts(meta)
-
-        # Determine which species are actually present
-        have_n = "/images/summed/n" in f
-        have_g = "/images/summed/g" in f
-
-        # Apply "all only when both exist" rule
-        effective_species: list[str] = []
-        for s in requested_species:
-            if s == "all":
-                if have_n and have_g and "/images/summed/all" in f:
-                    effective_species.append("all")
-            elif s == "n":
-                if have_n:
-                    effective_species.append("n")
-            elif s == "g":
-                if have_g:
-                    effective_species.append("g")
-
-        if not effective_species:
+        if "images" not in f or "summed" not in f["images"]:
             return []
 
-        for s in effective_species:
-            dset_path = f"/images/summed/{s}"
-            if dset_path not in f:
+        summed_grp = f["images"]["summed"]
+        meta_attrs = f["meta"].attrs
+
+        has_n = "n" in summed_grp
+        has_g = "g" in summed_grp
+
+        for sp in species_list:
+            # Skip "all" if we don't have both species present.
+            if sp == "all" and not (has_n and has_g):
+                continue
+            if sp not in summed_grp:
                 continue
 
-            data = np.asarray(f[dset_path])
-            if data.ndim != 2:
-                continue
+            img = np.array(summed_grp[sp], dtype=np.float32)
+            nv, nu = img.shape
 
-            label = _SPECIES_LABEL.get(s, s)
-            title = f"{label} cones – {h5_path.name}"
-            subtitle = dset_path
+            # Axes / extent / pixel sizes from metadata
+            extent, axis_labels, (du_plot, dv_plot), (
+                u_min_cm,
+                u_max_cm,
+                v_min_cm,
+                v_max_cm,
+            ) = _axes_from_meta(meta_attrs, center_on_plane_center, axis_units)
 
-            # Cone-count annotation
-            count_text: Optional[str] = None
-            n = counts.get("n")
-            g = counts.get("g")
-            if s == "n" and n is not None:
-                count_text = f"{n} neutron event cones"
-            elif s == "g" and g is not None:
-                count_text = f"{g} gamma event cones"
-            elif s == "all" and (n is not None or g is not None):
-                parts = []
-                if n is not None:
-                    parts.append(f"{n} n")
-                if g is not None:
-                    parts.append(f"{g} g")
-                if parts:
-                    count_text = f"{' + '.join(parts)} event cones"
+            # Pixel centers in cm
+            du_cm = float(meta_attrs["grid.du"])
+            dv_cm = float(meta_attrs["grid.dv"])
+            u_centers_cm = u_min_cm + (np.arange(nu) + 0.5) * du_cm
+            v_centers_cm = v_min_cm + (np.arange(nv) + 0.5) * dv_cm
 
-            for ext in fmt_list:
-                filename = filename_pattern.format(
-                    stem=h5_path.stem,
-                    species=s,
-                    ext=ext,
+            # Global projections
+            proj_u = img.sum(axis=0)  # shape (nu,)
+            proj_v = img.sum(axis=1)  # shape (nv,)
+
+            proj_u_roi = None
+            proj_v_roi = None
+
+            if roi_cm is not None:
+                ru0, ru1, rv0, rv1 = roi_cm
+                u_mask = (u_centers_cm >= ru0) & (u_centers_cm <= ru1)
+                v_mask = (v_centers_cm >= rv0) & (v_centers_cm <= rv1)
+
+                proj_u_roi = np.zeros_like(proj_u)
+                proj_v_roi = np.zeros_like(proj_v)
+
+                if np.any(u_mask) and np.any(v_mask):
+                    block = img[np.ix_(v_mask, u_mask)]
+                    proj_u_roi[u_mask] = block.sum(axis=0)
+                    proj_v_roi[v_mask] = block.sum(axis=1)
+
+            # Convert centers to plot units (cm or mm) and apply centering
+            u_mid_cm = 0.5 * (u_min_cm + u_max_cm)
+            v_mid_cm = 0.5 * (v_min_cm + v_max_cm)
+            unit_scale = 10.0 if axis_units == "mm" else 1.0
+
+            if center_on_plane_center:
+                u_centers_plot = (u_centers_cm - u_mid_cm) * unit_scale
+                v_centers_plot = (v_centers_cm - v_mid_cm) * unit_scale
+            else:
+                u_centers_plot = u_centers_cm * unit_scale
+                v_centers_plot = v_centers_cm * unit_scale
+
+            # ----------------- Figure layout -----------------
+            if projections and (nu > 1 or nv > 1):
+                # Layout:
+                #   row 0: [ empty | top u-proj | empty ]
+                #   row 1: [ left v-proj | image | colorbar ]
+                fig = plt.figure(figsize=(8.0, 8.0))
+                gs = GridSpec(
+                    2,
+                    3,
+                    width_ratios=[1.3, 4.0, 0.4],
+                    height_ratios=[1.3, 4.0],
+                    wspace=0.08,
+                    hspace=0.08,
+                    figure=fig,
                 )
-                out_path = h5_path.with_name(filename)
 
-                _render_single_image(
-                    data,
-                    out_path,
-                    extent=extent,
-                    xlabel=xlabel,
-                    ylabel=ylabel,
-                    title=title,
-                    subtitle=subtitle,
-                    count_text=count_text,
-                    flip_vertical=flip_vertical,
-                    rasterized=(ext == "pdf"),
-                    cmap=cmap,
-                    du=du,
-                    dv=dv,
-                    unit_str=unit_str,
+                ax_top = fig.add_subplot(gs[0, 1])
+                ax_img = fig.add_subplot(gs[1, 1], sharex=ax_top)
+                ax_left = fig.add_subplot(gs[1, 0], sharey=ax_img)
+                ax_cb = fig.add_subplot(gs[1, 2])
+
+                # Hide redundant tick labels
+                plt.setp(ax_top.get_xticklabels(), visible=False)
+                # We'll show v-ticks and the v-label on the LEFT projection,
+                # and hide y tick labels on the main image to avoid overlap.
+                plt.setp(ax_img.get_yticklabels(), visible=False)
+
+            else:
+                # Simple image + colorbar layout (no projections)
+                fig = plt.figure(figsize=(6.0, 5.0))
+                gs = GridSpec(1, 2, width_ratios=[12.0, 0.6], figure=fig)
+                ax_img = fig.add_subplot(gs[0, 0])
+                ax_cb = fig.add_subplot(gs[0, 1])
+                ax_top = None
+                ax_left = None
+
+            # ----------------- Main image -----------------
+            im = ax_img.imshow(
+                img,
+                origin="lower",
+                extent=extent,
+                cmap=cmap,
+                aspect="auto",
+            )
+            if flip_vertical:
+                ax_img.invert_yaxis()
+
+            # Lock limits to image bounds (no white gaps)
+            ax_img.set_xlim(extent[0], extent[1])
+            ax_img.set_ylim(extent[2], extent[3])
+
+            ax_img.set_xlabel(axis_labels[0])
+            # In projections mode, the left panel owns the v-axis label.
+            if projections and ax_left is not None:
+                ax_img.set_ylabel("")
+            else:
+                ax_img.set_ylabel(axis_labels[1])
+
+            # Colorbar
+            cbar = fig.colorbar(im, cax=ax_cb)
+            px_unit = axis_units
+            cbar.set_label(
+                f"counts per {du_plot:g} × {dv_plot:g} {px_unit}² pixel"
+            )
+
+            # ROI rectangle
+            if projections and roi_cm is not None:
+                ru0, ru1, rv0, rv1 = roi_cm
+                if center_on_plane_center:
+                    ru0_plot = (ru0 - u_mid_cm) * unit_scale
+                    ru1_plot = (ru1 - u_mid_cm) * unit_scale
+                    rv0_plot = (rv0 - v_mid_cm) * unit_scale
+                    rv1_plot = (rv1 - v_mid_cm) * unit_scale
+                else:
+                    ru0_plot = ru0 * unit_scale
+                    ru1_plot = ru1 * unit_scale
+                    rv0_plot = rv0 * unit_scale
+                    rv1_plot = rv1 * unit_scale
+
+                rect = Rectangle(
+                    (ru0_plot, rv0_plot),
+                    ru1_plot - ru0_plot,
+                    rv1_plot - rv0_plot,
+                    fill=False,
+                    linestyle="--",
+                    linewidth=1.3,
+                    edgecolor="white",
+                    alpha=0.9,
                 )
+                ax_img.add_patch(rect)
+
+            # Cone-count annotation (above image, inside its axes coordinates)
+            n_cones = _count_cones_for_species(f, sp)
+            if n_cones is not None:
+                if sp == "all":
+                    txt = f"{n_cones} n+g event cones"
+                elif sp == "n":
+                    txt = f"{n_cones} neutron event cones"
+                elif sp == "g":
+                    txt = f"{n_cones} gamma event cones"
+                else:
+                    txt = f"{n_cones} event cones"
+                ax_img.text(
+                    0.5,
+                    1.01,
+                    txt,
+                    transform=ax_img.transAxes,
+                    ha="center",
+                    va="bottom",
+                    fontsize=10,
+                )
+
+            # ----------------- Projections -----------------
+            if projections and ax_top is not None and ax_left is not None:
+                # u-projection (top)
+                ax_top.plot(u_centers_plot, proj_u, label="all")
+                if proj_u_roi is not None:
+                    ax_top.plot(
+                        u_centers_plot,
+                        proj_u_roi,
+                        linestyle="--",
+                        label="ROI",
+                    )
+                ax_top.set_ylabel("Σ counts (over v)")
+                ax_top.grid(alpha=0.2)
+                if proj_u_roi is not None:
+                    ax_top.legend(loc="upper right", fontsize=8)
+
+                # v-projection (left)
+                ax_left.plot(proj_v, v_centers_plot, label="all")
+                if proj_v_roi is not None:
+                    ax_left.plot(
+                        proj_v_roi,
+                        v_centers_plot,
+                        linestyle="--",
+                        label="ROI",
+                    )
+                # Flip so zero is on the RIGHT side of this subplot
+                ax_left.invert_xaxis()
+                ax_left.set_xlabel("Σ counts (over u)")
+                # v-axis label lives here when projections are enabled
+                ax_left.set_ylabel(axis_labels[1])
+                ax_left.grid(alpha=0.2)
+
+
+            # Suptitle for the whole figure
+            species_label = {
+                "n": "n",
+                "g": "g",
+                "all": "n+g",
+            }.get(sp, sp)
+            fig.suptitle(f"{stem} : {species_label} cones", y=0.98)
+
+            # Leave room for suptitle
+            fig.subplots_adjust(top=0.93)
+
+            # Save in all requested formats
+            for fmt in fmt_list:
+                out_name = filename_pattern.format(
+                    stem=stem,
+                    species=sp,
+                    ext=fmt,
+                )
+                out_path = h5_path.with_name(out_name)
+                dpi = 150 if fmt in ("png", "jpg", "jpeg") else None
+                fig.savefig(out_path, dpi=dpi)
                 out_paths.append(out_path)
 
+            plt.close(fig)
+
     return out_paths
+
+

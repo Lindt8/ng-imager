@@ -121,6 +121,47 @@ Summed images live under `/images/summed`:
 
 These datasets use gzip compression and match the grid described under `/meta`.
 
+
+### `/images/summed/projections`
+
+When `[vis.projections].enabled = true` in the TOML config, the pipeline writes 1D u/v projections of each summed image under `/images/summed/projections`.
+
+Layout:
+
+```text
+/images/summed/projections/n/u       # [nu] float32, sum over v (rows)
+/images/summed/projections/n/v       # [nv] float32, sum over u (cols)
+/images/summed/projections/n/u_roi   # [nu] float32, ROI-limited (optional)
+/images/summed/projections/n/v_roi   # [nv] float32, ROI-limited (optional)
+
+# similarly for "g" and "all"
+```
+
+Here:
+
+- `u[i]` is the sum of all pixels in column `i` of `/images/summed/n`
+(i.e. integrated along the v-axis),
+- `v[j]` is the sum of all pixels in row `j` (integrated along u),
+- `nu` and `nv` match the imaging grid (`grid.nu`, `grid.nv`) stored in `/meta`,
+- the mapping from index → coordinate uses the same grid as the 2D images:
+
+```
+u_center[i] = grid.u_min + (i + 0.5) * grid.du
+v_center[j] = grid.v_min + (j + 0.5) * grid.dv
+```
+
+If a rectangular ROI is configured via `[vis.projections]`, the ROI-limited projections (`u_roi`, `v_roi`) are computed by summing only pixels whose centers fall inside the ROI. The ROI bounds (in cm) are stored as attributes on each species group, e.g.:
+
+``` 
+/images/summed/projections/n/attrs:
+    roi_u_min_cm
+    roi_u_max_cm
+    roi_v_min_cm
+    roi_v_max_cm
+```
+
+These projections provide a convenient sanity check for the u/v orientation and are intended to simplify downstream 1D analyses (e.g. peak finding, edge detection) without needing to re-derive them from the 2D images.
+
 ---
 
 ## /cones

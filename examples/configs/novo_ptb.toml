@@ -233,3 +233,9 @@ filename_pattern       = "{stem}_{species}.{ext}"
 # extra_formats          = ["pdf"]
 # summed_dataset       = "/images/summed/n"  # advanced / legacy option
 
+[vis.projections]
+enabled      = true
+roi_u_min_cm = -20.0
+roi_u_max_cm =  40.0
+roi_v_min_cm = -40.0
+roi_v_max_cm =  20.0

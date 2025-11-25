@@ -472,6 +472,37 @@ Fields:
 The older `summed_dataset` field is kept for backward compatibility with earlier versions and with the `ng-viz h5-to-png` command. For standard summed images you usually do not need to set it.
 
 
+### 11.1. `[vis.projections]`
+
+Optional configuration for 1D u/v projections of the summed images.
+
+```toml
+[vis]
+export_png_on_write   = true
+species               = ["n", "g", "all"]
+center_on_plane_center = true
+flip_vertical          = true
+axis_units             = "cm"
+cmap                   = "cividis"
+filename_pattern       = "{species}_{stem}.{ext}"
+# extra_formats        = ["pdf"]
+
+[vis.projections]
+# Enable computation of 1D u/v projections and include them in the
+# automatic visualizations. When enabled, the pipeline also writes
+# the projections into /images/summed/projections in the HDF5 file.
+enabled = true
+
+# Optional rectangular ROI in imaging-plane coordinates (cm).
+# When provided, ROI-limited projections are computed by summing only
+# pixels whose centers fall inside this window.
+roi_u_min_cm = -5.0
+roi_u_max_cm =  5.0
+roi_v_min_cm = -5.0
+roi_v_max_cm =  5.0
+```
+
+
 ---
 
 ## 12. Putting It Together

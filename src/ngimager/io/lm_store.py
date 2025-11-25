@@ -225,6 +225,101 @@ def write_summed(
         del grp[dset_name]
     grp.create_dataset(dset_name, data=img.astype(np.float32), compression="gzip")
 
+def write_projections(
+    f: h5py.File,
+    species: str,
+    img: np.ndarray,
+    roi: tuple[float, float, float, float] | None = None,
+) -> None:
+    """
+    Write 1D u/v projections for a given summed image.
+
+    Layout (all under /images/summed/projections/{species}):
+
+        u      : [nu] float32, sum over v (rows)
+        v      : [nv] float32, sum over u (cols)
+        u_roi  : [nu] float32, ROI-limited u projection (optional)
+        v_roi  : [nv] float32, ROI-limited v projection (optional)
+
+    Parameters
+    ----------
+    f : open h5py.File
+        HDF5 file handle (already open in read/write mode).
+    species : str
+        "n", "g", or "all".
+    img : ndarray
+        2D image array with shape (nv, nu).
+    roi : tuple or None
+        Optional ROI in plane coordinates (cm):
+
+            (u_min_cm, u_max_cm, v_min_cm, v_max_cm)
+
+        If provided, ROI-limited projections are computed by summing only the
+        pixels whose centers fall inside this rectangle, and bins outside the
+        ROI range are set to zero.
+    """
+    summed_grp = _ensure_summed_group(f)
+    proj_root = summed_grp.require_group("projections")
+    grp = proj_root.require_group(species)
+
+    img = np.asarray(img, dtype=np.float32)
+    nv, nu = img.shape
+
+    # --- Global projections -------------------------------------------------
+    proj_u = img.sum(axis=0, dtype=np.float64)  # sum over v (rows)
+    proj_v = img.sum(axis=1, dtype=np.float64)  # sum over u (cols)
+
+    for name, data in (("u", proj_u), ("v", proj_v)):
+        if name in grp:
+            del grp[name]
+        grp.create_dataset(name, data=data.astype(np.float32), compression="gzip")
+
+    # Clear any stale ROI datasets if we are not writing ROI this time.
+    if roi is None:
+        for name in ("u_roi", "v_roi"):
+            if name in grp:
+                del grp[name]
+        for attr in ("roi_u_min_cm", "roi_u_max_cm", "roi_v_min_cm", "roi_v_max_cm"):
+            if attr in grp.attrs:
+                del grp.attrs[attr]
+        return
+
+    # --- ROI-limited projections -------------------------------------------
+    meta = f["meta"].attrs
+    u_min_cm = float(meta["grid.u_min"])
+    du_cm = float(meta["grid.du"])
+    v_min_cm = float(meta["grid.v_min"])
+    dv_cm = float(meta["grid.dv"])
+
+    roi_u_min_cm, roi_u_max_cm, roi_v_min_cm, roi_v_max_cm = roi
+
+    # Pixel-center positions in cm
+    u_centers = u_min_cm + (np.arange(nu) + 0.5) * du_cm
+    v_centers = v_min_cm + (np.arange(nv) + 0.5) * dv_cm
+
+    u_mask = (u_centers >= roi_u_min_cm) & (u_centers <= roi_u_max_cm)
+    v_mask = (v_centers >= roi_v_min_cm) & (v_centers <= roi_v_max_cm)
+
+    # Full-length projections, zeros outside ROI
+    proj_u_roi = np.zeros_like(proj_u)
+    proj_v_roi = np.zeros_like(proj_v)
+
+    if np.any(u_mask) and np.any(v_mask):
+        block = img[np.ix_(v_mask, u_mask)]
+        proj_u_roi[u_mask] = block.sum(axis=0, dtype=np.float64)
+        proj_v_roi[v_mask] = block.sum(axis=1, dtype=np.float64)
+
+    for name, data in (("u_roi", proj_u_roi), ("v_roi", proj_v_roi)):
+        if name in grp:
+            del grp[name]
+        grp.create_dataset(name, data=data.astype(np.float32), compression="gzip")
+
+    grp.attrs["roi_u_min_cm"] = float(roi_u_min_cm)
+    grp.attrs["roi_u_max_cm"] = float(roi_u_max_cm)
+    grp.attrs["roi_v_min_cm"] = float(roi_v_min_cm)
+    grp.attrs["roi_v_max_cm"] = float(roi_v_max_cm)
+
+
 
 def write_cones(
     f: h5py.File,
