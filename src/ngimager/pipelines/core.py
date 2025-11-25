@@ -520,6 +520,9 @@ def run_pipeline(
         #     brightest 3 gamma hits when multiplicity > 3.
         shape_cfg = ShapeConfig()
         if cfg.io.input_format == "root_novo_ddaq":
+            # ROOT neutrons: enforce time-order like legacy
+            shape_cfg.neutron_policy = "time_asc"
+            # ROOT gammas: keep brightest-gamma rule
             shape_cfg.gamma_policy = "energy_desc"
 
         shaped_events, shape_diag = shape_events_for_cones(

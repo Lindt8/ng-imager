@@ -94,7 +94,7 @@ default_material = "OGS"
 # ...
 
 [plane]
-origin = [0.0, 15.0, 0.0]   # a point on the plane;  y ≈ detector face coordinate
+origin = [0.0, 0.0, -109.6]   # a point on the plane;  y ≈ detector face coordinate
 normal = [0.0, 0.0, 1.0]    # +z
 u_axis = [1.0, 0.0, 0.0]    # x runs horizontal
 v_axis = [0.0, 1.0, 0.0]    # y runs vertical
@@ -113,7 +113,7 @@ max_light_MeVee = 200.0
 # e.g. NOVO DDAQ ROOT data). If psd_min / psd_max are omitted or
 # commented out, no PSD-based cut is applied at this level.
 # PSD values are in [0, 1] for NOVO.
-# psd_min = 0.0
+# psd_min = 0.2
 # psd_max = 1.0
 
 bars_include      = []            # e.g. [200, 210, 220]
@@ -139,32 +139,32 @@ tof_window_ns = [0.0, 30.0]
 
 [filters.events.neutron]
 # override only what you need; if empty, falls back to [filters.events]
-tof_window_ns = [0.0, 30.0]
-min_L1_MeVee = 0.1
-min_L2_MeVee = 0.1
+tof_window_ns = [0.5, 25.0]
+min_L1_MeVee = 0.3
+min_L2_MeVee = 0.3
 
 [filters.events.gamma]
-tof_window_ns = [0.0, 10.0]
-min_L_any_MeVee = 0.05
+tof_window_ns = [0.05, 2.5]
+min_L_any_MeVee = 0.1
 
 [filters.cones]
 # universal cone cuts
-max_delta_theta_deg = 180.0
+max_delta_theta_deg = 90.0
 max_incident_energy_MeV = 250.0   # global cap if desired
 
 [filters.cones.neutron]
-max_delta_theta_deg = 180.0
+max_delta_theta_deg = 90.0
 max_incident_energy_MeV = 25.0
 
 [filters.cones.gamma]
-max_delta_theta_deg = 100.0
+max_delta_theta_deg = 90.0
 max_incident_energy_MeV = 100.0 
 
 [fast]
 # More aggressive light thresholds
-min_L1_MeVee   = 0.8   # MeVee, first neutron scatter
-min_L2_MeVee   = 0.4   # MeVee, second neutron scatter
-min_L_any_MeVee = 0.2  # MeVee, any gamma or neutron deposit considered
+min_L1_MeVee   = 3.0   # MeVee, first neutron scatter
+min_L2_MeVee   = 1.0   # MeVee, second neutron scatter
+min_L_any_MeVee = 0.5  # MeVee, any gamma or neutron deposit considered
 
 # Stop after this many cones have been built and imaged
 max_cones = 20000

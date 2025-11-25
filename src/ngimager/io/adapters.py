@@ -307,13 +307,22 @@ class RootNovoDdaqAdapter(BaseAdapter):
                     if part_arr is not None:
                         try:
                             part_code = int(part_arr[i])
-                            extras["particle_code"] = part_code
                         except Exception:
-                            pass
+                            part_code = None
+                    # Only keep neutron (1) and gamma (2) hits for imaging.
+                    if part_code not in (1, 2):
+                        # e.g. laser or other special hits: drop them
+                        continue
+                    extras["particle_code"] = part_code
+                    h_type = "n" if part_code == 1 else "g"
 
                     clipped_arr = arrays.get(f"clipped{idx}")
                     if clipped_arr is not None:
-                        extras["clipped"] = bool(clipped_arr[i])
+                        is_clipped = bool(clipped_arr[i])
+                        if is_clipped:
+                            # Drop this hit entirely; legacy imaging does not use clipped hits
+                            continue
+                        extras["clipped"] = is_clipped
 
                     # Map particle code (if present) to a simple hit type.
                     h_type: Optional[str] = None
