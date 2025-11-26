@@ -470,6 +470,38 @@ Strategies:
 
 For neutron cone building, the kinematics are always routed through `neutron_theta_from_hits`, with the energy strategy providing the first-scatter deposited energy.
 
+
+### 8.1 Built-in LUT defaults (M600 and OGS)
+
+The `ngimager` package ships inversion LUTs for the two standard NOVO
+scintillators, **M600** and **OGS**. These are installed as part of the
+package under `ngimager/data/lut/...` and are intended to be used as
+sensible defaults for most runs.
+
+When `strategy = "ELUT"`:
+
+- You may **omit** `[energy.lut_paths.M600]` and `[energy.lut_paths.OGS]` entirely; in that case, the packaged LUTs are used automatically for both **proton** and **carbon** recoils.
+- If you **do** specify `[energy.lut_paths]` entries:
+    - If the path exists on disk, it is loaded and used as an override.
+    - If the path does **not** exist, but a built-in LUT is available for the same `(material, species)` pair (M600/OGS proton or carbon), the built-in LUT is used as a fallback instead of failing.
+    - For any other material (e.g. a new scintillator that is *not* shipped with the package), a missing file path is treated as an error.
+
+This means that a minimal ELUT configuration for standard NOVO runs can
+be as simple as:
+
+```toml
+[energy]
+strategy = "ELUT"
+```
+
+
+and `ngimager` will automatically use its packaged M600/OGS proton and carbon LUTs according to your `[detectors].material_map`.
+
+You only need to touch [energy.lut_paths.*] if you want to:
+
+- override the default LUTs with custom ones, or
+- add LUTs for new materials not shipped with the package.
+
 ---
 
 ## 9. [prior] – Spatial Priors

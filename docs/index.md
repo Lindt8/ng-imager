@@ -72,35 +72,25 @@ At a high level, the ng-imager pipeline:
 
 If you’re new to ng-imager, start here:
 
-1. **Quickstart**
+1. [**Quickstart**](user/quickstart.md) `docs/user/quickstart.md`
 
-   A step-by-step walkthrough using the example PHITS configuration:
+    - A step-by-step walkthrough using the example PHITS configuration
 
-       docs/quickstart.md
+2. [**Configuration (TOML)**](user/config.md) `docs/user/config.md`
 
-2. **Configuration (TOML)**
+    - Detailed documentation for all fields in the TOML config
 
-   Detailed documentation for all fields in the TOML config:
+3. [**HDF5 Output Layout**](user/hdf5.md) `docs/user/hdf5.md`
 
-       docs/config.md
+    - How to interpret the ng-imager HDF5 file, including list-mode datasets
 
-3. **HDF5 Output Layout**
+4. [**Architecture / Design Primer**](dev/architecture.md) `docs/dev/architecture.md`
 
-   How to interpret the ng-imager HDF5 file, including list-mode datasets:
+   High-level design document that explains how the modules fit together
 
-       docs/hdf5.md
+5. [**API Reference**](api/index.md) `docs/api/index.md`
 
-4. **Architecture / Design Primer**
-
-   High-level design document that explains how the modules fit together:
-
-       docs/architecture.md
-
-5. **API Reference**
-
-   Auto-generated reference for the `ngimager` Python package:
-
-       docs/api/index.md
+   Auto-generated reference for the `ngimager` Python package
 
 ---
 
