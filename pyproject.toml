@@ -19,7 +19,10 @@ dependencies = [
   "numba>=0.59",
   "joblib>=1.4",
   "uproot",
-  "tomli>=2.0; python_version<'3.11'"  # stdlib tomllib on 3.11+
+  "tomli>=2.0; python_version<'3.11'",  # stdlib tomllib on 3.11+
+  "typer>=0.12",
+  "matplotlib>=3.7",
+  "pandas>=2.0",
 ]
 
 # Helpful metadata for PyPI
@@ -65,12 +68,6 @@ ng-viz = "ngimager.cli.viz:app"
 ng-inspect = "ngimager.tools.inspect_cone:main"
 
 [tool.hatch.build]
-include = [
-  # Ship LUT npz files and LUT-generation tools
-  "src/ngimager/data/lut/**/*.npz",
-  "src/ngimager/tools/generate_lut/*.py",
-  "src/ngimager/tools/generate_lut/README.md",
-]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ngimager"]
