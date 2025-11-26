@@ -5,7 +5,7 @@ from typing import List, Optional
 
 import typer
 
-from ngimager.vis.hdf import render_summed_images, save_summed_png
+from ngimager.vis.hdf import render_summed_images
 
 app = typer.Typer(help="ngimager visualization tools")
 
@@ -81,32 +81,6 @@ def summed(
     else:
         for p in out_paths:
             typer.echo(str(p))
-
-
-@app.command("h5-to-png")
-def h5_to_png(
-    h5_path: str = typer.Argument(
-        ...,
-        help="Path to HDF5 file containing a 2D dataset.",
-    ),
-    dataset: str = typer.Option(
-        "/images/summed/n",
-        "--dataset",
-        "-d",
-        help="Path of the 2D dataset to render (default /images/summed/n).",
-    ),
-    out: Optional[str] = typer.Option(
-        None,
-        "--out",
-        "-o",
-        help="Output PNG path (defaults to <h5stem>.png).",
-    ),
-):
-    """
-    Render a single 2D dataset from HDF5 to a PNG (legacy-style helper).
-    """
-    out_png = save_summed_png(h5_path, out_png=out, dataset=dataset)
-    typer.echo(str(out_png))
 
 
 if __name__ == "__main__":

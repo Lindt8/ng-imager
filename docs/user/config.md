@@ -98,6 +98,35 @@ Notes:
 - `workers = 0` forces a single-process SBP path (nice for debugging); `"auto"` or an integer > 0 uses multi-process SBP.
 - `sbp_engine` selects the simple back-projection engine: `"scan"` (matrix scan, visually smooth arcs) or `"poly"` (perimeter sampler, usually faster).
 
+### Run metadata and plot label
+
+In addition to the core switches above, `[run]` also accepts optional free-form metadata that travel with the HDF5 file and can be used by visualization tools:
+
+    [run]
+    # ...
+    # Short, human-readable label for this run
+    plot_label = "175 MeV p, target B, det config 3"
+
+    # Optional free-form run-level metadata
+    [run.meta]
+    beam        = "175 MeV proton"
+    target      = "Geometry B"
+    det_setup   = "Arrangement 3"
+    facility    = "PTB"
+    notes       = "DT focus scan, 2025-10-21"
+
+Fields:
+
+- `plot_label`  
+    - A short human-readable description of the run. The pipeline passes this through to the HDF5 output and visualization helpers may use it as a figure title or annotation.
+
+- `[run.meta]`  
+    - An optional nested table for arbitrary key–value pairs describing the  run (beam, target, geometry, DAQ settings, notebook name, etc.). Keys should be valid TOML bare keys; values should be strings or simple scalars.
+
+All entries from `[run.meta]` are mirrored into the `/meta/run_meta` group of the HDF5 output (see the HDF5 format documentation), so that a single HDF5 file remains self-contained with respect to basic run description.
+
+
+
 ---
 
 ## 3. [pipeline] – How Far to Run

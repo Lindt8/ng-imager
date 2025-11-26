@@ -86,6 +86,47 @@ you would get:
 storing the PHITS input deck and DAQ config text, respectively.
 
 
+### Run metadata from config
+
+For convenience, ng-imager can carry high-level run descriptors from
+the TOML into the HDF5 file. When a `[run.meta]` table is present in
+the config, all of its key–value pairs are mirrored into:
+
+- `/meta/run_meta` : group
+
+Each key in `[run.meta]` becomes a string attribute on this group. For
+example, with:
+
+    [run]
+    plot_label = "175 MeV p, target B, det config 3"
+
+    [run.meta]
+    beam      = "175 MeV proton"
+    target    = "Geometry B"
+    det_setup = "Arrangement 3"
+    facility  = "PTB"
+
+the HDF5 file will contain:
+
+- group `/meta/run_meta` with attributes:
+  - `beam      = "175 MeV proton"`
+  - `target    = "Geometry B"`
+  - `det_setup = "Arrangement 3"`
+  - `facility  = "PTB"`
+
+If `[run].plot_label` is set, its value is also stored as the
+`plot_label` attribute on `/meta/run_meta`. Visualization tools
+(including the built-in pipeline PNG export and the `ng-viz` CLI) may
+use this string as a figure title or annotation.
+
+The `/meta/run_meta` group is deliberately free-form: consumers should
+treat it as optional and robust to extra keys. It is intended to
+capture human-facing run descriptions that travel with the file rather
+than physics-critical configuration (which remains in
+`/meta/config_toml`).
+
+
+
 ### Counters
 
 Counters are stored as simple datasets under `/meta/counters`:
@@ -263,7 +304,7 @@ where:
 - `cone_id` is an index into `/cones/cone_id` and the other cone arrays, and
 - `flat_pixel_index` is a flattened `(u, v)` index:
 
-```python
+```
 flat = v * nu + u
 ```
 
