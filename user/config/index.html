@@ -384,6 +384,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="2. [run] – Global Run Controls">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run-metadata-and-plot-label" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run metadata and plot label
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -916,6 +933,37 @@ sbp_engine = &quot;scan&quot;
 <li><code>workers = 0</code> forces a single-process SBP path (nice for debugging); <code>"auto"</code> or an integer &gt; 0 uses multi-process SBP.</li>
 <li><code>sbp_engine</code> selects the simple back-projection engine: <code>"scan"</code> (matrix scan, visually smooth arcs) or <code>"poly"</code> (perimeter sampler, usually faster).</li>
 </ul>
+<h3 id="run-metadata-and-plot-label">Run metadata and plot label<a class="headerlink" href="#run-metadata-and-plot-label" title="Permanent link">&para;</a></h3>
+<p>In addition to the core switches above, <code>[run]</code> also accepts optional free-form metadata that travel with the HDF5 file and can be used by visualization tools:</p>
+<div class="highlight"><pre><span></span><code>[run]
+# ...
+# Short, human-readable label for this run
+plot_label = &quot;175 MeV p, target B, det config 3&quot;
+
+# Optional free-form run-level metadata
+[run.meta]
+beam        = &quot;175 MeV proton&quot;
+target      = &quot;Geometry B&quot;
+det_setup   = &quot;Arrangement 3&quot;
+facility    = &quot;PTB&quot;
+notes       = &quot;DT focus scan, 2025-10-21&quot;
+</code></pre></div>
+<p>Fields:</p>
+<ul>
+<li>
+<p><code>plot_label</code>  </p>
+<ul>
+<li>A short human-readable description of the run. The pipeline passes this through to the HDF5 output and visualization helpers may use it as a figure title or annotation.</li>
+</ul>
+</li>
+<li>
+<p><code>[run.meta]</code>  </p>
+<ul>
+<li>An optional nested table for arbitrary key–value pairs describing the  run (beam, target, geometry, DAQ settings, notebook name, etc.). Keys should be valid TOML bare keys; values should be strings or simple scalars.</li>
+</ul>
+</li>
+</ul>
+<p>All entries from <code>[run.meta]</code> are mirrored into the <code>/meta/run_meta</code> group of the HDF5 output (see the HDF5 format documentation), so that a single HDF5 file remains self-contained with respect to basic run description.</p>
 <hr />
 <h2 id="3-pipeline-how-far-to-run">3. [pipeline] – How Far to Run<a class="headerlink" href="#3-pipeline-how-far-to-run" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>[pipeline]

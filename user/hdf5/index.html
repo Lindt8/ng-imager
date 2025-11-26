@@ -449,6 +449,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#run-metadata-from-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run metadata from config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#counters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -856,6 +867,41 @@ embed those files under:</p>
 <li><code>/meta/extra_text/daq_config</code></li>
 </ul>
 <p>storing the PHITS input deck and DAQ config text, respectively.</p>
+<h3 id="run-metadata-from-config">Run metadata from config<a class="headerlink" href="#run-metadata-from-config" title="Permanent link">&para;</a></h3>
+<p>For convenience, ng-imager can carry high-level run descriptors from
+the TOML into the HDF5 file. When a <code>[run.meta]</code> table is present in
+the config, all of its key–value pairs are mirrored into:</p>
+<ul>
+<li><code>/meta/run_meta</code> : group</li>
+</ul>
+<p>Each key in <code>[run.meta]</code> becomes a string attribute on this group. For
+example, with:</p>
+<div class="highlight"><pre><span></span><code>[run]
+plot_label = &quot;175 MeV p, target B, det config 3&quot;
+
+[run.meta]
+beam      = &quot;175 MeV proton&quot;
+target    = &quot;Geometry B&quot;
+det_setup = &quot;Arrangement 3&quot;
+facility  = &quot;PTB&quot;
+</code></pre></div>
+<p>the HDF5 file will contain:</p>
+<ul>
+<li>group <code>/meta/run_meta</code> with attributes:</li>
+<li><code>beam      = "175 MeV proton"</code></li>
+<li><code>target    = "Geometry B"</code></li>
+<li><code>det_setup = "Arrangement 3"</code></li>
+<li><code>facility  = "PTB"</code></li>
+</ul>
+<p>If <code>[run].plot_label</code> is set, its value is also stored as the
+<code>plot_label</code> attribute on <code>/meta/run_meta</code>. Visualization tools
+(including the built-in pipeline PNG export and the <code>ng-viz</code> CLI) may
+use this string as a figure title or annotation.</p>
+<p>The <code>/meta/run_meta</code> group is deliberately free-form: consumers should
+treat it as optional and robust to extra keys. It is intended to
+capture human-facing run descriptions that travel with the file rather
+than physics-critical configuration (which remains in
+<code>/meta/config_toml</code>).</p>
 <h3 id="counters">Counters<a class="headerlink" href="#counters" title="Permanent link">&para;</a></h3>
 <p>Counters are stored as simple datasets under <code>/meta/counters</code>:</p>
 <ul>
@@ -1012,7 +1058,7 @@ makes it easy to map:</p>
 <li><code>cone_id</code> is an index into <code>/cones/cone_id</code> and the other cone arrays, and</li>
 <li><code>flat_pixel_index</code> is a flattened <code>(u, v)</code> index:</li>
 </ul>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">flat</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">nu</span> <span class="o">+</span> <span class="n">u</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>flat = v * nu + u
 </code></pre></div>
 <p>You can recover <code>(u, v)</code> from <code>flat</code> using <code>divmod(flat, nu)</code>.</p>
 <p>Only cones that actually intersect the imaging plane appear in this dataset.</p>

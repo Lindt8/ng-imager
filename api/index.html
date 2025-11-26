@@ -1679,17 +1679,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ngimager.cli.viz.h5_to_png" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        h5_to_png
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#ngimager.cli.viz.summed" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2155,17 +2144,6 @@
   
     <nav class="md-nav" aria-label="viz">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ngimager.cli.viz.h5_to_png" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        h5_to_png
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#ngimager.cli.viz.summed" class="md-nav__link">
@@ -14237,77 +14215,6 @@ the [plane] section and /meta.grid.* attributes in the HDF5 output.</p>
 <div class="doc doc-object doc-function">
 
 
-<h2 id="ngimager.cli.viz.h5_to_png" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">h5_to_png</span>
-
-
-<a href="#ngimager.cli.viz.h5_to_png" class="headerlink" title="Permanent link">&para;</a></h2>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">h5_to_png</span><span class="p">(</span><span class="n">h5_path</span><span class="o">=</span><span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to HDF5 file containing a 2D dataset.&#39;</span><span class="p">),</span> <span class="n">dataset</span><span class="o">=</span><span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;/images/summed/n&#39;</span><span class="p">,</span> <span class="s1">&#39;--dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;-d&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the 2D dataset to render (default /images/summed/n).&#39;</span><span class="p">),</span> <span class="n">out</span><span class="o">=</span><span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;--out&#39;</span><span class="p">,</span> <span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output PNG path (defaults to &lt;h5stem&gt;.png).&#39;</span><span class="p">))</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Render a single 2D dataset from HDF5 to a PNG (legacy-style helper).</p>
-
-
-            <details class="mkdocstrings-source">
-              <summary>Source code in <code>ngimager/cli/viz.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-86"> 86</a></span>
-<span class="normal"><a href="#__codelineno-0-87"> 87</a></span>
-<span class="normal"><a href="#__codelineno-0-88"> 88</a></span>
-<span class="normal"><a href="#__codelineno-0-89"> 89</a></span>
-<span class="normal"><a href="#__codelineno-0-90"> 90</a></span>
-<span class="normal"><a href="#__codelineno-0-91"> 91</a></span>
-<span class="normal"><a href="#__codelineno-0-92"> 92</a></span>
-<span class="normal"><a href="#__codelineno-0-93"> 93</a></span>
-<span class="normal"><a href="#__codelineno-0-94"> 94</a></span>
-<span class="normal"><a href="#__codelineno-0-95"> 95</a></span>
-<span class="normal"><a href="#__codelineno-0-96"> 96</a></span>
-<span class="normal"><a href="#__codelineno-0-97"> 97</a></span>
-<span class="normal"><a href="#__codelineno-0-98"> 98</a></span>
-<span class="normal"><a href="#__codelineno-0-99"> 99</a></span>
-<span class="normal"><a href="#__codelineno-0-100">100</a></span>
-<span class="normal"><a href="#__codelineno-0-101">101</a></span>
-<span class="normal"><a href="#__codelineno-0-102">102</a></span>
-<span class="normal"><a href="#__codelineno-0-103">103</a></span>
-<span class="normal"><a href="#__codelineno-0-104">104</a></span>
-<span class="normal"><a href="#__codelineno-0-105">105</a></span>
-<span class="normal"><a href="#__codelineno-0-106">106</a></span>
-<span class="normal"><a href="#__codelineno-0-107">107</a></span>
-<span class="normal"><a href="#__codelineno-0-108">108</a></span>
-<span class="normal"><a href="#__codelineno-0-109">109</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-86" name="__codelineno-0-86"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;h5-to-png&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="k">def</span><span class="w"> </span><span class="nf">h5_to_png</span><span class="p">(</span>
-<a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="n">h5_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span>
-<a id="__codelineno-0-89" name="__codelineno-0-89"></a>        <span class="o">...</span><span class="p">,</span>
-<a id="__codelineno-0-90" name="__codelineno-0-90"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to HDF5 file containing a 2D dataset.&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-91" name="__codelineno-0-91"></a>    <span class="p">),</span>
-<a id="__codelineno-0-92" name="__codelineno-0-92"></a>    <span class="n">dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-93" name="__codelineno-0-93"></a>        <span class="s2">&quot;/images/summed/n&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-94" name="__codelineno-0-94"></a>        <span class="s2">&quot;--dataset&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-95" name="__codelineno-0-95"></a>        <span class="s2">&quot;-d&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-96" name="__codelineno-0-96"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path of the 2D dataset to render (default /images/summed/n).&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-97" name="__codelineno-0-97"></a>    <span class="p">),</span>
-<a id="__codelineno-0-98" name="__codelineno-0-98"></a>    <span class="n">out</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-99" name="__codelineno-0-99"></a>        <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-100" name="__codelineno-0-100"></a>        <span class="s2">&quot;--out&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-101" name="__codelineno-0-101"></a>        <span class="s2">&quot;-o&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-102" name="__codelineno-0-102"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output PNG path (defaults to &lt;h5stem&gt;.png).&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-103" name="__codelineno-0-103"></a>    <span class="p">),</span>
-<a id="__codelineno-0-104" name="__codelineno-0-104"></a><span class="p">):</span>
-<a id="__codelineno-0-105" name="__codelineno-0-105"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-106" name="__codelineno-0-106"></a><span class="sd">    Render a single 2D dataset from HDF5 to a PNG (legacy-style helper).</span>
-<a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-108" name="__codelineno-0-108"></a>    <span class="n">out_png</span> <span class="o">=</span> <span class="n">save_summed_png</span><span class="p">(</span><span class="n">h5_path</span><span class="p">,</span> <span class="n">out_png</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">)</span>
-<a id="__codelineno-0-109" name="__codelineno-0-109"></a>    <span class="n">typer</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out_png</span><span class="p">))</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
 <h2 id="ngimager.cli.viz.summed" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">summed</span>
 
@@ -16905,77 +16812,6 @@ The function appends .npz, .csv, and .meta.json automatically.</p>
 
 
 
-
-<div class="doc doc-object doc-function">
-
-
-<h5 id="ngimager.cli.viz.h5_to_png" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">h5_to_png</span>
-
-
-<a href="#ngimager.cli.viz.h5_to_png" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">h5_to_png</span><span class="p">(</span><span class="n">h5_path</span><span class="o">=</span><span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to HDF5 file containing a 2D dataset.&#39;</span><span class="p">),</span> <span class="n">dataset</span><span class="o">=</span><span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;/images/summed/n&#39;</span><span class="p">,</span> <span class="s1">&#39;--dataset&#39;</span><span class="p">,</span> <span class="s1">&#39;-d&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path of the 2D dataset to render (default /images/summed/n).&#39;</span><span class="p">),</span> <span class="n">out</span><span class="o">=</span><span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;--out&#39;</span><span class="p">,</span> <span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output PNG path (defaults to &lt;h5stem&gt;.png).&#39;</span><span class="p">))</span>
-</code></pre></div>
-
-    <div class="doc doc-contents ">
-
-        <p>Render a single 2D dataset from HDF5 to a PNG (legacy-style helper).</p>
-
-
-            <details class="mkdocstrings-source">
-              <summary>Source code in <code>ngimager/cli/viz.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-86"> 86</a></span>
-<span class="normal"><a href="#__codelineno-0-87"> 87</a></span>
-<span class="normal"><a href="#__codelineno-0-88"> 88</a></span>
-<span class="normal"><a href="#__codelineno-0-89"> 89</a></span>
-<span class="normal"><a href="#__codelineno-0-90"> 90</a></span>
-<span class="normal"><a href="#__codelineno-0-91"> 91</a></span>
-<span class="normal"><a href="#__codelineno-0-92"> 92</a></span>
-<span class="normal"><a href="#__codelineno-0-93"> 93</a></span>
-<span class="normal"><a href="#__codelineno-0-94"> 94</a></span>
-<span class="normal"><a href="#__codelineno-0-95"> 95</a></span>
-<span class="normal"><a href="#__codelineno-0-96"> 96</a></span>
-<span class="normal"><a href="#__codelineno-0-97"> 97</a></span>
-<span class="normal"><a href="#__codelineno-0-98"> 98</a></span>
-<span class="normal"><a href="#__codelineno-0-99"> 99</a></span>
-<span class="normal"><a href="#__codelineno-0-100">100</a></span>
-<span class="normal"><a href="#__codelineno-0-101">101</a></span>
-<span class="normal"><a href="#__codelineno-0-102">102</a></span>
-<span class="normal"><a href="#__codelineno-0-103">103</a></span>
-<span class="normal"><a href="#__codelineno-0-104">104</a></span>
-<span class="normal"><a href="#__codelineno-0-105">105</a></span>
-<span class="normal"><a href="#__codelineno-0-106">106</a></span>
-<span class="normal"><a href="#__codelineno-0-107">107</a></span>
-<span class="normal"><a href="#__codelineno-0-108">108</a></span>
-<span class="normal"><a href="#__codelineno-0-109">109</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-86" name="__codelineno-0-86"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;h5-to-png&quot;</span><span class="p">)</span>
-<a id="__codelineno-0-87" name="__codelineno-0-87"></a><span class="k">def</span><span class="w"> </span><span class="nf">h5_to_png</span><span class="p">(</span>
-<a id="__codelineno-0-88" name="__codelineno-0-88"></a>    <span class="n">h5_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span>
-<a id="__codelineno-0-89" name="__codelineno-0-89"></a>        <span class="o">...</span><span class="p">,</span>
-<a id="__codelineno-0-90" name="__codelineno-0-90"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to HDF5 file containing a 2D dataset.&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-91" name="__codelineno-0-91"></a>    <span class="p">),</span>
-<a id="__codelineno-0-92" name="__codelineno-0-92"></a>    <span class="n">dataset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-93" name="__codelineno-0-93"></a>        <span class="s2">&quot;/images/summed/n&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-94" name="__codelineno-0-94"></a>        <span class="s2">&quot;--dataset&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-95" name="__codelineno-0-95"></a>        <span class="s2">&quot;-d&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-96" name="__codelineno-0-96"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path of the 2D dataset to render (default /images/summed/n).&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-97" name="__codelineno-0-97"></a>    <span class="p">),</span>
-<a id="__codelineno-0-98" name="__codelineno-0-98"></a>    <span class="n">out</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span>
-<a id="__codelineno-0-99" name="__codelineno-0-99"></a>        <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-100" name="__codelineno-0-100"></a>        <span class="s2">&quot;--out&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-101" name="__codelineno-0-101"></a>        <span class="s2">&quot;-o&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-102" name="__codelineno-0-102"></a>        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output PNG path (defaults to &lt;h5stem&gt;.png).&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-103" name="__codelineno-0-103"></a>    <span class="p">),</span>
-<a id="__codelineno-0-104" name="__codelineno-0-104"></a><span class="p">):</span>
-<a id="__codelineno-0-105" name="__codelineno-0-105"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<a id="__codelineno-0-106" name="__codelineno-0-106"></a><span class="sd">    Render a single 2D dataset from HDF5 to a PNG (legacy-style helper).</span>
-<a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-108" name="__codelineno-0-108"></a>    <span class="n">out_png</span> <span class="o">=</span> <span class="n">save_summed_png</span><span class="p">(</span><span class="n">h5_path</span><span class="p">,</span> <span class="n">out_png</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">)</span>
-<a id="__codelineno-0-109" name="__codelineno-0-109"></a>    <span class="n">typer</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out_png</span><span class="p">))</span>
-</code></pre></div></td></tr></table></div>
-            </details>
-    </div>
-
-</div>
 
 <div class="doc doc-object doc-function">
 
