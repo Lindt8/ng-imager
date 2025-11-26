@@ -84,6 +84,8 @@ def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File
           - species (0=neutron, 1=gamma), species_labels
           - recoil_code (0=NA, 1=proton, 2=carbon), recoil_code_labels
           - incident_energy_MeV (En for n, Eg for g)
+          - event_index (row index into /lm/event_* arrays)
+          - gamma_hit_order (for gammas: indices into /lm/hit_* in [first, second, third] order)
       /lm
           - event_type (0=neutron, 1=gamma), event_type_labels
           - hit_pos_cm, hit_t_ns, hit_L_mevee, hit_det_id, hit_material_id
@@ -352,6 +354,7 @@ def write_cones(
     recoil_code: np.ndarray,
     incident_energy_MeV: np.ndarray,
     event_index: np.ndarray,
+    gamma_hit_order: np.ndarray | None = None,
 ) -> None:
     """
     Store per-cone geometric and classification parameters under /cones.
@@ -365,9 +368,18 @@ def write_cones(
       /cones/recoil_code         : [N]   uint8  (0=NA, 1=proton, 2=carbon)
       /cones/incident_energy_MeV : [N]   float32 (En for n, Eg for g)
       /cones/event_index         : [N]   int32 (row index into /lm/event_* arrays)
+      /cones/gamma_hit_order     : [N,3] int8  (optional; see below)
 
       /cones/species_labels      : ["0=neutron", "1=gamma"]
       /cones/recoil_code_labels  : ["0=NA", "1=proton", "2=carbon"]
+
+    Notes
+    -----
+    * For gamma cones (species == 1), gamma_hit_order[i] = (i0, i1, i2) gives
+      the indices into /lm/hit_*[event_index[i], :, :] that correspond to
+      (first scatter, second scatter, third point) used to build that cone.
+    * For neutron cones (species == 0), gamma_hit_order[i] is (-1, -1, -1)
+      and should be ignored.
     """
     grp = f.require_group("cones")
     for name in (
@@ -379,6 +391,7 @@ def write_cones(
             "recoil_code",
             "incident_energy_MeV",
             "event_index",
+            "gamma_hit_order",
             "species_labels",
             "recoil_code_labels",
     ):
@@ -465,6 +478,25 @@ def write_cones(
         data=event_index.astype(np.int32),
         compression="gzip",
     )
+
+    if gamma_hit_order is not None:
+        gamma_hit_order = np.asarray(gamma_hit_order, dtype=np.int8)
+        if gamma_hit_order.ndim != 2 or gamma_hit_order.shape[1] != 3:
+            raise ValueError(
+                "gamma_hit_order must have shape (N_cones, 3). "
+                f"Got {gamma_hit_order.shape!r}."
+            )
+        if gamma_hit_order.shape[0] != cone_ids.shape[0]:
+            raise ValueError(
+                "gamma_hit_order length must match number of cones: "
+                f"{gamma_hit_order.shape[0]} vs {cone_ids.shape[0]}"
+            )
+        grp.create_dataset(
+            "gamma_hit_order",
+            data=gamma_hit_order,
+            compression="gzip",
+        )
+
 
 
 

@@ -189,7 +189,7 @@ def _build_cones_from_events(
     events: Sequence[Event],
     plane: Plane,
     counters: Dict[str, int],
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Turn events into cone geometry arrays for SBP.
 
@@ -205,6 +205,14 @@ def _build_cones_from_events(
         0 = unknown / not applicable
         1 = proton recoil (for neutron cones)
         2 = carbon recoil (for neutron cones)
+    incident_energy_MeV : (N,) float32
+    event_index : (N,) int32
+        Row index into the /lm/event_* and /lm/hit_* arrays.
+    gamma_hit_order : (N,3) int8
+        For gamma cones (species == 1), each row is (i0, i1, i2) giving
+        the indices into /lm/hit_*[event_index, :, :] that correspond to
+        (first scatter, second scatter, third point). For neutron cones
+        (species == 0), entries are (-1, -1, -1).
     """
     lut_registry = build_lut_registry(cfg.energy.lut_paths)
     energy_model = make_energy_strategy(cfg.energy, lut_registry=lut_registry)
@@ -219,6 +227,7 @@ def _build_cones_from_events(
     recoil_codes: list[int] = []
     incident_energies: list[float] = []
     event_indices: list[int] = []
+    gamma_orders: list[tuple[int, int, int]] = []
 
     for j, ev in enumerate(events):
         # enforce time ordering & sanity without crashing the whole run
@@ -264,19 +273,23 @@ def _build_cones_from_events(
                     return_meta=True,
                 )
                 incident_energy = float(En)
+                # Neutrons do not have a 3-hit Compton ordering; use sentinel.
+                hit_order = (-1, -1, -1)
             else:
                 # Gammas: Compton-based cone construction (uses Hit.L
                 # as deposited energy; energy_model is passed for future
                 # gamma LUT support even if not used now).
-                cone, Eg = build_cone_from_gamma(
+                cone, Eg, perm = build_cone_from_gamma(
                     ev,
                     energy_model,
                     plane=plane,
                     prior=prior,
                     return_meta=True,
+                    return_perm=True,
                 )
                 recoil_code = 0  # not applicable for gammas
                 incident_energy = float(Eg)
+                hit_order = tuple(int(i) for i in perm)
         except Exception as exc:
             _inc(counters, "events_cone_build_failed", 1)
             if species_char == "n":
@@ -314,6 +327,7 @@ def _build_cones_from_events(
         recoil_codes.append(int(recoil_code))
         incident_energies.append(incident_energy)
         event_indices.append(j)
+        gamma_orders.append(hit_order)
 
         # Fast-mode: optional conservative cap on number of cones
         if cfg.run.max_cones is not None:
@@ -334,6 +348,7 @@ def _build_cones_from_events(
             np.zeros(0, dtype=np.uint8),
             np.zeros(0, dtype=np.float32),
             np.zeros(0, dtype=np.int32),
+            np.zeros((0, 3), dtype=np.int8),
         )
 
     cone_ids = np.arange(len(cones), dtype=np.uint32)
@@ -344,6 +359,7 @@ def _build_cones_from_events(
     recoil_arr = np.array(recoil_codes, dtype=np.uint8)
     incident_energy_arr = np.array(incident_energies, dtype=np.float32)
     event_index_arr = np.array(event_indices, dtype=np.int32)
+    gamma_hit_order_arr = np.array(gamma_orders, dtype=np.int8)
 
     n_total = int(len(cones))
     n_n = int(np.count_nonzero(species_arr == 0))
@@ -363,7 +379,17 @@ def _build_cones_from_events(
             )
         )
 
-    return cone_ids, apex_xyz_cm, axis_xyz, theta_rad, species_arr, recoil_arr, incident_energy_arr, event_index_arr
+    return (
+        cone_ids,
+        apex_xyz_cm,
+        axis_xyz,
+        theta_rad,
+        species_arr,
+        recoil_arr,
+        incident_energy_arr,
+        event_index_arr,
+        gamma_hit_order_arr,
+    )
 
 
 def run_pipeline(
@@ -763,6 +789,7 @@ def run_pipeline(
         recoil_code,
         incident_energy_MeV,
         cone_event_index,
+        gamma_hit_order,
     ) = _build_cones_from_events(cfg, events, plane, counters)
     
     # --- Build per-event cone survival arrays (event → cone_id) ---
@@ -818,6 +845,7 @@ def run_pipeline(
         recoil_code=recoil_code,
         incident_energy_MeV=incident_energy_MeV,
         event_index=cone_event_index,
+        gamma_hit_order=gamma_hit_order,
     )
 
     # ---- Stage 4: Cones → imaging/reconstruction (SPB) ----

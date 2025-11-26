@@ -175,26 +175,29 @@ Datasets:
 - `/cones/axis_xyz`            : `[N_cones, 3]` float32 (unit vectors)
 - `/cones/theta_rad`           : `[N_cones]` float32
 - `/cones/incident_energy_MeV` : `[N_cones]` float32
+- `/cones/event_index`         : `[N_cones]` int32  
+    - Row index into `/lm/event_type` and `/lm/hit_*` for the event that produced this cone.
+- `/cones/gamma_hit_order`     : `[N_cones, 3]` int8  
+    - For gamma cones (those with `species == 1`), each row is a triple `(i0, i1, i2)` giving the indices into `/lm/hit_*[event_index, :, :]` that correspond to the (first scatter, second scatter, third point) used to build the Compton cone. For neutron cones (`species == 0`), the row is `(-1, -1, -1)` and should be ignored.
 
 Classification:
 
 - `/cones/species`             : `[N_cones]` uint8
 - `/cones/species_labels`      : string array legend,
-                                 typically `["0=neutron", "1=gamma"]`
+    - e.g. `["0=neutron", "1=gamma"]`
 - `/cones/recoil_code`         : `[N_cones]` uint8
 - `/cones/recoil_code_labels`  : string array legend,
-                                 typically `["0=unknown/NA", "1=proton", "2=carbon"]`
-- `/cones/event_index`         : `[N_cones]` uint32, index into the event arrays
-                                 under `/lm` (see below).
+    - e.g. `["0=NA/gamma/unknown", "1=proton", "2=carbon"]`
 
-Notes:
+Interpretation:
 
-- `incident_energy_MeV` is the kinematically inferred incident particle energy
-  for that cone:
-  - for neutrons, from ToF + deposited energy at the first scatter;
-  - for gammas, from Compton kinematics.
-- `species` and `recoil_code` allow you to separate neutron/gamma cones and
-  distinguish proton vs carbon recoils in post-processing.
+- `species` distinguishes neutron and gamma cones.
+- `recoil_code` distinguishes proton vs carbon recoils for neutron cones.
+- `incident_energy_MeV` is the kinematically inferred incident particle energy for that cone:
+    - for neutrons, from ToF + deposited energy at the first scatter;
+    - for gammas, from Compton kinematics.
+- `event_index` + `gamma_hit_order` allow you to recover, for each gamma cone, exactly which of the three stored hits in `/lm/hit_*` were interpreted as first/second/third in the selected Compton ordering.
+
 
 ---
 

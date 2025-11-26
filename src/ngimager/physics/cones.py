@@ -428,6 +428,7 @@ def build_cone_from_gamma(
     plane: Optional[Plane] = None,
     prior: Optional[Prior] = None,
     return_meta: bool = False,
+    return_perm: bool = False,
 ) -> Cone:
     """
     Build a Compton gamma cone from a three-hit GammaEvent.
@@ -454,9 +455,15 @@ def build_cone_from_gamma(
 
     Return value
     ------------
-    * If return_meta is False (default), returns only a Cone.
-    * If return_meta is True, returns (cone, Eg_MeV) where Eg_MeV is the
-      incident gamma energy for the selected ordering.
+    * If return_meta and return_perm are both False (default), returns only
+      a Cone.
+    * If return_meta is True and return_perm is False, returns (cone, Eg_MeV)
+      where Eg_MeV is the incident gamma energy for the selected ordering.
+    * If return_meta is False and return_perm is True, returns (cone, perm)
+      where perm is a tuple (i0, i1, i2) with indices into the event's
+      time-ordered hit list.
+    * If both return_meta and return_perm are True, returns
+      (cone, Eg_MeV, perm).
 
     Notes
     -----
@@ -470,29 +477,50 @@ def build_cone_from_gamma(
     ev_ord = ev.ordered(copy=True)
     hits = [ev_ord.h1, ev_ord.h2, ev_ord.h3]
 
+    def _pack_return(cone: Cone, Eg: float) -> Cone:
+        """
+        Helper to package return values according to return_meta/return_perm.
+        """
+        perm_default = (0, 0, 0)  # will be overridden when we really track a perm
+        if not return_meta and not return_perm:
+            return cone
+        if return_meta and not return_perm:
+            return cone, float(Eg)
+        if not return_meta and return_perm:
+            # For callers that only care about the permutation and not Eg,
+            # the caller will override perm_default with the actual perm.
+            return cone, perm_default
+        # Both meta and permutation requested
+        return cone, float(Eg), perm_default
+    
     # Backwards-compatible path: no plane provided → use only the ordered triplet
     if plane is None:
-        if return_meta:
-            cone, Eg = _gamma_cone_from_ordered_hits(*hits, return_Eg=True)
-            if cone is None:
-                raise ValueError(
-                    "GammaEvent cannot produce a physical Compton cone from ordered hits."
-                )
-            return cone, float(Eg)
-        else:
-            cone = _gamma_cone_from_ordered_hits(*hits)
-            if cone is None:
-                raise ValueError(
-                    "GammaEvent cannot produce a physical Compton cone from ordered hits."
-                )
+        cone, Eg = _gamma_cone_from_ordered_hits(*hits, return_Eg=True)
+        if cone is None:
+            raise ValueError(
+                "GammaEvent cannot produce a physical Compton cone from ordered hits."
+            )
+
+        # Simple case: the ordering is just (0, 1, 2) in time
+        base_perm = (0, 1, 2)
+        if not return_perm:
+            if return_meta:
+                return cone, float(Eg)
             return cone
+        else:
+            if return_meta:
+                return cone, float(Eg), base_perm
+            return cone, base_perm
 
     # Full permutation + prior-aware scoring path
     best_cone: Cone | None = None
     best_score: float | None = None
     best_Eg: float | None = None
+    best_perm: tuple[int, int, int] | None = None
 
-    for h1, h2, h3 in permutations(hits, 3):
+    for perm in permutations((0, 1, 2), 3):
+        i0, i1, i2 = perm
+        h1, h2, h3 = hits[i0], hits[i1], hits[i2]
         c, Eg = _gamma_cone_from_ordered_hits(h1, h2, h3, return_Eg=True)
         if c is None:
             continue
@@ -511,22 +539,35 @@ def build_cone_from_gamma(
             best_cone = c
             best_score = score
             best_Eg = float(Eg)
+            best_perm = perm
 
-    if best_cone is not None:
-        if return_meta:
-            return best_cone, float(best_Eg)
-        return best_cone
+    if best_cone is not None and best_perm is not None:
+        Eg = float(best_Eg) if best_Eg is not None else float("nan")
+        if not return_perm:
+            if return_meta:
+                return best_cone, Eg
+            return best_cone
+        else:
+            if return_meta:
+                return best_cone, Eg, best_perm
+            return best_cone, best_perm
 
     # If no candidate survived, fall back to the time-ordered triplet as a last resort
     fallback_cone, fallback_Eg = _gamma_cone_from_ordered_hits(*hits, return_Eg=True)
-    if fallback_cone is None or not _axis_towards_plane(fallback_cone.apex, fallback_cone.dir, plane):
+    if fallback_cone is None or not _axis_towards_plane(
+        fallback_cone.apex, fallback_cone.dir, plane
+    ):
         raise ValueError(
             "GammaEvent cannot produce a physical Compton cone from any hit permutation."
         )
 
-    if return_meta:
-        return fallback_cone, float(fallback_Eg)
-    return fallback_cone
-
-
+    base_perm = (0, 1, 2)
+    if not return_perm:
+        if return_meta:
+            return fallback_cone, float(fallback_Eg)
+        return fallback_cone
+    else:
+        if return_meta:
+            return fallback_cone, float(fallback_Eg), base_perm
+        return fallback_cone, base_perm
 
