@@ -292,6 +292,9 @@ makes it easy to map:
 ### Per-cone pixel indices
 
 - `/lm/cone_pixel_indices` : `[K, 2]` uint32
+    - Canonical location: each row is `(cone_id, flat_pixel_index)`.
+- `/images/list_mode/cone_pixel_indices` : alias (HDF5 soft link) to `/lm/cone_pixel_indices`
+
 
 Each row is:
 

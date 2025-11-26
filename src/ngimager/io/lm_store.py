@@ -10,15 +10,79 @@ from ngimager.config.load import snapshot_config_toml
 from ngimager.geometry.plane import Plane
 from ngimager.physics.events import NeutronEvent, GammaEvent
 
+# Optional helpers for discovering installed package name/version
+try:  # Python 3.8+
+    from importlib import metadata as importlib_metadata
+except Exception:  # pragma: no cover - older Python
+    importlib_metadata = None
+
+try:  # Python 3.11+
+    import tomllib as _tomllib  # type: ignore[attr-defined]
+except Exception:  # pragma: no cover - allow older Python or missing module
+    try:
+        import tomli as _tomllib  # type: ignore[import-not-found]
+    except Exception:
+        _tomllib = None
+
 FORMAT_VERSION = "1.0"
 
+
+def _detect_software_tag() -> str:
+    """
+    Best-effort detection of the software tag to store in the HDF5 root.
+
+    Preference order:
+      1. Installed distribution metadata for the 'ngimager' package.
+      2. [project] name/version from a nearby pyproject.toml.
+      3. Fallback string if neither is available.
+
+    This is intentionally conservative: any failure just yields a generic tag
+    rather than raising.
+    """
+    default = "ng-imager (version unknown)"
+    pkg_name = "ngimager"
+
+    # 1) Try installed package metadata
+    if importlib_metadata is not None:
+        try:
+            ver = importlib_metadata.version(pkg_name)
+            try:
+                meta = importlib_metadata.metadata(pkg_name)
+                name = meta.get("Name") or pkg_name
+            except Exception:
+                name = pkg_name
+            return f"{name} {ver}"
+        except Exception:
+            pass
+
+    # 2) Try reading pyproject.toml near this file
+    if _tomllib is not None:
+        try:
+            here = Path(__file__).resolve()
+            for parent in (here,) + tuple(here.parents):
+                candidate = parent / "pyproject.toml"
+                if candidate.is_file():
+                    with candidate.open("rb") as fh:
+                        data = _tomllib.load(fh)
+                    project = data.get("project") or {}
+                    name = project.get("name", pkg_name)
+                    ver = project.get("version")
+                    if ver:
+                        return f"{name} {ver}"
+                    return str(name)
+        except Exception:
+            pass
+
+    return default
+
+SOFTWARE_ATTR = _detect_software_tag()
 
 def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File:
     f = h5py.File(path, "w")
     # Root attrs
     f.attrs["format_version"] = FORMAT_VERSION
     f.attrs["created_utc"] = datetime.now(timezone.utc).isoformat()
-    f.attrs["software"] = "ng-imager 0.1.0"
+    f.attrs["software"] = SOFTWARE_ATTR
     f.attrs["config_text"] = snapshot_config_toml(cfg_path)
     f.attrs["readme"] = (
         "HDF5 output produced by ng-imager. "
@@ -540,6 +604,14 @@ def write_lm_indices(
         del grp["cone_pixel_indices"]
     grp.create_dataset("cone_pixel_indices", data=all_rows_arr, compression="gzip")
 
+    # Alias for convenience under /images/list_mode; this is a standard HDF5
+    # soft link, so it does not duplicate data on disk.
+    images_grp = f.require_group("images")
+    list_mode_grp = images_grp.require_group("list_mode")
+    if "cone_pixel_indices" in list_mode_grp:
+        del list_mode_grp["cone_pixel_indices"]
+    list_mode_grp["cone_pixel_indices"] = h5py.SoftLink("/lm/cone_pixel_indices")
+    
     # The old /lm/indices and /lm/events datasets are intentionally no longer
     # written to avoid confusion about their semantics.
     if "indices" in grp:
