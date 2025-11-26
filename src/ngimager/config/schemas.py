@@ -40,6 +40,20 @@ class RunCfg(BaseModel):
     # SBP imaging engine: "scan" (matrix scan) or "poly" (perimeter sampler)
     sbp_engine: str = "scan"
 
+    # Human-readable label for this run, used by visualization and stored
+    # in HDF5 under /meta as the "run_plot_label" attribute.
+    plot_label: Optional[str] = None
+
+    # Free-form run-level metadata table. Exposed in TOML as:
+    #
+    #   [run.meta]
+    #   beam   = "175 MeV protons"
+    #   target = "geometry B"
+    #   setup  = "detector arrangement 3"
+    #
+    # and stored into HDF5 under /meta/run_meta for downstream tools.
+    meta: Dict[str, Any] = Field(default_factory=dict)
+
     @field_validator("diagnostics_level")
     def _diag_range(cls, v: int) -> int:
         if v not in (0, 1, 2):

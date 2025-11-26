@@ -49,6 +49,26 @@ def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File
     meta.attrs["run_gamma"] = bool(getattr(cfg.run, "gammas", True))
     meta.attrs["run_stop_stage"] = getattr(cfg.run, "stop_stage", "")
 
+    # Optional human-readable run label for visualization.
+    run_plot_label = getattr(cfg.run, "plot_label", None)
+    if run_plot_label:
+        meta.attrs["run_plot_label"] = str(run_plot_label)
+
+    # Optional free-form run-level metadata table from [run.meta].
+    # Stored under /meta/run_meta as one string dataset per key.
+    run_meta = getattr(cfg.run, "meta", {}) or {}
+    if run_meta:
+        run_meta_grp = meta.require_group("run_meta")
+        str_dt = h5py.string_dtype(encoding="utf-8")
+        for key, value in run_meta.items():
+            ds_name = str(key).replace("/", "_")
+            if ds_name in run_meta_grp:
+                del run_meta_grp[ds_name]
+            run_meta_grp.create_dataset(
+                ds_name,
+                data=np.array(str(value), dtype=str_dt),
+            )
+    
     # Human-readable overview of this HDF5 layout
     readme_text = """
     ng-imager HDF5 layout (format_version = {fmt}):

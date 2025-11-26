@@ -38,6 +38,16 @@ sbp_engine = "scan"
 # Safety cap for total imaged cones (after filtering and selection)
 # max_cones = 50000
 
+plot_label = "14.8 MeV DT n, NOVO array position for (100 mm,-100 mm)"
+
+[run.meta]
+source = "14.8 MeV neutrons"
+array_pos_x = "+100 mm"
+array_pos_y = "-100 mm"
+#beam   = "175 MeV protons"
+#target = "geometry B"
+#setup  = "detector arrangement 3"
+
 
 [pipeline]
 # Where to stop the unified pipeline

@@ -373,6 +373,9 @@ def run_pipeline(
     list_mode: Optional[bool] = None,
     neutrons: Optional[bool] = None,
     gammas: Optional[bool] = None,
+    input_path: Optional[str] = None,
+    output_path: Optional[str] = None,
+    plot_label: Optional[str] = None,
 ) -> Path:
     """
     Orchestrate the full pipeline from a TOML config file.
@@ -384,6 +387,13 @@ def run_pipeline(
     ----------
     cfg_path : str
         Path to TOML configuration file.
+    input_path : str, optional
+        When provided, overrides [io].input_path from the TOML file.
+    output_path : str, optional
+        When provided, overrides [io].output_path from the TOML file.
+    plot_label : str, optional
+        When provided, overrides [run].plot_label (used for HDF5 and
+        visualization annotations).
 
     Returns
     -------
@@ -402,6 +412,13 @@ def run_pipeline(
     if gammas is not None:
         cfg.run.gammas = gammas
 
+    if input_path is not None:
+        cfg.io.input_path = input_path
+    if output_path is not None:
+        cfg.io.output_path = output_path
+    if plot_label is not None:
+        cfg.run.plot_label = plot_label
+    
     # Conveniences
     diag_level = cfg.run.diagnostics_level
     verbose = diag_level >= 2
@@ -412,6 +429,8 @@ def run_pipeline(
         print(f"[run] neutrons={cfg.run.neutrons} gammas={cfg.run.gammas} "
               f"fast={cfg.run.fast} list={cfg.run.list}")
         print(f"[run] input={cfg.io.input_path} -> output={cfg.io.output_path}")
+        if getattr(cfg.run, "plot_label", None):
+            print(f"[run] plot_label={cfg.run.plot_label!r}")
 
     # Apply fast-mode overrides (if run.fast is true)
     _apply_fast_overrides(cfg, diag_level=diag_level)
@@ -996,6 +1015,7 @@ def run_pipeline(
                 roi_u_max_cm=roi[1] if roi is not None else None,
                 roi_v_min_cm=roi[2] if roi is not None else None,
                 roi_v_max_cm=roi[3] if roi is not None else None,
+                plot_label=getattr(cfg.run, "plot_label", None),
             )
 
             if cfg.run.diagnostics_level >= 1:
@@ -1045,6 +1065,23 @@ def main(
         "--gammas / --no-gammas",
         help="Enable or disable gamma processing; overrides [run].gammas when set",
     ),
+    input_path: Optional[str] = typer.Option(
+        None,
+        "--input-path",
+        "-i",
+        help="Override [io].input_path from the TOML config.",
+    ),
+    output_path: Optional[str] = typer.Option(
+        None,
+        "--output-path",
+        "-o",
+        help="Override [io].output_path from the TOML config.",
+    ),
+    plot_label: Optional[str] = typer.Option(
+        None,
+        "--plot-label",
+        help="Override [run].plot_label (annotation text used in visualization).",
+    ),
 ):
     """
     Run the unified ng-imager pipeline for a single config.
@@ -1055,6 +1092,9 @@ def main(
         list_mode=list_mode if list_mode else None,
         neutrons=neutrons,
         gammas=gammas,
+        input_path=input_path,
+        output_path=output_path,
+        plot_label=plot_label,
     )
     typer.echo(str(out_path))
 

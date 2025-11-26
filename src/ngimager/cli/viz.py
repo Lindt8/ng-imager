@@ -53,6 +53,14 @@ def summed(
         "-f",
         help="Output format(s) to write (e.g. 'png', 'pdf').",
     ),
+    plot_label: Optional[str] = typer.Option(
+        None,
+        "--plot-label",
+        help=(
+            "Override run plot label annotation (defaults to any value stored "
+            "under /meta.run_plot_label in the HDF5 file)."
+        ),
+    ),
 ):
     """
     Render one or more /images/summed/{n,g,all} datasets to image files.
@@ -66,6 +74,7 @@ def summed(
         axis_units=axis_units,
         cmap=cmap,
         formats=fmt,
+        plot_label=plot_label,
     )
     if not out_paths:
         typer.echo("No images were written (check that /images/summed/* exist).")

@@ -155,6 +155,7 @@ def render_summed_images(
     roi_u_max_cm: float | None = None,
     roi_v_min_cm: float | None = None,
     roi_v_max_cm: float | None = None,
+    plot_label: str | None = None,
 ) -> list[Path]:
     """
     Render `/images/summed/*` datasets from an ng-imager HDF5 file to image files.
@@ -165,6 +166,8 @@ def render_summed_images(
       - a 1D projection along v **to the left** of the image,
       - an optional ROI rectangle (if roi_*_cm are provided),
       - an annotation of the number of cones contributing to that species.
+      - and (when available) a run-level plot label drawn from [run].plot_label
+        or from the `plot_label` argument.
     """
 
     h5_path = Path(h5_path)
@@ -208,6 +211,14 @@ def render_summed_images(
 
         summed_grp = f["images"]["summed"]
         meta_attrs = f["meta"].attrs
+
+        # Default plot label: prefer explicit argument, then /meta attribute.
+        stored_plot_label: str | None = None
+        if "run_plot_label" in meta_attrs:
+            try:
+                stored_plot_label = str(meta_attrs["run_plot_label"])
+            except Exception:
+                stored_plot_label = None
 
         has_n = "n" in summed_grp
         has_g = "g" in summed_grp
@@ -495,7 +506,14 @@ def render_summed_images(
                 "g": "g",
                 "all": "n+g",
             }.get(sp, sp)
-            fig.suptitle(f"{stem} : {species_label} cones", y=0.98)
+
+            effective_label = plot_label or stored_plot_label
+            if effective_label:
+                title = f"{effective_label}\n{stem} : {species_label} cones"
+            else:
+                title = f"{stem} : {species_label} cones"
+            
+            fig.suptitle(title, y=0.98)
 
             # Leave room for suptitle
             fig.subplots_adjust(top=0.93)
