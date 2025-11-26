@@ -31,6 +31,7 @@ docs = [
 
 [project.scripts]
 ng-viz = "ngimager.cli.viz:app"
+ng-run  = "ngimager.pipelines.core:app"
 
 [tool.hatch.build]
 include = [

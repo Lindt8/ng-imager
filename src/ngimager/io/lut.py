@@ -85,31 +85,118 @@ def load_npz_lut(path: str | Path) -> LUT:
 
     return LUT(L=L, E=E, meta=meta, E_lo=E_lo, E_hi=E_hi)
 
-def build_lut_registry(lut_paths: dict, cfg_file: str | Path | None = None) -> dict[str, dict[str, LUT]]:
+def build_lut_registry(
+    lut_paths: Dict[str, Dict[str, str]] | None,
+    base_dir: str | Path | None = None,
+) -> Dict[str, Dict[str, LUT]]:
     """
-    Build LUT registry from config.  Looks for files relative to the config file first,
-    then falls back to built-in ngimager.data.lut defaults.
-    """
-    reg: dict[str, dict[str, LUT]] = {}
-    base = Path(cfg_file).parent if cfg_file else Path.cwd()
+    Build a registry mapping material -> species -> LUT.
 
+    Parameters
+    ----------
+    lut_paths
+        Configuration-style mapping, e.g.:
+
+            {
+                "M600": {"proton": "data/lut/M600/lut_M600_proton_Birks.npz"},
+                "OGS":  {"carbon": "custom/OGS_carbon.npz"},
+            }
+
+        Paths may be relative; they are resolved against `base_dir` when given.
+        If a configured path does not exist on disk but a built-in LUT is
+        available for that material/species (M600/OGS proton/carbon), the
+        built-in is used as a fallback.
+
+        When a material/species is *omitted* entirely from `lut_paths`, this
+        function will still inject built-in defaults for common NOVO
+        scintillators (M600, OGS).
+
+    base_dir
+        Base directory for resolving relative paths (typically the directory
+        containing the TOML config). If None, uses the current working
+        directory.
+
+    Returns
+    -------
+    dict
+        Nested dictionary: {material: {species: LUT, ...}, ...}
+    """
+    if lut_paths is None:
+        lut_paths = {}
+
+    base = Path(base_dir) if base_dir is not None else Path(".")
+
+    registry: Dict[str, Dict[str, LUT]] = {}
+
+    # ------------------------------------------------------------------
+    # 1) Explicit configuration entries
+    # ------------------------------------------------------------------
     for material, species_map in lut_paths.items():
-        reg[material] = {}
+        if not species_map:
+            continue
+
+        mat_key = str(material)
+        mat_reg = registry.setdefault(mat_key, {})
+
         for species, raw_path in species_map.items():
-            # Resolve relative paths against the config's directory
-            p = Path(raw_path)
-            if not p.is_absolute():
-                p = (base / p).resolve()
-            if p.exists():
-                reg[material][species] = load_npz_lut(p)
+            sp_key = str(species)
+
+            # Resolve path if provided
+            path: Path
+            if raw_path:
+                p = Path(raw_path)
+                if not p.is_absolute():
+                    p = base / p
+                if p.exists():
+                    path = p
+                else:
+                    # Config path is missing; fall back to built-in if available
+                    try:
+                        path = builtin_lut_path(mat_key, sp_key)
+                    except FileNotFoundError as exc:
+                        raise FileNotFoundError(
+                            f"LUT path '{raw_path}' for {mat_key}/{sp_key} "
+                            f"does not exist and no built-in LUT is available."
+                        ) from exc
+            else:
+                # Empty string / falsy path => force built-in for known materials
+                try:
+                    path = builtin_lut_path(mat_key, sp_key)
+                except FileNotFoundError as exc:
+                    raise FileNotFoundError(
+                        f"No LUT path specified for {mat_key}/{sp_key} "
+                        f"and no built-in LUT is available."
+                    ) from exc
+
+            mat_reg[sp_key] = load_npz_lut(path)
+
+    # ------------------------------------------------------------------
+    # 2) Built-in defaults for common NOVO scintillators
+    #
+    #    This is what lets a fresh 'pip install ng-imager' user write:
+    #
+    #        [energy]
+    #        strategy = "ELUT"
+    #
+    #    and rely on packaged M600/OGS proton+carbon LUTs without any
+    #    [energy.lut_paths.*] block.
+    # ------------------------------------------------------------------
+    builtin_defaults = {
+        "M600": ("proton", "carbon"),
+        "OGS": ("proton", "carbon"),
+    }
+
+    for material, species_list in builtin_defaults.items():
+        mat_reg = registry.setdefault(material, {})
+        for species in species_list:
+            if species in mat_reg:
+                # User already configured (or partially overrode) this species.
                 continue
-
-            # Fall back to built-in data
-            builtin = builtin_lut_path(material, species)
-            if builtin.exists():
-                reg[material][species] = load_npz_lut(builtin)
+            try:
+                path = builtin_lut_path(material, species)
+            except FileNotFoundError:
+                # If we somehow don't ship this LUT, just skip quietly.
                 continue
+            mat_reg[species] = load_npz_lut(path)
 
-            raise FileNotFoundError(f"LUT for {material}/{species} not found: {raw_path}")
-
-    return reg
+    return registry

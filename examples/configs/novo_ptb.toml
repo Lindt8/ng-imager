@@ -245,10 +245,12 @@ force_proton_recoils = false      # true | false
 fixed_En_MeV = 14.8
 
 # LUT paths for any materials present. Extend freely for new materials.
-lut_paths.M600.proton = "data/lut/M600/lut_M600_proton_Birks.npz"
-lut_paths.M600.carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
-lut_paths.OGS.proton  = "data/lut/OGS/lut_OGS_proton_Birks.npz"
-lut_paths.OGS.carbon  = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
+# The below files are the defaults used, shipped with ngimager.
+# Uncomment and replace with your own files if wanting to use something custom for any/all.
+# lut_paths.M600.proton = "data/lut/M600/lut_M600_proton_Birks.npz"
+# lut_paths.M600.carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
+# lut_paths.OGS.proton  = "data/lut/OGS/lut_OGS_proton_Birks.npz"
+# lut_paths.OGS.carbon  = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
 
 [prior]
 type = "point"
