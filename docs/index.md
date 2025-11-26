@@ -86,11 +86,11 @@ If you’re new to ng-imager, start here:
 
 4. [**Architecture / Design Primer**](dev/architecture.md) `docs/dev/architecture.md`
 
-   High-level design document that explains how the modules fit together
+    - High-level design document that explains how the modules fit together
 
 5. [**API Reference**](api/index.md) `docs/api/index.md`
 
-   Auto-generated reference for the `ngimager` Python package
+    - Auto-generated reference for the `ngimager` Python package
 
 ---
 
