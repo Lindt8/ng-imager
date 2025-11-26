@@ -658,6 +658,67 @@ This approach obeys the real acquisition model:
 - Raw data is already in “coincidence windows” (crude events).
 - Acquisition thresholds are looser; post-processing thresholds refine which hits (and events) we keep.
 
+### 4.3 PHITS Adapter
+
+The `PHITSAdapter` implements `iter_raw_events` and is the canonical source for PHITS `usrdef` output.
+
+- `Hit.L` = `Edep_MeV` directly.
+- `event_type` hints (“neutron” / “gamma”) are normalized.
+- PHITS has no PSD; PSD-related hit filters are automatically ignored.
+
+### 4.4 ROOT NOVO DDAQ Adapter 
+
+The ROOT adapter (`input_format = "root_novo_ddaq"`) is now operational and includes:
+
+- Complete parsing of NOVO DDAQ coincidences.
+- Extraction of:
+    - hit positions (detector-frame)
+    - hit times
+    - light quantities (elong / MeVee)
+    - PSD values → exposed as `Hit.extras["psd"]`
+- Hit-level PSD filtering through `[filters.hits]` and `[filters.hits.neutron/gamma]`.
+- Canonical `Hit` objects based on detector coordinates.
+- Event-level timing preserved as emitted by DDAQ.
+- Metadata passthrough:
+    - The `meta` ROOT TTree is parsed and stored in HDF5 as `/meta/root/*` with a structured layout.
+    - Detector dimension, position, rotation, calibration files, global time offsets, etc. are preserved.
+- Fully integrated with the new `[detectors.geometry]` transform system:
+    - Per-detector corrections
+    - Global detector-to-world transform
+
+### 4.5 HDF5 Restart Adapter (Planned)
+
+A future adapter will support `input_format = "hdf5_ngimager"` for restarting the pipeline at arbitrary stages without recomputing hits or cones.
+
+
+### 4.6 Detector Geometry Transforms (New)
+
+Experimental and simulation datasets may provide hit coordinates in reference frames other than the world/imaging frame. `ngimager` now supports a general-purpose, adapter-agnostic transform stage before filters:
+
+1. **Per-detector transforms**  
+   From `[[detectors.geometry.detectors]]`, each detector element may specify:
+   - `id`
+   - `origin_cm`
+   - `rotation_deg`
+
+   These apply a rigid transform mapping bar-local coordinates into the detector frame.  
+   Useful for correcting known misplacements after data acquisition.
+
+2. **Global detector-frame → world-frame transform**  
+   From `[detectors.geometry.frame]`:
+   - `origin_cm`
+   - `rotation_deg`
+
+   This maps detector-frame hit coordinates into world/imaging coordinates.
+
+Transforms follow:
+
+    r_det_corrected = R_xyz(rot_det) @ r_local + origin_det
+    r_world = R_xyz(rot_glob) @ r_det_corrected + origin_glob
+
+
+
+
 ---
 
 ## 5. From Hits to Events: Shaping and Typing
@@ -1347,68 +1408,67 @@ Guidelines:
 
 The aim is for someone familiar with the legacy script to be able to read this code and see where each piece migrated, and for new contributors to navigate via module names + this document.
 
-### 15.5 Current Implementation Status (for developers)
+### 15.5 Current Implementation Status (Updated)
 
-As of the current `ngimager` snapshot:
+As of the current ngimager snapshot:
 
-- The unified pipeline (`pipelines.core.run_pipeline`) is the only supported end-to-end entry point.
+- The unified pipeline (`pipelines.core.run_pipeline`) is stable and serves as the only supported orchestration path.
 
-- The PHITS path follows the staged flow:
+- **ROOT adapter fully implemented**:
+  - Canonical Hit construction
+  - PSD extraction and hit-level PSD filtering
+  - Coordinate positions in detector frame
+  - Full metadata passthrough (`/meta/root/*`)
+  - Integration with detector/world transform system
 
-  - `PHITSAdapter.iter_raw_events(...)` emits event dictionaries, each with a `hits` list of canonical `Hit` objects grouped into raw coincidence windows.
-  - Hit-level cuts are applied via `apply_hit_filters`, followed by an `is_reconstructable` check that can discard raw events early.
-  - Surviving hits are passed through `shape_events_for_cones` (shaper) and then `shaped_to_typed_events` to yield `NeutronEvent` and `GammaEvent` instances.
-  - Typed events always carry their constituent `Hit` objects.
+- **Detector geometry transforms implemented**:
+  - Per-detector corrections (`[[detectors.geometry.detectors]]`)
+  - Global detector-frame → world-frame transform (`[detectors.geometry.frame]`)
+  - Transform application occurs before hit-level filters
 
-- Shaping and typed-event conversion are implemented for both neutrons and gammas:
-  - Neutron events are currently restricted to simple 2-hit topologies.
-  - Gamma events are currently restricted to 3-hit events; for PHITS, the default policy is time-ordered (`gamma_policy = "time_asc"`).
+- **Energy strategies**:
+  - E(L) LUT, Edep (PHITS), FixedEn → fully implemented
+  - FixedEn validated on real-data DT 14.8 MeV dataset (matching legacy behavior)
+  - ToF partially implemented, pending validation
+  - Up-scattering rejection added to FixedEn and ToF branches
 
-- Hit-level filters and event-level filters are in place and plumbed through the PHITS path, with counters that distinguish neutrons vs gammas where meaningful. A full audit of all counter names is still on the roadmap, but the major ones are consistent.
+- **Hit- and event-level filters**:
+  - Complete, including PSD, light thresholds, bar/material include/exclude lists
+  - Reconstructability logic applied early
 
-- Energy strategies are implemented in `physics.energy_strategies` and used in the cones stage:
-  - `make_energy_strategy(cfg.energy, lut_registry)` is called from Stage 3.
-  - The **Edep** strategy is used in PHITS workflows (where `Hit.L` is `Edep_MeV`).
-  - LUT-based and ToF-based neutron strategies exist and are wired but still need dedicated validation.
+- **Neutron cone building**:
+  - Full proton vs carbon recoil hypothesis testing
+  - Prior-based Δ selection implemented
+  - Directionality (cone pointing toward plane) enforced
+  - Incident energy calculation consistent with primer and legacy code
+  - H/C recoil code exported to HDF5
 
-- Cone construction is handled in `physics.cones`:
+- **Gamma cone building**:
+  - All 6 permutations of 3-hit events tested
+  - Kinematic rejection + prior-based Δ selection
+  - Directionality check implemented
+  - Incident gamma energy calculation implemented and stored
 
-  - **Neutrons**:
-    - Build cones using primer-consistent geometry (apex at h1, axis along the scattered neutron direction).
-    - For `force_proton_recoils = false` and when a plane/prior is available, both proton and carbon recoil hypotheses are evaluated.
-    - A prior-based Δ = |φ − θ| metric is used to select the more plausible branch.
-    - Cones that do not point toward the plane are rejected.
+- **Imaging**:
+  - SBP “scan” engine validated against legacy
+  - SBP “poly” engine implemented
+  - Numba acceleration available
+  - List-mode (“lm_indices” and “event_survival”) implemented
 
-  - **Gammas**:
-    - Implemented for 3-hit Compton events:
-      - All 6 permutations of the 3 hits are tested.
-      - Kinematically impossible permutations are rejected.
-      - Each viable permutation yields a candidate cone that must point toward the plane (`t_int > 0`).
-      - A prior-based Δ = |φ − θ| metric is used to select the best permutation.
-    - This path is fully wired and reproduces legacy behavior on available PHITS-derived model datasets.
+- **Counters**:
+  - Extensive per-stage counters implemented
+  - Counter summaries printed automatically at `diagnostics_level ≥ 1`
+  - Counters written to `/meta/counters/*`
 
-- Priors (`physics.priors`) support both point and line priors and are constructed via `make_prior(cfg.prior, plane)`. The same prior object is used for neutron and gamma cone selection, with a fallback to the imaging plane center.
+- **ROOT metadata passthrough**:
+  - Fully implemented with structural normalization
 
-- HDF5 output follows the layout described in §12:
+Most remaining work centers on:
+- HDF5 restart mode
+- ToF validation
+- Unified candidate-cone API
+- Per-bar geometry and physical bar models
 
-  - `/lm` stores event-level information, including `event_type` (0 = neutron, 1 = gamma), hit positions/times/light, and material IDs.
-  - `/cones` stores cone parameters plus:
-    - `species` (0 = neutron, 1 = gamma),
-    - `recoil_code` (0/1/2),
-    - `incident_energy_MeV`,
-    - `event_index`.
-  - `/lm/material_id_labels`, `/cones/species_labels`, and `/cones/recoil_code_labels` provide human-readable legends.
-  - `/images/summed/n` and `/images/summed/g` are written when the corresponding species are enabled, and `/images/summed/all` is written when both are non-empty.
-  - When `run.list = true`, `/lm/cone_pixel_indices` and `/lm/event_survival` are populated to allow full back-tracing from pixels to events.
-
-- SBP imaging (`imaging.sbp.reconstruct_sbp`) is functional and operates on the minimal `Cone` dataclass and `Plane`. List-mode (per-cone sparse footprints) is implemented and wired into the pipeline, though further automated tests and visualization tools are still planned.
-
-Overall, the PHITS → hits → events → cones → SBP path is **operational for both neutrons and gammas**, and gamma imaging has been validated against the legacy code on available model datasets. Remaining work focuses on:
-
-- ROOT adapter parity,
-- HDF5 restart modes,
-- ToF and FixedEn strategy validation,
-- and cleaning up / extending the candidate-cone selection abstractions.
 
 ---
 
@@ -1425,7 +1485,7 @@ This checklist tracks migration from the current state to the architecture descr
 ### 16.2. Adapters and Raw Events
 
 - [x] `PHITSAdapter.iter_raw_events` returns canonical Hit objects grouped into raw coincidence windows.
-- [ ] Implement/clean up `ROOTAdapter.iter_raw_events` with `input_format = "root_novo_ddaq"` for the current acquisition system.
+- [x] Implement/clean up `ROOTAdapter.iter_raw_events` with `input_format = "root_novo_ddaq"` for the current acquisition system.
 - [x] Implement the early `is_reconstructable` logic after hit-level filtering to discard unviable raw events, with appropriate counters.
 
 ### 16.3. Shaper and Typed Events
@@ -1437,7 +1497,7 @@ This checklist tracks migration from the current state to the architecture descr
 
 ### 16.4. Filters, Priors, and Sequencing
 
-- [ ] Further centralize event and cone selection logic into `filters` modules, driven fully by `[filters]` config (some selection and scoring logic still lives in `physics.cones`).
+- [x] Further centralize event and cone selection logic into `filters` modules, driven fully by `[filters]` config.
 - [x] Ensure priors are only defined in `physics.priors` and configured via `[prior]`.
 - [ ] Expose a unified candidate-cone API (`enumerate_candidate_cones`, `select_cone`) instead of embedding this logic in the cone builders.
 - [ ] Implement storage of gamma sequencing choice and neutron recoil interpretation at the **event** level in HDF5 (cone-level recoil metadata already exists).
@@ -1446,15 +1506,15 @@ This checklist tracks migration from the current state to the architecture descr
 
 - [x] Wire `make_energy_strategy(cfg.energy, lut_registry)` into the pipeline, with all neutron recoil energies obtained via this interface.
 - [x] Integrate E(L) LUTs for OGS and M600 via `io.lut.LUT`, and ship canonical LUTs with the package for out-of-the-box usage.
-- [ ] Validate `ToF` and `FixedEn` strategies with simple tests and real/legacy datasets.
-- [ ] Document the conceptual picture in code comments, referencing this document.
+- [x] `FixedEn` validated with real DT dataset, and `ELUT` also validated against it, reproduces results well.
+- [ ] ToF validation pending
 
 ### 16.6. Cone Construction and Imaging
 
 - [x] Ensure `physics.cones` provides the canonical functions for building cones from events (neutrons and gammas).
 - [x] Confirm `imaging.sbp.reconstruct_sbp` works directly from the minimal `Cone` dataclass and `Plane`.
 - [x] Implement optional per-cone sparse footprints used only when `run.list` is true, and validate basic end-to-end traceability through `/lm/cone_pixel_indices` and `/lm/event_survival`.
-- [ ] Ensure cone and imaging counters follow the `_n` / `_g` / `_total` naming pattern where meaningful, and record per-stage runtimes.
+- [x] Ensure cone and imaging counters follow the `_n` / `_g` / `_total` naming pattern where meaningful, and record per-stage runtimes.
 - [x] Implement gamma cone-building for 3-hit Compton events in `physics.cones`, including permutation testing and prior-based Δ = |φ − θ| scoring; treat this path as validated for PHITS-based model data, with ROOT validation pending.
 - [x] Extend neutron cone construction to support explicit proton vs carbon candidate branches, including directionality checks analogous to the gamma `t_int > 0` test.
 - [x] Implement combined n/g/all SBP images at the imaging stage (`/images/summed/n`, `/images/summed/g`, `/images/summed/all`).
