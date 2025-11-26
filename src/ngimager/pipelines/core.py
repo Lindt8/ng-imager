@@ -37,6 +37,7 @@ import numpy as np
 from ngimager.config.load import load_config
 from ngimager.config.schemas import Config, RunCfg
 from ngimager.geometry.plane import Plane
+from ngimager.geometry.transforms import apply_rigid_transform, is_identity_transform
 from ngimager.io.adapters import make_adapter
 from ngimager.io.lm_store import (
     write_init,
@@ -483,13 +484,73 @@ def run_pipeline(
             default_mat = getattr(det_cfg, "default_material", None)
             if default_mat and "default_material" not in adapter_cfg:
                 adapter_cfg["default_material"] = default_mat
+        
+        # --- Geometry: detector-frame → world-frame + per-detector corrections ----
+        geom_cfg = getattr(det_cfg, "geometry", None) if det_cfg is not None else None
 
+        # Global frame transform
+        frame_cfg = getattr(geom_cfg, "frame", None) if geom_cfg is not None else None
+        origin_cm = [0.0, 0.0, 0.0]
+        rotation_deg = [0.0, 0.0, 0.0]
+        use_global_transform = False
+        if frame_cfg is not None:
+            origin_cm = getattr(frame_cfg, "origin_cm", origin_cm)
+            rotation_deg = getattr(frame_cfg, "rotation_deg", rotation_deg)
+            if not is_identity_transform(origin_cm, rotation_deg):
+                use_global_transform = True
+                if diag_level >= 1:
+                    print(
+                        "[stage1] Using global detector→world transform: "
+                        f"origin_cm={origin_cm}, rotation_deg={rotation_deg}"
+                    )
+
+        # Per-detector transforms: id → (origin_cm, rotation_deg)
+        per_det_transforms: Dict[int, tuple[list[float], list[float]]] = {}
+        if geom_cfg is not None:
+            det_list = getattr(geom_cfg, "detectors", []) or []
+            for det_entry in det_list:
+                try:
+                    det_id = int(det_entry.id)
+                except Exception:
+                    continue
+                o = getattr(det_entry, "origin_cm", [0.0, 0.0, 0.0])
+                r = getattr(det_entry, "rotation_deg", [0.0, 0.0, 0.0])
+                # Skip entries that are effectively identity transforms
+                if is_identity_transform(o, r):
+                    continue
+                per_det_transforms[det_id] = (o, r)
+
+        use_per_det_transforms = bool(per_det_transforms)
+        if use_per_det_transforms and diag_level >= 1:
+            print(
+                "[stage1] Per-detector transforms configured for "
+                f"{len(per_det_transforms)} detector IDs"
+            )
+
+        
         adapter = make_adapter(adapter_cfg)
 
         raw_events_after_filters = []
 
         for ev in adapter.iter_raw_events(str(cfg.io.input_path)):
             hits = list(ev.get("hits", []))
+
+            # Apply per-detector corrections first (local → detector frame)
+            if use_per_det_transforms and hits:
+                for h in hits:
+                    t_cfg = per_det_transforms.get(h.det_id)
+                    if t_cfg is None:
+                        continue
+                    o_det, r_det = t_cfg
+                    # apply_rigid_transform accepts (..., 3); we pass a single row
+                    h.r = apply_rigid_transform(h.r[None, :], o_det, r_det)[0]
+
+            # Apply global detector-frame → world-frame transform
+            if use_global_transform and hits:
+                pts = np.stack([h.r for h in hits], axis=0)
+                pts_world = apply_rigid_transform(pts, origin_cm, rotation_deg)
+                for h, r_new in zip(hits, pts_world):
+                    h.r = r_new
 
             # Normalize event_type to 'n' / 'g' where possible
             et_raw = str(ev.get("event_type", "")).lower()

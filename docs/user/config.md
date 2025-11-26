@@ -200,6 +200,63 @@ Keys:
 - `default_material`: fallback material name for any detector/bar ID not explicitly listed.
 - `material_map`: maps integer detector IDs (regions) to material names (strings). These names must match the keys used under `[energy].lut_paths`.
 
+
+### 5.1. `[detectors.geometry]` – Coordinate Transforms
+
+The `[detectors.geometry]` block describes how detector-frame coordinates (from the adapters) are mapped into the global **world / room / imaging** frame used by the imaging plane.
+
+There are two layers of transforms:
+
+#### 5.1.1. Global detector-frame → world-frame transform (optional)
+
+```toml
+[detectors.geometry.frame]
+origin_cm    = [0.0, 0.0, 0.0]
+rotation_deg = [0.0, 0.0, 0.0]
+```
+
+This defines a rigid transform
+
+    r_world = R_xyz(rotation_deg) @ r_det + origin_cm
+
+where:
+
+- r_det is the detector-frame coordinate of the hit (from the adapter)
+- `origin_cm = [ox, oy, oz]` is the detector origin in world coordinates (cm)
+- `rotation_deg = [rx, ry, rz]` are Euler angles in degrees, applied in order: Rx(rx) → Ry(ry) → Rz(rz)
+
+If both origin_cm and rotation_deg are approximately zero, the transform is skipped (identity).
+
+
+#### 5.1.2. Per-detector transforms (optional)
+
+Each entry adjusts hit coordinates for a single detector element (bar,
+tile, module) before the global frame transform is applied.
+
+[[detectors.geometry.detectors]]
+id           = 0
+origin_cm    = [0.0, 20.0, 0.0]
+rotation_deg = [0.0, 90.0, 0.0]
+
+Transform order:
+
+    r_det_corrected = R_xyz(rotation_deg) @ r_local + origin_cm
+    r_world         = R_xyz(frame.rotation_deg) @ r_det_corrected + frame.origin_cm
+
+Where:
+
+- id matches Hit.det_id
+- origin_cm and rotation_deg specify a rigid correction for that detector element
+
+Use cases:
+
+- Correcting misplacements of specific detector bars after data was recorded
+- Mapping bar-local coordinates into a detector frame (future extension)
+- Re-registering one detector without changing the entire global frame
+
+If [detectors.geometry] is omitted, all transforms default to identity and
+hit coordinates are used as-is.
+
 ---
 
 ## 6. [plane] – Imaging Plane Geometry

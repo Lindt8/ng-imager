@@ -79,9 +79,58 @@ class IOCfg(BaseModel):
     # paths (relative to the TOML config file unless absolute).
     extra_text_files: Dict[str, str] = Field(default_factory=dict)
 
+
+# ---------------------------------------------------------------------------
+# Geometry configuration models
+# ---------------------------------------------------------------------------
+
+class DetectorFrameGeometry(BaseModel):
+    """
+    A simple rigid transform that maps detector-local coordinates to
+    world coordinates:
+
+        p_world = R_xyz(rotation_deg) @ p_local + origin_cm
+
+    where rotation_deg = [rx, ry, rz] are Euler angles in degrees,
+    applied in the fixed order Rx → Ry → Rz.
+    """
+
+    origin_cm: List[float] = Field(default_factory=lambda: [0.0, 0.0, 0.0])
+    rotation_deg: List[float] = Field(default_factory=lambda: [0.0, 0.0, 0.0])
+
+
+class PerDetectorGeometry(BaseModel):
+    """
+    OPTIONAL (stub for future expansion).
+
+    Describes an individual detector tile or module's placement within
+    the detector-frame coordinate system. For now, ng-imager does not
+    apply per-detector transforms, but the schema entry is accepted and
+    stored for future expansion.
+    """
+    id: int
+    origin_cm: List[float] = Field(default_factory=lambda: [0.0, 0.0, 0.0])
+    rotation_deg: List[float] = Field(default_factory=lambda: [0.0, 0.0, 0.0])
+
+
+class DetectorsGeometryCfg(BaseModel):
+    """
+    Global detector-array geometry.
+
+    - 'frame' describes the overall detector coordinate frame relative to
+      world coordinates.
+    - 'detectors' is an optional list for fine-grained per-detector
+      transforms (currently unused, but reserved for future support).
+    """
+
+    frame: DetectorFrameGeometry = Field(default_factory=DetectorFrameGeometry)
+    detectors: List[PerDetectorGeometry] = Field(default_factory=list)
+
+
+
 class DetectorsCfg(BaseModel):
     """
-    Mapping from detector IDs/regions to materials and (later) geometry.
+    Mapping from detector IDs/regions to materials and optional geometry.
 
     TOML:
 
@@ -92,13 +141,27 @@ class DetectorsCfg(BaseModel):
     200 = "OGS"
     210 = "M600"
     ...
+
+    # Optional global detector-frame → world-frame transform:
+    [detectors.geometry.frame]
+    origin_cm    = [0.0, 0.0, 0.0]
+    rotation_deg = [0.0, 0.0, 0.0]
+
+    # OPTIONAL (stub for future expansion): per-detector transforms
+    [[detectors.geometry.detectors]]
+    id          = 0
+    origin_cm    = [0.0, 0.0, 0.0]
+    rotation_deg = [0.0, 0.0, 0.0]
     """
 
     material_map: Dict[int, str] = Field(default_factory=dict)
     default_material: str = "UNK"
 
-    # Placeholder for future geometry (bar positions/orientations, etc.)
-    geometry: Dict[str, Any] = Field(default_factory=dict)
+    # Detector-frame → world-frame geometry description.
+    geometry: DetectorsGeometryCfg = Field(default_factory=DetectorsGeometryCfg)
+
+
+
 
 
 class PipelineCfg(BaseModel):
