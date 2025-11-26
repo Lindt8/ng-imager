@@ -590,6 +590,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Adapter-specific extras">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phits-adapter-phits_usrdef" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PHITS adapter (phits_usrdef)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#novo-ddaq-root-adapter-root_novo_ddaq" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NOVO DDAQ ROOT adapter (root_novo_ddaq)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1003,15 +1031,72 @@ walk:</p>
 </ol>
 <hr />
 <h2 id="adapter-specific-extras">Adapter-specific extras<a class="headerlink" href="#adapter-specific-extras" title="Permanent link">&para;</a></h2>
-<p>Some adapters (notably PHITS) may also populate ragged list-mode datasets
-for arbitrary-multiplicity events:</p>
+<p>Adapters are allowed to attach additional, source-specific information under <code>/meta</code> and elsewhere, as long as the core layout described above remains stable.</p>
+<p>At the moment there are two main adapter families with extra payloads:</p>
+<hr />
+<h3 id="phits-adapter-phits_usrdef">PHITS adapter (<code>phits_usrdef</code>)<a class="headerlink" href="#phits-adapter-phits_usrdef" title="Permanent link">&para;</a></h3>
+<p>The PHITS adapter may populate ragged list-mode datasets under <code>/lm/hits</code> and <code>/lm/events</code> as a more PHITS-like representation of the input, mainly for debugging and cross-checks:</p>
 <ul>
-<li><code>/lm/hits/event_ptr</code>    : <code>[N_events+1]</code> int64 CSR pointer</li>
-<li><code>/lm/hits/x_cm</code>, <code>y_cm</code>, <code>z_cm</code>, <code>t_ns</code>, <code>Edep_MeV</code>, <code>reg</code> : flat arrays</li>
-<li><code>/lm/events/event_type</code>, <code>iomp</code>, <code>batch</code>, <code>history</code>, <code>no</code>, <code>name</code></li>
+<li>
+<p><code>/lm/hits</code>  </p>
+<ul>
+<li><code>event_ptr</code> : CSR-style pointer array (length = N_events + 1)  </li>
+<li><code>x_cm, y_cm, z_cm, t_ns, Edep_MeV, reg</code> : flat per-hit arrays</li>
 </ul>
-<p>These are additive and do not conflict with the fixed-slot <code>/lm/hit_*</code> and
-<code>/lm/event_*</code> datasets described above.</p>
+</li>
+<li>
+<p><code>/lm/events</code>  </p>
+<ul>
+<li><code>event_type</code> : 0 = unknown, 1 = n, 2 = g, 3 = mixed  </li>
+<li><code>iomp, batch, history, no, name</code> : PHITS event bookkeeping</li>
+</ul>
+</li>
+</ul>
+<p>These datasets are optional and may be omitted when the PHITS adapter is not used.</p>
+<hr />
+<h3 id="novo-ddaq-root-adapter-root_novo_ddaq">NOVO DDAQ ROOT adapter (<code>root_novo_ddaq</code>)<a class="headerlink" href="#novo-ddaq-root-adapter-root_novo_ddaq" title="Permanent link">&para;</a></h3>
+<p>When the NOVO DDAQ ROOT adapter is used, additional run-level metadata from the ROOT <code>meta</code> TTree are persisted under:</p>
+<ul>
+<li><code>/meta/root_novo_ddaq</code> : group</li>
+</ul>
+<p>Run-level scalar fields are stored as group attributes, mirroring the ROOT metadata where available:</p>
+<ul>
+<li><code>InputFileName</code></li>
+<li><code>OutputFileName</code></li>
+<li><code>CDFFileName</code></li>
+<li><code>PSDCutsFileName</code></li>
+<li><code>SampleRate</code></li>
+<li><code>NumDet</code></li>
+<li><code>NumThreads</code></li>
+<li><code>WriteHistograms</code></li>
+<li><code>MergeMode</code></li>
+<li><code>CardOffsetChannel</code></li>
+<li><code>UsePositionVeto</code></li>
+</ul>
+<p>In addition, a normalized integer run identifier is exposed as:</p>
+<ul>
+<li><code>run_number</code> (attribute on <code>/meta/root_novo_ddaq</code>)</li>
+</ul>
+<p>This is intended to capture the “run number” used in NOVO data taking (e.g. <code>..._000041.root</code> → <code>run_number = 41</code>). When the adapter cannot infer a run number, it may omit this attribute or use a sentinel value.</p>
+<p>Per-detector geometric and timing metadata from the ROOT file are collected into a small table under:</p>
+<ul>
+<li><code>/meta/root_novo_ddaq/detectors</code> : group</li>
+</ul>
+<p>with the following datasets (length = <code>NumDet</code>):</p>
+<ul>
+<li><code>det_id</code>            : <code>[NumDet] int32</code>  </li>
+<li><code>pos</code>               : <code>[NumDet, 3] float32</code> – detector position (<code>PosX</code>, <code>PosY</code>, <code>PosZ</code>) in <strong>mm</strong>  </li>
+<li><code>dim</code>               : <code>[NumDet, 3] float32</code> – detector dimensions (<code>DimX</code>, <code>DimY</code>, <code>DimZ</code>) in <strong>mm</strong>  </li>
+<li><code>rot_deg</code>           : <code>[NumDet, 3] float32</code> – detector rotations (<code>RotX</code>, <code>RotY</code>, <code>RotZ</code>) in <strong>degrees</strong>  </li>
+<li><code>local_time_offset</code> : <code>[NumDet] float32</code> – local timing offset in <strong>ns</strong>  </li>
+<li><code>global_time_offset</code>: <code>[NumDet] float32</code> – global timing offset in <strong>ns</strong>  </li>
+<li><code>pos_cal_file</code>      : <code>[NumDet] string</code> – per-detector position calibration filenames  </li>
+<li><code>energy_cal_file</code>   : <code>[NumDet] string</code> – per-detector energy calibration filenames  </li>
+<li><code>is_start_det</code>      : <code>[NumDet] int8</code> – 1 if marked as a start detector, else 0  </li>
+<li><code>is_laser_det</code>      : <code>[NumDet] int8</code> – 1 if marked as a laser detector, else 0  </li>
+</ul>
+<p>Each numeric dataset carries a <code>units</code> attribute (<code>"mm"</code>, <code>"deg"</code>, <code>"ns"</code>) to make downstream interpretation explicit.</p>
+<p>The <code>/meta/root_novo_ddaq</code> layout is intended to be forward compatible: new attributes or datasets may be added in future versions, but existing ones should not be removed or change meaning.</p>
 <hr />
 <h2 id="versioning-and-compatibility">Versioning and compatibility<a class="headerlink" href="#versioning-and-compatibility" title="Permanent link">&para;</a></h2>
 <p>The root attribute <code>format_version</code> records the HDF5 schema version. Minor
