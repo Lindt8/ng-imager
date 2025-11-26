@@ -301,15 +301,75 @@ walk:
 
 ## Adapter-specific extras
 
-Some adapters (notably PHITS) may also populate ragged list-mode datasets
-for arbitrary-multiplicity events:
+Adapters are allowed to attach additional, source-specific information under `/meta` and elsewhere, as long as the core layout described above remains stable.
 
-- `/lm/hits/event_ptr`    : `[N_events+1]` int64 CSR pointer
-- `/lm/hits/x_cm`, `y_cm`, `z_cm`, `t_ns`, `Edep_MeV`, `reg` : flat arrays
-- `/lm/events/event_type`, `iomp`, `batch`, `history`, `no`, `name`
+At the moment there are two main adapter families with extra payloads:
 
-These are additive and do not conflict with the fixed-slot `/lm/hit_*` and
-`/lm/event_*` datasets described above.
+---
+
+### PHITS adapter (`phits_usrdef`)
+
+The PHITS adapter may populate ragged list-mode datasets under `/lm/hits` and `/lm/events` as a more PHITS-like representation of the input, mainly for debugging and cross-checks:
+
+- `/lm/hits`  
+    - `event_ptr` : CSR-style pointer array (length = N_events + 1)  
+    - `x_cm, y_cm, z_cm, t_ns, Edep_MeV, reg` : flat per-hit arrays
+
+- `/lm/events`  
+    - `event_type` : 0 = unknown, 1 = n, 2 = g, 3 = mixed  
+    - `iomp, batch, history, no, name` : PHITS event bookkeeping
+
+These datasets are optional and may be omitted when the PHITS adapter is not used.
+
+---
+
+### NOVO DDAQ ROOT adapter (`root_novo_ddaq`)
+
+When the NOVO DDAQ ROOT adapter is used, additional run-level metadata from the ROOT `meta` TTree are persisted under:
+
+- `/meta/root_novo_ddaq` : group
+
+Run-level scalar fields are stored as group attributes, mirroring the ROOT metadata where available:
+
+- `InputFileName`
+- `OutputFileName`
+- `CDFFileName`
+- `PSDCutsFileName`
+- `SampleRate`
+- `NumDet`
+- `NumThreads`
+- `WriteHistograms`
+- `MergeMode`
+- `CardOffsetChannel`
+- `UsePositionVeto`
+
+In addition, a normalized integer run identifier is exposed as:
+
+- `run_number` (attribute on `/meta/root_novo_ddaq`)
+
+This is intended to capture the “run number” used in NOVO data taking (e.g. `..._000041.root` → `run_number = 41`). When the adapter cannot infer a run number, it may omit this attribute or use a sentinel value.
+
+Per-detector geometric and timing metadata from the ROOT file are collected into a small table under:
+
+- `/meta/root_novo_ddaq/detectors` : group
+
+with the following datasets (length = `NumDet`):
+
+- `det_id`            : `[NumDet] int32`  
+- `pos`               : `[NumDet, 3] float32` – detector position (`PosX`, `PosY`, `PosZ`) in **mm**  
+- `dim`               : `[NumDet, 3] float32` – detector dimensions (`DimX`, `DimY`, `DimZ`) in **mm**  
+- `rot_deg`           : `[NumDet, 3] float32` – detector rotations (`RotX`, `RotY`, `RotZ`) in **degrees**  
+- `local_time_offset` : `[NumDet] float32` – local timing offset in **ns**  
+- `global_time_offset`: `[NumDet] float32` – global timing offset in **ns**  
+- `pos_cal_file`      : `[NumDet] string` – per-detector position calibration filenames  
+- `energy_cal_file`   : `[NumDet] string` – per-detector energy calibration filenames  
+- `is_start_det`      : `[NumDet] int8` – 1 if marked as a start detector, else 0  
+- `is_laser_det`      : `[NumDet] int8` – 1 if marked as a laser detector, else 0  
+
+Each numeric dataset carries a `units` attribute (`"mm"`, `"deg"`, `"ns"`) to make downstream interpretation explicit.
+
+The `/meta/root_novo_ddaq` layout is intended to be forward compatible: new attributes or datasets may be added in future versions, but existing ones should not be removed or change meaning.
+
 
 ---
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Dict, Iterable, List, Sequence, Tuple
 import h5py
 import numpy as np
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from ngimager.config.schemas import Config
@@ -839,7 +840,59 @@ def write_root_novo_meta(f: h5py.File, meta: Dict[str, Any]) -> None:
         if isinstance(val, np.generic):
             val = val.item()
         meta_root.attrs[key] = val
+    
+    # ---- Attempt to extract run number from metadata / filenames ----
+    #
+    # Priority:
+    #   1. Explicit numeric run key if present (e.g. "RunNumber" or "RunNo").
+    #   2. Infer from InputFileName / OutputFileName by looking for the last
+    #      block of digits before ".root" (e.g. "..._000041.root" → 41).
+    run_number_int: int | None = None
+    run_number_str: str | None = None
 
+    # 1) If the meta dict already has an explicit run number, prefer that.
+    for key in ("RunNumber", "RunNo", "runNumber", "run_no"):
+        if key in meta:
+            v = meta[key]
+            if isinstance(v, np.generic):
+                v = v.item()
+            try:
+                run_number_int = int(v)
+                run_number_str = f"{run_number_int:d}"
+            except Exception:
+                # Fall back to string representation if not cleanly integer.
+                run_number_str = str(v)
+            break
+
+    # 2) Otherwise, try to infer from the filename pattern.
+    if run_number_int is None:
+        fname = meta.get("InputFileName") or meta.get("OutputFileName")
+        if isinstance(fname, np.generic):
+            fname = fname.item()
+        if fname:
+            try:
+                # Work with just the basename, e.g. "coinc_detector_..._000041.root"
+                base = str(Path(fname).name)
+                # Look for the last run of digits before ".root"
+                m = re.search(r"(\d+)\.root$", base)
+                if m:
+                    run_number_str = m.group(1)
+                    try:
+                        run_number_int = int(run_number_str)
+                    except Exception:
+                        # Keep the string even if int conversion fails
+                        pass
+            except Exception:
+                pass
+
+    # If we found something, store it as attributes.
+    if run_number_int is not None:
+        meta_root.attrs["RunNumber"] = int(run_number_int)
+    if run_number_str is not None:
+        meta_root.attrs["RunNumber_str"] = str(run_number_str)
+
+    
+    
     # ---- Detector table ----
     num_det = int(meta.get("NumDet", 0) or 0)
     if num_det <= 0:

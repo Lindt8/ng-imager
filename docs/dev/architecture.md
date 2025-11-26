@@ -1573,7 +1573,7 @@ The Compton (gamma) path is **fully wired and validated** against the legacy NOV
 - [ ] **CLI wrappers / nicer entry points**: expose a user-friendly `ngimager` console script (e.g. `ngimager run config.toml`).
 - [ ] Wrap PNG export in a clean CLI function that calls `vis.hdf.save_summed_png` driven by `[vis]`, and optionally writes PNGs for all available summed images (n, g, all).
 - [ ] Support imaging-only reruns from existing cones (ngimager HDF5 input) to generate list-mode per-cone images from previously non-list-mode outputs.
-- [ ] For the ROOT adapter, implement propagation of metadata, including run number, into the HDF5 output (`/lm/event_meta_run_id`).
+- [x] For the ROOT adapter, implement propagation of metadata, including run number, into the HDF5 output (`/lm/event_meta_run_id`).
 
 ### 16.9. Documentation and Example Configs
 
