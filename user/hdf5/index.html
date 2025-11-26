@@ -1048,7 +1048,11 @@ makes it easy to map:</p>
 </blockquote>
 <h3 id="per-cone-pixel-indices">Per-cone pixel indices<a class="headerlink" href="#per-cone-pixel-indices" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>/lm/cone_pixel_indices</code> : <code>[K, 2]</code> uint32</li>
+<li><code>/lm/cone_pixel_indices</code> : <code>[K, 2]</code> uint32<ul>
+<li>Canonical location: each row is <code>(cone_id, flat_pixel_index)</code>.</li>
+</ul>
+</li>
+<li><code>/images/list_mode/cone_pixel_indices</code> : alias (HDF5 soft link) to <code>/lm/cone_pixel_indices</code></li>
 </ul>
 <p>Each row is:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>(cone_id, flat_pixel_index)
