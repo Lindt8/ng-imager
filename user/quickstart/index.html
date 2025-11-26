@@ -503,6 +503,56 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#7-inspect-a-single-cone-ng-inspect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Inspect a single cone (ng-inspect)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Inspect a single cone (ng-inspect)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Basic usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-selecting-a-cone-by-event-or-imaged-cone-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Selecting a cone by event or “imaged cone” index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-plotting-the-per-cone-footprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Plotting the per-cone footprint
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1017,6 +1067,76 @@ without re-running reconstruction.</p>
 </ul>
 <p>For a deeper dive into the design and physics, see
 <a href="../../dev/architecture/"><code>docs/dev/architecture.md</code></a> and the NOVO imaging primer PDF in the repository.</p>
+<hr />
+<h2 id="7-inspect-a-single-cone-ng-inspect">7. Inspect a single cone (<code>ng-inspect</code>)<a class="headerlink" href="#7-inspect-a-single-cone-ng-inspect" title="Permanent link">&para;</a></h2>
+<p>For debugging and educational purposes, <code>ngimager</code> ships with a small
+CLI tool that walks the full chain</p>
+<blockquote>
+<p>cone → (u, v) pixels → hits</p>
+</blockquote>
+<p>for a single cone in an HDF5 output file.</p>
+<p>Once <code>ngimager</code> is installed (editable or normal install), you should
+have the <code>ng-inspect</code> entry point available:</p>
+<div class="highlight"><pre><span></span><code>ng-inspect --help
+</code></pre></div>
+<h3 id="71-basic-usage">7.1 Basic usage<a class="headerlink" href="#71-basic-usage" title="Permanent link">&para;</a></h3>
+<p>The minimal call is:</p>
+<div class="highlight"><pre><span></span><code>ng-inspect path/to/output.h5 --cone-index 42
+</code></pre></div>
+<p>This:</p>
+<ul>
+<li>Reads <code>path/to/output.h5</code>,</li>
+<li>Looks up cone index <code>42</code> under <code>/cones/*</code>,</li>
+<li>Follows <code>/cones/event_index</code> back to the source event in <code>/lm</code>,</li>
+<li>Prints:<ul>
+<li>cone geometry and incident energy,</li>
+<li>species and neutron recoil code,</li>
+<li>(for gamma cones) the stored gamma hit ordering from <code>/cones/gamma_hit_order</code>,</li>
+<li>the 2–3 hits used (from <code>/lm/hit_*</code>),</li>
+<li>and a summary of that cone’s pixel footprint on the imaging plane (if list-mode imaging was enabled).</li>
+</ul>
+</li>
+</ul>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code>ng-inspect results/example_listmode.h5 --cone-index 42
+</code></pre></div>
+<h3 id="72-selecting-a-cone-by-event-or-imaged-cone-index">7.2 Selecting a cone by event or “imaged cone” index<a class="headerlink" href="#72-selecting-a-cone-by-event-or-imaged-cone-index" title="Permanent link">&para;</a></h3>
+<p>Instead of specifying a cone index directly, you can also start from an
+event index or an “imaged cone” index:</p>
+<div class="highlight"><pre><span></span><code># Map an event index → cone index via /lm/event_cone_id
+ng-inspect results/example_listmode.h5 --event-index 10
+
+
+# Use an imaged-cone index (checked against /lm/event_imaged_cone_id
+# when present)
+ng-inspect results/example_listmode.h5 --imaged-cone-index 7
+</code></pre></div>
+<p>Exactly one of <code>--cone-index</code>, <code>--event-index</code>, or <code>--imaged-cone-index</code>
+must be provided.</p>
+<h3 id="73-plotting-the-per-cone-footprint">7.3 Plotting the per-cone footprint<a class="headerlink" href="#73-plotting-the-per-cone-footprint" title="Permanent link">&para;</a></h3>
+<p>With <code>run.list = true</code>, the HDF5 file contains the sparse cone→pixel
+mapping in <code>/lm/cone_pixel_indices</code>. <code>ng-inspect</code> can turn this into a
+simple <code>(v, u)</code> image and show it with Matplotlib:</p>
+<div class="highlight"><pre><span></span><code>ng-inspect results/example_listmode.h5 --cone-index 42 --plot
+</code></pre></div>
+<p>This pops up a small <code>imshow</code> window where:</p>
+<ul>
+<li>the axes are pixel indices <code>(u, v)</code> on the imaging plane, and</li>
+<li>the colorbar shows counts per pixel (multiple entries for the same pixel are summed).</li>
+</ul>
+<p>If list-mode imaging was not enabled for a run (i.e. <code>run.list = false</code>,
+or the file was produced by an earlier pipeline stage that did not yet
+write pixel mappings), <code>ng-inspect</code> will still print the cone and hit
+information, but will report:</p>
+<blockquote>
+<p>list-mode pixel data not available (no /lm/cone_pixel_indices).</p>
+</blockquote>
+<p>and <code>--plot</code> will produce a short message instead of a figure.</p>
+<hr />
+<p>This tool doubles as live documentation: for anyone wanting to explore
+how to walk <code>/cones/event_index</code>, <code>/cones/gamma_hit_order</code>,
+<code>/lm/hit_*</code> and <code>/lm/cone_pixel_indices</code> programmatically, <code>ng-inspect</code>
+shows the full mapping in a concrete, reproducible way.</p>
 
 
 
