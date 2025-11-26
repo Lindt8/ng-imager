@@ -925,26 +925,38 @@ diagnostics.</p>
 <li><code>/cones/axis_xyz</code>            : <code>[N_cones, 3]</code> float32 (unit vectors)</li>
 <li><code>/cones/theta_rad</code>           : <code>[N_cones]</code> float32</li>
 <li><code>/cones/incident_energy_MeV</code> : <code>[N_cones]</code> float32</li>
+<li><code>/cones/event_index</code>         : <code>[N_cones]</code> int32  <ul>
+<li>Row index into <code>/lm/event_type</code> and <code>/lm/hit_*</code> for the event that produced this cone.</li>
+</ul>
+</li>
+<li><code>/cones/gamma_hit_order</code>     : <code>[N_cones, 3]</code> int8  <ul>
+<li>For gamma cones (those with <code>species == 1</code>), each row is a triple <code>(i0, i1, i2)</code> giving the indices into <code>/lm/hit_*[event_index, :, :]</code> that correspond to the (first scatter, second scatter, third point) used to build the Compton cone. For neutron cones (<code>species == 0</code>), the row is <code>(-1, -1, -1)</code> and should be ignored.</li>
+</ul>
+</li>
 </ul>
 <p>Classification:</p>
 <ul>
 <li><code>/cones/species</code>             : <code>[N_cones]</code> uint8</li>
-<li><code>/cones/species_labels</code>      : string array legend,
-                                 typically <code>["0=neutron", "1=gamma"]</code></li>
-<li><code>/cones/recoil_code</code>         : <code>[N_cones]</code> uint8</li>
-<li><code>/cones/recoil_code_labels</code>  : string array legend,
-                                 typically <code>["0=unknown/NA", "1=proton", "2=carbon"]</code></li>
-<li><code>/cones/event_index</code>         : <code>[N_cones]</code> uint32, index into the event arrays
-                                 under <code>/lm</code> (see below).</li>
+<li><code>/cones/species_labels</code>      : string array legend,<ul>
+<li>e.g. <code>["0=neutron", "1=gamma"]</code></li>
 </ul>
-<p>Notes:</p>
+</li>
+<li><code>/cones/recoil_code</code>         : <code>[N_cones]</code> uint8</li>
+<li><code>/cones/recoil_code_labels</code>  : string array legend,<ul>
+<li>e.g. <code>["0=NA/gamma/unknown", "1=proton", "2=carbon"]</code></li>
+</ul>
+</li>
+</ul>
+<p>Interpretation:</p>
 <ul>
-<li><code>incident_energy_MeV</code> is the kinematically inferred incident particle energy
-  for that cone:</li>
+<li><code>species</code> distinguishes neutron and gamma cones.</li>
+<li><code>recoil_code</code> distinguishes proton vs carbon recoils for neutron cones.</li>
+<li><code>incident_energy_MeV</code> is the kinematically inferred incident particle energy for that cone:<ul>
 <li>for neutrons, from ToF + deposited energy at the first scatter;</li>
 <li>for gammas, from Compton kinematics.</li>
-<li><code>species</code> and <code>recoil_code</code> allow you to separate neutron/gamma cones and
-  distinguish proton vs carbon recoils in post-processing.</li>
+</ul>
+</li>
+<li><code>event_index</code> + <code>gamma_hit_order</code> allow you to recover, for each gamma cone, exactly which of the three stored hits in <code>/lm/hit_*</code> were interpreted as first/second/third in the selected Compton ordering.</li>
 </ul>
 <hr />
 <h2 id="lm-events-and-hits">/lm: events and hits<a class="headerlink" href="#lm-events-and-hits" title="Permanent link">&para;</a></h2>
