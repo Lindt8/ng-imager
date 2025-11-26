@@ -39,6 +39,7 @@ DEFAULT_EXCLUDE_EXT = {
 DEFAULT_EXCLUDE_DIRS = {
     ".git", ".hg", ".svn", "__pycache__", ".mypy_cache", ".pytest_cache",
     "build", "dist", ".venv", "venv", ".idea", ".vscode",
+    ".venv-build", ".venv-test", ".venv-user",
     ".ipynb_checkpoints",
 }
 DEFAULT_EXCLUDE_PATTERNS = {
