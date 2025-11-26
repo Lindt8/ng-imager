@@ -370,3 +370,103 @@ The goal is that you can:
 
 For a deeper dive into the design and physics, see
 [`docs/dev/architecture.md`](../dev/architecture.md) and the NOVO imaging primer PDF in the repository.
+
+
+---
+
+## 7. Inspect a single cone (`ng-inspect`)
+
+For debugging and educational purposes, `ngimager` ships with a small
+CLI tool that walks the full chain
+
+> cone → (u, v) pixels → hits
+
+for a single cone in an HDF5 output file.
+
+Once `ngimager` is installed (editable or normal install), you should
+have the `ng-inspect` entry point available:
+
+    
+    ng-inspect --help
+    
+
+### 7.1 Basic usage
+
+The minimal call is:
+
+    
+    ng-inspect path/to/output.h5 --cone-index 42
+    
+
+This:
+
+- Reads `path/to/output.h5`,
+- Looks up cone index `42` under `/cones/*`,
+- Follows `/cones/event_index` back to the source event in `/lm`,
+- Prints:
+    - cone geometry and incident energy,
+    - species and neutron recoil code,
+    - (for gamma cones) the stored gamma hit ordering from `/cones/gamma_hit_order`,
+    - the 2–3 hits used (from `/lm/hit_*`),
+    - and a summary of that cone’s pixel footprint on the imaging plane (if list-mode imaging was enabled).
+
+Example:
+
+    
+    ng-inspect results/example_listmode.h5 --cone-index 42
+    
+
+### 7.2 Selecting a cone by event or “imaged cone” index
+
+Instead of specifying a cone index directly, you can also start from an
+event index or an “imaged cone” index:
+
+    
+    # Map an event index → cone index via /lm/event_cone_id
+    ng-inspect results/example_listmode.h5 --event-index 10
+
+    
+    # Use an imaged-cone index (checked against /lm/event_imaged_cone_id
+    # when present)
+    ng-inspect results/example_listmode.h5 --imaged-cone-index 7
+    
+
+Exactly one of `--cone-index`, `--event-index`, or `--imaged-cone-index`
+must be provided.
+
+### 7.3 Plotting the per-cone footprint
+
+With `run.list = true`, the HDF5 file contains the sparse cone→pixel
+mapping in `/lm/cone_pixel_indices`. `ng-inspect` can turn this into a
+simple `(v, u)` image and show it with Matplotlib:
+
+    
+    ng-inspect results/example_listmode.h5 --cone-index 42 --plot
+    
+
+This pops up a small `imshow` window where:
+
+- the axes are pixel indices `(u, v)` on the imaging plane, and
+- the colorbar shows counts per pixel (multiple entries for the same pixel are summed).
+
+If list-mode imaging was not enabled for a run (i.e. `run.list = false`,
+or the file was produced by an earlier pipeline stage that did not yet
+write pixel mappings), `ng-inspect` will still print the cone and hit
+information, but will report:
+
+> list-mode pixel data not available (no /lm/cone_pixel_indices).
+
+and `--plot` will produce a short message instead of a figure.
+
+---
+
+This tool doubles as live documentation: for anyone wanting to explore
+how to walk `/cones/event_index`, `/cones/gamma_hit_order`,
+`/lm/hit_*` and `/lm/cone_pixel_indices` programmatically, `ng-inspect`
+shows the full mapping in a concrete, reproducible way.
+
+
+
+
+
+

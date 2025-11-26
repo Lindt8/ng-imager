@@ -3,8 +3,8 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ng-imager"
-version = "0.2.0"
+name = "ngimager"
+version = "1.0.0"
 description = "Event-cone imaging (neutron & gamma ray) with fastmode and list-mode pipelines."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -22,19 +22,51 @@ dependencies = [
   "tomli>=2.0; python_version<'3.11'"  # stdlib tomllib on 3.11+
 ]
 
+# Helpful metadata for PyPI
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+]
+
+keywords = [
+  "neutron-imaging",
+  "gamma-imaging",
+  "NOVO",
+  "radiation-detection",
+]
+
 [project.optional-dependencies]
 docs = [
   "mkdocs>=1.6",
   "mkdocs-material[recommended]>=9.5",
   "mkdocstrings[python]>=0.24",
 ]
+dev = [
+  "pytest",
+  "mkdocs>=1.6",
+  "mkdocs-material[recommended]>=9.5",
+  "mkdocstrings[python]>=0.24",
+]
 
 [project.scripts]
+# Main imaging pipeline (Typer app)
+ng-run = "ngimager.pipelines.core:app"
+# Visualization CLI (already present)
 ng-viz = "ngimager.cli.viz:app"
-ng-run  = "ngimager.pipelines.core:app"
+# Cone/event inspection helper
+ng-inspect = "ngimager.tools.inspect_cone:main"
 
 [tool.hatch.build]
 include = [
+  # Ship LUT npz files and LUT-generation tools
   "src/ngimager/data/lut/**/*.npz",
   "src/ngimager/tools/generate_lut/*.py",
   "src/ngimager/tools/generate_lut/README.md",
