@@ -18,6 +18,7 @@ dependencies = [
   "pydantic>=2.6",
   "numba>=0.59",
   "joblib>=1.4",
+  "uproot",
   "tomli>=2.0; python_version<'3.11'"  # stdlib tomllib on 3.11+
 ]
 
