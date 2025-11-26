@@ -456,6 +456,51 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="5. [detectors] – Material Mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-detectorsgeometry-coordinate-transforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1. [detectors.geometry] – Coordinate Transforms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5.1. [detectors.geometry] – Coordinate Transforms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#511-global-detector-frame-world-frame-transform-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.1. Global detector-frame → world-frame transform (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#512-per-detector-transforms-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1.2. Per-detector transforms (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -953,6 +998,48 @@ default_material = &quot;OGS&quot;
 <li><code>default_material</code>: fallback material name for any detector/bar ID not explicitly listed.</li>
 <li><code>material_map</code>: maps integer detector IDs (regions) to material names (strings). These names must match the keys used under <code>[energy].lut_paths</code>.</li>
 </ul>
+<h3 id="51-detectorsgeometry-coordinate-transforms">5.1. <code>[detectors.geometry]</code> – Coordinate Transforms<a class="headerlink" href="#51-detectorsgeometry-coordinate-transforms" title="Permanent link">&para;</a></h3>
+<p>The <code>[detectors.geometry]</code> block describes how detector-frame coordinates (from the adapters) are mapped into the global <strong>world / room / imaging</strong> frame used by the imaging plane.</p>
+<p>There are two layers of transforms:</p>
+<h4 id="511-global-detector-frame-world-frame-transform-optional">5.1.1. Global detector-frame → world-frame transform (optional)<a class="headerlink" href="#511-global-detector-frame-world-frame-transform-optional" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[detectors.geometry.frame]</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">origin_cm</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">rotation_deg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span>
+</code></pre></div>
+<p>This defines a rigid transform</p>
+<div class="highlight"><pre><span></span><code>r_world = R_xyz(rotation_deg) @ r_det + origin_cm
+</code></pre></div>
+<p>where:</p>
+<ul>
+<li>r_det is the detector-frame coordinate of the hit (from the adapter)</li>
+<li><code>origin_cm = [ox, oy, oz]</code> is the detector origin in world coordinates (cm)</li>
+<li><code>rotation_deg = [rx, ry, rz]</code> are Euler angles in degrees, applied in order: Rx(rx) → Ry(ry) → Rz(rz)</li>
+</ul>
+<p>If both origin_cm and rotation_deg are approximately zero, the transform is skipped (identity).</p>
+<h4 id="512-per-detector-transforms-optional">5.1.2. Per-detector transforms (optional)<a class="headerlink" href="#512-per-detector-transforms-optional" title="Permanent link">&para;</a></h4>
+<p>Each entry adjusts hit coordinates for a single detector element (bar,
+tile, module) before the global frame transform is applied.</p>
+<p>[[detectors.geometry.detectors]]
+id           = 0
+origin_cm    = [0.0, 20.0, 0.0]
+rotation_deg = [0.0, 90.0, 0.0]</p>
+<p>Transform order:</p>
+<div class="highlight"><pre><span></span><code>r_det_corrected = R_xyz(rotation_deg) @ r_local + origin_cm
+r_world         = R_xyz(frame.rotation_deg) @ r_det_corrected + frame.origin_cm
+</code></pre></div>
+<p>Where:</p>
+<ul>
+<li>id matches Hit.det_id</li>
+<li>origin_cm and rotation_deg specify a rigid correction for that detector element</li>
+</ul>
+<p>Use cases:</p>
+<ul>
+<li>Correcting misplacements of specific detector bars after data was recorded</li>
+<li>Mapping bar-local coordinates into a detector frame (future extension)</li>
+<li>Re-registering one detector without changing the entire global frame</li>
+</ul>
+<p>If [detectors.geometry] is omitted, all transforms default to identity and
+hit coordinates are used as-is.</p>
 <hr />
 <h2 id="6-plane-imaging-plane-geometry">6. [plane] – Imaging Plane Geometry<a class="headerlink" href="#6-plane-imaging-plane-geometry" title="Permanent link">&para;</a></h2>
 <p>The imaging plane is specified in world coordinates:</p>
@@ -1215,29 +1302,29 @@ extra_formats          = []
 <p>The older <code>summed_dataset</code> field is kept for backward compatibility with earlier versions and with the <code>ng-viz h5-to-png</code> command. For standard summed images you usually do not need to set it.</p>
 <h3 id="111-visprojections">11.1. <code>[vis.projections]</code><a class="headerlink" href="#111-visprojections" title="Permanent link">&para;</a></h3>
 <p>Optional configuration for 1D u/v projections of the summed images.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[vis]</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">export_png_on_write</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">species</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;g&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">center_on_plane_center</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">flip_vertical</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">axis_units</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cm&quot;</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">cmap</span><span class="w">                   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cividis&quot;</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">filename_pattern</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{species}_{stem}.{ext}&quot;</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># extra_formats        = [&quot;pdf&quot;]</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="k">[vis.projections]</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="c1"># Enable computation of 1D u/v projections and include them in the</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># automatic visualizations. When enabled, the pipeline also writes</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1"># the projections into /images/summed/projections in the HDF5 file.</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="c1"># Optional rectangular ROI in imaging-plane coordinates (cm).</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="c1"># When provided, ROI-limited projections are computed by summing only</span>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="c1"># pixels whose centers fall inside this window.</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="n">roi_u_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="n">roi_u_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="n">roi_v_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="n">roi_v_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[vis]</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">export_png_on_write</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">species</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;g&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">center_on_plane_center</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">flip_vertical</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">axis_units</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cm&quot;</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">cmap</span><span class="w">                   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cividis&quot;</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">filename_pattern</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{species}_{stem}.{ext}&quot;</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># extra_formats        = [&quot;pdf&quot;]</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="k">[vis.projections]</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Enable computation of 1D u/v projections and include them in the</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># automatic visualizations. When enabled, the pipeline also writes</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="c1"># the projections into /images/summed/projections in the HDF5 file.</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="c1"># Optional rectangular ROI in imaging-plane coordinates (cm).</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="c1"># When provided, ROI-limited projections are computed by summing only</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="c1"># pixels whose centers fall inside this window.</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="n">roi_u_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="n">roi_u_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="n">roi_v_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="n">roi_v_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
 </code></pre></div>
 <hr />
 <h2 id="12-putting-it-together">12. Putting It Together<a class="headerlink" href="#12-putting-it-together" title="Permanent link">&para;</a></h2>
