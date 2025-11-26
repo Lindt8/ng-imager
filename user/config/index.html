@@ -601,6 +601,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="8. [energy] – Energy Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-built-in-lut-defaults-m600-and-ogs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Built-in LUT defaults (M600 and OGS)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1255,6 +1272,32 @@ force_proton_recoils = false
 <li><code>"Edep"</code> – Use deposited energy directly from the adapter (<code>Hit.L</code> in MeV).</li>
 </ul>
 <p>For neutron cone building, the kinematics are always routed through <code>neutron_theta_from_hits</code>, with the energy strategy providing the first-scatter deposited energy.</p>
+<h3 id="81-built-in-lut-defaults-m600-and-ogs">8.1 Built-in LUT defaults (M600 and OGS)<a class="headerlink" href="#81-built-in-lut-defaults-m600-and-ogs" title="Permanent link">&para;</a></h3>
+<p>The <code>ngimager</code> package ships inversion LUTs for the two standard NOVO
+scintillators, <strong>M600</strong> and <strong>OGS</strong>. These are installed as part of the
+package under <code>ngimager/data/lut/...</code> and are intended to be used as
+sensible defaults for most runs.</p>
+<p>When <code>strategy = "ELUT"</code>:</p>
+<ul>
+<li>You may <strong>omit</strong> <code>[energy.lut_paths.M600]</code> and <code>[energy.lut_paths.OGS]</code> entirely; in that case, the packaged LUTs are used automatically for both <strong>proton</strong> and <strong>carbon</strong> recoils.</li>
+<li>If you <strong>do</strong> specify <code>[energy.lut_paths]</code> entries:<ul>
+<li>If the path exists on disk, it is loaded and used as an override.</li>
+<li>If the path does <strong>not</strong> exist, but a built-in LUT is available for the same <code>(material, species)</code> pair (M600/OGS proton or carbon), the built-in LUT is used as a fallback instead of failing.</li>
+<li>For any other material (e.g. a new scintillator that is <em>not</em> shipped with the package), a missing file path is treated as an error.</li>
+</ul>
+</li>
+</ul>
+<p>This means that a minimal ELUT configuration for standard NOVO runs can
+be as simple as:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[energy]</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ELUT&quot;</span>
+</code></pre></div>
+<p>and <code>ngimager</code> will automatically use its packaged M600/OGS proton and carbon LUTs according to your <code>[detectors].material_map</code>.</p>
+<p>You only need to touch [energy.lut_paths.*] if you want to:</p>
+<ul>
+<li>override the default LUTs with custom ones, or</li>
+<li>add LUTs for new materials not shipped with the package.</li>
+</ul>
 <hr />
 <h2 id="9-prior-spatial-priors">9. [prior] – Spatial Priors<a class="headerlink" href="#9-prior-spatial-priors" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>[prior]
@@ -1350,29 +1393,29 @@ extra_formats          = []
 <p>The older <code>summed_dataset</code> field is kept for backward compatibility with earlier versions and with the <code>ng-viz h5-to-png</code> command. For standard summed images you usually do not need to set it.</p>
 <h3 id="111-visprojections">11.1. <code>[vis.projections]</code><a class="headerlink" href="#111-visprojections" title="Permanent link">&para;</a></h3>
 <p>Optional configuration for 1D u/v projections of the summed images.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[vis]</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">export_png_on_write</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">species</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;g&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">center_on_plane_center</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">flip_vertical</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">axis_units</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cm&quot;</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">cmap</span><span class="w">                   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cividis&quot;</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">filename_pattern</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{species}_{stem}.{ext}&quot;</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># extra_formats        = [&quot;pdf&quot;]</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="k">[vis.projections]</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Enable computation of 1D u/v projections and include them in the</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># automatic visualizations. When enabled, the pipeline also writes</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="c1"># the projections into /images/summed/projections in the HDF5 file.</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="c1"># Optional rectangular ROI in imaging-plane coordinates (cm).</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="c1"># When provided, ROI-limited projections are computed by summing only</span>
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="c1"># pixels whose centers fall inside this window.</span>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="n">roi_u_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="n">roi_u_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
-<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="n">roi_v_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
-<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="n">roi_v_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[vis]</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">export_png_on_write</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">species</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;g&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">center_on_plane_center</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">flip_vertical</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">axis_units</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cm&quot;</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">cmap</span><span class="w">                   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cividis&quot;</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">filename_pattern</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{species}_{stem}.{ext}&quot;</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># extra_formats        = [&quot;pdf&quot;]</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="k">[vis.projections]</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="c1"># Enable computation of 1D u/v projections and include them in the</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># automatic visualizations. When enabled, the pipeline also writes</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="c1"># the projections into /images/summed/projections in the HDF5 file.</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="c1"># Optional rectangular ROI in imaging-plane coordinates (cm).</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="c1"># When provided, ROI-limited projections are computed by summing only</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="c1"># pixels whose centers fall inside this window.</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="n">roi_u_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="n">roi_u_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="n">roi_v_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="n">roi_v_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
 </code></pre></div>
 <hr />
 <h2 id="12-putting-it-together">12. Putting It Together<a class="headerlink" href="#12-putting-it-together" title="Permanent link">&para;</a></h2>
