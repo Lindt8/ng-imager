@@ -108,6 +108,46 @@ def _ellipse_from_Q(Q: np.ndarray):
     R = evecs  # columns are principal directions
     return uv0, a, b, R
 
+# JIT-accelerated ellipse perimeter sampler (for "poly" engine)
+if nb is not None:
+    @nb.njit(cache=True)
+    def _ellipse_poly_numba(a, b, R, uv0, n):
+        """
+        Numba version of _ellipse_poly.
+
+        Parameters
+        ----------
+        a, b : float
+            Semi-axis lengths of the ellipse.
+        R : 2x2 array
+            Columns are principal directions in (u,v).
+        uv0 : length-2 array
+            Center of the ellipse in (u,v).
+        n : int
+            Number of perimeter samples.
+
+        Returns
+        -------
+        pts : (n,2) float64 array
+            (u,v) coordinates of sampled perimeter points.
+        """
+        pts = np.empty((n, 2), np.float64)
+        two_pi = 2.0 * np.pi
+        for i in range(n):
+            t = two_pi * i / n
+            ct = np.cos(t)
+            st = np.sin(t)
+            x = a * ct
+            y = b * st
+            # R is 2x2, columns are principal directions
+            u = R[0, 0] * x + R[0, 1] * y
+            v = R[1, 0] * x + R[1, 1] * y
+            pts[i, 0] = u + uv0[0]
+            pts[i, 1] = v + uv0[1]
+        return pts
+else:
+    _ellipse_poly_numba = None
+
 
 def _ellipse_poly(uv0, a, b, R, n: int = 360) -> np.ndarray:
     t = np.linspace(0, 2 * np.pi, n, endpoint=False)
@@ -493,8 +533,10 @@ def cone_to_indices(
         general ray sampling for non-elliptic conics.
 
     use_jit:
-        When True and numba is available, the "scan" engine uses a JIT-
-        compiled inner loop; otherwise the pure-Python scan is used.
+        When True and numba is available:
+          - "scan" engine uses a JIT-compiled inner loop.
+          - "poly" engine uses a JIT-compiled perimeter sampler.
+        Otherwise, pure-Python paths are used.
     """
     M = _cone_matrix(c.dir, c.theta)
     Q = _conic_Q(M, c.apex, plane)
@@ -510,8 +552,17 @@ def cone_to_indices(
     if el is None:
         # Fallback: general ray sampling around the cone axis
         return _ray_sample_indices(c.apex, c.dir, c.theta, plane, n_phi=720)
+    
     uv0, a, b, R = el
-    pts = _ellipse_poly(uv0, a, b, R, n=n_poly)
+
+    if use_jit and _ellipse_poly_numba is not None:
+        # Ensure types are friendly to numba
+        uv0_arr = np.asarray(uv0, dtype=np.float64)
+        R_arr = np.asarray(R, dtype=np.float64)
+        pts = _ellipse_poly_numba(float(a), float(b), R_arr, uv0_arr, int(n_poly))
+    else:
+        pts = _ellipse_poly(uv0, a, b, R, n=n_poly)
+    
     return _pixels_from_poly(pts, plane)
 
 
