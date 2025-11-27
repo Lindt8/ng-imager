@@ -239,7 +239,7 @@ If a rectangular ROI is configured, additional groups exist:
     /images/summed/projections/{species}/metrics/v_roi
 
 Each of these groups contains scalar (0D) datasets describing the
-corresponding 1D projection curve.
+corresponding 1D projection curve. 
 
 #### Summary statistics (`compute_summary = true`)
 
