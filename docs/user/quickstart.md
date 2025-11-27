@@ -45,9 +45,25 @@ For now, installation is done from a local clone (editable install).
 
 ## 1. Install ngimager (development)
 
-### From PyPI via `pip` (not yet distributed)
+### From PyPI via `pip` (recommended)
 
 
+```bash
+pip install ngimager
+```
+
+This will provide:
+
+- the `ngimager` Python package, and
+- the CLI tools: `ng-run`, `ng-viz`, and `ng-inspect`.
+
+You can check that the package and CLI are available:
+
+```bash
+python -c "import ngimager; print(ngimager.__file__)"
+ng-run --help
+ng-viz --help
+```
 
 ### From source
 

@@ -26,13 +26,40 @@ and provides:
 
       import ngimager
 
-- **Planned PyPI package**: `ngimager`  
-  (Eventually installable via `pip install ngimager`.)
+- **PyPI package**: `ngimager`  
+  Installable with:
+
+      pip install ngimager
 
 Throughout the docs:
 
 - “**ng-imager**” refers to the project as a whole.
 - “`ngimager`” refers to the Python package and APIs.
+
+---
+
+## Installation
+
+For most users, the easiest way to get started is to install from PyPI:
+
+```bash
+pip install ngimager
+```
+
+This will provide:
+
+- the `ngimager` Python package, and
+- the CLI tools: `ng-run`, `ng-viz`, and `ng-inspect`.
+
+You can check that the package and CLI are available:
+
+```bash
+python -c "import ngimager; print(ngimager.__file__)"
+ng-run --help
+ng-viz --help
+```
+
+For development (editable install from a clone), see the README on GitHub.
 
 ---
 
@@ -42,7 +69,8 @@ At a high level, the ng-imager pipeline:
 
 1. **Reads raw data** via an adapter
    - PHITS usrdef text tallies
-   - (Planned / developing) ROOT data, ng-imager HDF5 restarts
+   - Experimental ROOT data (NOVO DDAQ)
+   - (Planned / developing) ng-imager HDF5 restarts
 
 2. **Builds hits and typed events**
    - Hit-level filters remove obviously unphysical or irrelevant hits.

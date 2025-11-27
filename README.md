@@ -2,7 +2,7 @@
 [![CI](https://github.com/Lindt8/ng-imager/actions/workflows/ci.yml/badge.svg)](https://github.com/Lindt8/ng-imager/actions/workflows/ci.yml)
 [![Docs](https://github.com/Lindt8/ng-imager/actions/workflows/docs.yml/badge.svg)](https://Lindt8.github.io/ng-imager/)
 [![GitHub Pages](https://img.shields.io/badge/docs-online-brightgreen?style=flat&logo=readthedocs)](https://Lindt8.github.io/ng-imager/)
-<!-- [![PyPI](https://img.shields.io/pypi/v/ng-imager.svg)](https://pypi.org/project/ng-imager/) /-->
+[![PyPI](https://img.shields.io/pypi/v/ngimager.svg)](https://pypi.org/project/ngimager/)
 
 **ng-imager** is a modular Python toolkit for imaging **neutrons** and **gamma rays** in the NOVO detector system.
 
@@ -24,7 +24,7 @@ and is designed to replace a monolithic legacy script with:
 
 - **Repository name**: `ng-imager`  
 - **Python package (import name)**: `ngimager`  
-- **Planned PyPI package**: `ngimager`
+- **PyPI package**: `ngimager`
 
 After installing from source, you import the package as:
 
@@ -32,9 +32,33 @@ After installing from source, you import the package as:
 import ngimager
 ```
 
+and use the CLI entry points:
+
+- `ng-run` – main imaging pipeline
+- `ng-viz` – visualization / re-rendering of summed images
+- `ng-inspect` – inspect a single cone and its pixel footprint (optional tool)
+
+
 ---
 
-## Install From Source
+## Install 
+
+### From PyPI (recommended)
+
+```bash
+pip install ngimager
+```
+
+Check that the package and CLI are available:
+
+```bash
+python -c "import ngimager; print(ngimager.__file__)"
+ng-run --help
+ng-viz --help
+
+```
+
+### From Source (development install)
 
 ```bash
 git clone https://github.com/Lindt8/ng-imager.git
@@ -64,6 +88,12 @@ The repository includes a simple PHITS usrdef example:
 Run the unified pipeline with:
 
 ```bash
+ng-run examples/configs/phits_usrdef_simple.toml
+```
+
+or equivalently:
+
+```bash
 python -m ngimager.pipelines.core examples/configs/phits_usrdef_simple.toml
 ```
 
@@ -82,6 +112,13 @@ This will:
    - `/lm/...` with per-event and per-hit physics and optional list-mode cone pixel indices  
    - `/meta/counters/...` summarizing all filters and pipeline stages  
    - A snapshot of the TOML config used for the run  
+
+You can then use ng-viz to re-render images from that HDF5 file:
+
+```bash
+ng-viz summed results/example.h5
+```
+
 
 ---
 

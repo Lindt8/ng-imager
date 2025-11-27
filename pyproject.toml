@@ -68,6 +68,17 @@ ng-viz = "ngimager.cli.viz:app"
 ng-inspect = "ngimager.tools.inspect_cone:main"
 
 [tool.hatch.build]
+# Only include the actual package, its data, and top-level metadata.
+include = [
+  "src/ngimager/**",
+  "README.md",
+  "LICENSE",
+  "pyproject.toml",
+  "docs/**", 
+  "examples/configs/**",
+  "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out",
+  "examples/imaging_datasets/PHITS_simple_ng_source/README.md",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ngimager"]
