@@ -31,6 +31,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable, Sequence, Literal, Optional, Dict
 import typer
+import sys
 
 import numpy as np
 
@@ -478,7 +479,8 @@ def run_pipeline(
     # HDF5 output
     out_path = Path(cfg.io.output_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    f = write_init(str(out_path), cfg_path, cfg, plane)
+    cli_argv = sys.argv
+    f = write_init(str(out_path), cfg_path, cfg, plane, cli_argv=cli_argv)
     
     
     # If this is a NOVO DDAQ ROOT run, try to capture the 'meta' TTree.
@@ -1011,7 +1013,7 @@ def run_pipeline(
     
     f.close()
 
-    # Optional image export
+    # ---- Stage 5: Visualization (optional) ----
     if getattr(cfg, "vis", None) and getattr(cfg.vis, "export_png_on_write", False):
         try:
             # Species to render (n/g/all)

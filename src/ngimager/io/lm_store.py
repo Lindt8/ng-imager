@@ -1,12 +1,13 @@
 from __future__ import annotations
-from typing import Any, Dict, Iterable, List, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Sequence, Tuple, Mapping
 import h5py
 import numpy as np
 import re
+import shlex
 from datetime import datetime, timezone
 from pathlib import Path
 from ngimager.config.schemas import Config
-from ngimager.config.load import snapshot_config_toml
+from ngimager.config.load import snapshot_config_toml, json_dumps
 from ngimager.geometry.plane import Plane
 from ngimager.physics.events import NeutronEvent, GammaEvent
 
@@ -75,14 +76,62 @@ def _detect_software_tag() -> str:
 
     return default
 
-SOFTWARE_ATTR = _detect_software_tag()
 
-def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File:
+
+
+def _flatten_config_to_rows(cfg: Config) -> List[Tuple[str, str, str]]:
+    """
+    Flatten the effective Config object into a list of (key, type_name, value_str) rows.
+
+    - key: dotted path, e.g. "run.fast", "io.input.path", "run.meta.beam".
+    - type_name: Python type name, e.g. "bool", "int", "str", "list".
+    - value_str: JSON-encoded representation when possible; falls back to repr().
+    """
+    raw = cfg.model_dump()
+    rows: List[Tuple[str, str, str]] = []
+
+    def _recurse(prefix: str, value: object) -> None:
+        if isinstance(value, Mapping):
+            for k, v in value.items():
+                key = f"{prefix}.{k}" if prefix else str(k)
+                _recurse(key, v)
+        else:
+            key = prefix or "value"
+            type_name = type(value).__name__
+            try:
+                value_str = json_dumps(value)
+            except Exception:
+                value_str = repr(value)
+            rows.append((key, type_name, value_str))
+
+    _recurse("", raw)
+    return rows
+
+
+
+
+def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane, cli_argv: Optional[Sequence[str]] = None) -> h5py.File:
     f = h5py.File(path, "w")
     # Root attrs
     f.attrs["format_version"] = FORMAT_VERSION
     f.attrs["created_utc"] = datetime.now(timezone.utc).isoformat()
-    f.attrs["software"] = SOFTWARE_ATTR
+    f.attrs["software"] = _detect_software_tag()
+
+    # Optionally store the command/argv used to launch this run.
+    if cli_argv:
+        try:
+            cmd_str = " ".join(shlex.quote(str(a)) for a in cli_argv)
+        except Exception:
+            # Fallback: no quoting, just join.
+            cmd_str = " ".join(str(a) for a in cli_argv)
+        f.attrs["run_command"] = cmd_str
+        # Machine-friendly argv snapshot as JSON (optional, but handy).
+        try:
+            f.attrs["run_command_argv_json"] = json_dumps(list(cli_argv))
+        except Exception:
+            # If json_dumps fails for some exotic type, just skip this attribute.
+            pass
+    
     f.attrs["config_text"] = snapshot_config_toml(cfg_path)
     f.attrs["readme"] = (
         "HDF5 output produced by ng-imager. "
@@ -132,6 +181,21 @@ def write_init(path: str, cfg_path: str, cfg: Config, plane: Plane) -> h5py.File
                 ds_name,
                 data=np.array(str(value), dtype=str_dt),
             )
+            
+    # Structured snapshot of the effective configuration used for this run.
+    # This mirrors cfg.model_dump() as a flat table for easy programmatic access.
+    cfg_eff_grp = meta.require_group("config_effective")
+    for name in list(cfg_eff_grp.keys()):
+        del cfg_eff_grp[name]
+
+    rows = _flatten_config_to_rows(cfg)
+    if rows:
+        keys, types, values = zip(*rows)
+        str_dt = h5py.string_dtype(encoding="utf-8")
+        cfg_eff_grp.create_dataset("keys", data=np.asarray(keys, dtype=str_dt))
+        cfg_eff_grp.create_dataset("types", data=np.asarray(types, dtype=str_dt))
+        cfg_eff_grp.create_dataset("values", data=np.asarray(values, dtype=str_dt))
+
     
     # Human-readable overview of this HDF5 layout
     readme_text = """

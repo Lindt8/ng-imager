@@ -16,15 +16,17 @@ This page documents the current layout.
 At the top level, the file contains:
 
 - attributes:
-  - `format_version`
-  - `created_utc`
-  - `software`
-  - `config_text` (legacy snapshot, kept for compatibility)
+    - `format_version` (str): ng-imager HDF5 schema version.
+    - `created_utc` (str): ISO-8601 timestamp of file creation.
+    - `software` (str): software tag, e.g. `"ng-imager 0.3.1"`, derived from the installed package metadata.
+    - `run_command` (str, optional): shell-style command string used to launch the run, e.g. `python -m ngimager.pipelines.core examples/configs/foo.toml --fast`.
+    - `run_command_argv_json` (str, optional): JSON-encoded `argv` list corresponding to `run_command`, e.g. `["python","-m","ngimager.pipelines.core","examples/configs/foo.toml","--fast"]`.
+    - `config_text` (str): verbatim TOML config snapshot as used.
 - groups:
-  - `/meta`
-  - `/images`
-  - `/cones`
-  - `/lm` (list-mode and event/hit info; always present, richer in list mode)
+    - `/meta`
+    - `/images`
+    - `/cones`
+    - `/lm` (list-mode and event/hit info; always present, richer in list mode)
 
 ---
 
@@ -60,6 +62,23 @@ Datasets:
   stored as a single variable-length UTF-8 string.
 - `/meta/readme` — a short README (array of strings) summarizing the layout and
   pointing to the online documentation. (You are here, welcome.)
+
+#### `/meta/config_effective`
+
+A structured snapshot of the effective configuration used for the run,
+including any CLI overrides that were applied on top of the TOML file.
+
+It is represented as three parallel 1D datasets:
+
+- `/meta/config_effective/keys`   (str[N]) – dotted field paths such as
+  `"run.fast"`, `"run.list"`, `"io.input.path"`, `"run.meta.beam"`.
+- `/meta/config_effective/types`  (str[N]) – Python type names for each entry,
+  e.g. `"bool"`, `"int"`, `"float"`, `"str"`, `"list"`, etc.
+- `/meta/config_effective/values` (str[N]) – JSON-encoded representation of the value when possible (e.g. `true`, `"foo"`, `["a","b"]`), otherwise a stringified `repr(...)` of the value.
+
+This table mirrors `cfg.model_dump()` at the time of writing the HDF5 file and therefore reflects the actual settings used, not just the raw TOML contents.
+
+
 
 ### Extra text metadata 
 
@@ -109,10 +128,10 @@ example, with:
 the HDF5 file will contain:
 
 - group `/meta/run_meta` with attributes:
-  - `beam      = "175 MeV proton"`
-  - `target    = "Geometry B"`
-  - `det_setup = "Arrangement 3"`
-  - `facility  = "PTB"`
+    - `beam      = "175 MeV proton"`
+    - `target    = "Geometry B"`
+    - `det_setup = "Arrangement 3"`
+    - `facility  = "PTB"`
 
 If `[run].plot_label` is set, its value is also stored as the
 `plot_label` attribute on `/meta/run_meta`. Visualization tools
