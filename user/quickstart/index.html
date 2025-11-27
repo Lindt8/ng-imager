@@ -409,6 +409,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#22-path-resolution-config-vs-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Path resolution: config vs CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -927,6 +938,32 @@ and OGS (proton and carbon) will be used automatically according to
 your <code>[detectors].material_map</code>.</p>
 <p>You only need to define <code>[energy.lut_paths.*]</code> if you want to override
 these defaults or add LUTs for new materials.</p>
+<h3 id="22-path-resolution-config-vs-cli">2.2 Path resolution: config vs CLI<a class="headerlink" href="#22-path-resolution-config-vs-cli" title="Permanent link">&para;</a></h3>
+<p>Paths defined inside the TOML config under <code>[io]</code> are interpreted
+<strong>relative to the config file’s location</strong>. This includes:</p>
+<ul>
+<li><code>[io].input_path</code></li>
+<li><code>[io].output_path</code></li>
+<li><code>[io].restart_path</code> (future)</li>
+<li><code>[io.extra_text_files]</code> values</li>
+</ul>
+<p>For example, if your config lives at:</p>
+<div class="highlight"><pre><span></span><code>configs/my_config.toml
+</code></pre></div>
+<p>and you write:</p>
+<div class="highlight"><pre><span></span><code>[io]
+input_path  = &quot;../data/usrdef.out&quot;
+output_path = &quot;../results/example.h5&quot;
+</code></pre></div>
+<p>then both paths are resolved relative to <code>configs/</code>, no matter where
+you run <code>ng-run</code> from.</p>
+<p>By contrast, any CLI overrides such as:</p>
+<div class="highlight"><pre><span></span><code>ng-run configs/my_config.toml \
+  --input-path ./override_input.out \
+  --output-path ./override_output.h5
+</code></pre></div>
+<p>treat <code>./override_input.out</code> and <code>./override_output.h5</code> as paths
+relative to your current shell working directory.</p>
 <hr />
 <h2 id="3-run-the-pipeline">3. Run the pipeline<a class="headerlink" href="#3-run-the-pipeline" title="Permanent link">&para;</a></h2>
 <h3 id="31-recommended-via-cli-ng-run">3.1 Recommended: via CLI (<code>ng-run</code>)<a class="headerlink" href="#31-recommended-via-cli-ng-run" title="Permanent link">&para;</a></h3>

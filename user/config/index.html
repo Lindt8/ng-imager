@@ -427,6 +427,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#401-path-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.0.1 Path resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#41-ioadapter-phits-usrdef-adapter" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1003,6 +1014,26 @@ output_path  = &quot;examples/imaging_datasets/PHITS_simple_ng_source/usrdef_out
 # file already exists.
 hdf5_overwrite = true
 </code></pre></div>
+<h3 id="401-path-resolution">4.0.1 Path resolution<a class="headerlink" href="#401-path-resolution" title="Permanent link">&para;</a></h3>
+<p>All paths defined inside the <code>[io]</code> table are interpreted <strong>relative to the location of the TOML config file</strong>, unless they are absolute paths.</p>
+<p>In particular:</p>
+<ul>
+<li><code>[io].input_path</code></li>
+<li><code>[io].output_path</code></li>
+<li><code>[io].restart_path</code> (future use)</li>
+<li>values under <code>[io.extra_text_files]</code></li>
+</ul>
+<p>are resolved relative to the directory that contains the config file.</p>
+<p>By contrast, any <strong>CLI overrides</strong> passed to <code>ng-run</code>, such as:</p>
+<ul>
+<li><code>--input-path PATH</code></li>
+<li><code>--output-path PATH</code></li>
+</ul>
+<p>are interpreted relative to the <strong>current working directory</strong> where you
+invoke the command.</p>
+<p>This means a config file can be moved or checked into version control and
+its internal paths remain valid, while ad-hoc CLI overrides behave like
+normal shell paths.</p>
 <h3 id="41-ioadapter-phits-usrdef-adapter">4.1. [io.adapter] – PHITS usrdef Adapter<a class="headerlink" href="#41-ioadapter-phits-usrdef-adapter" title="Permanent link">&para;</a></h3>
 <p>For the PHITS user-defined tally case:</p>
 <div class="highlight"><pre><span></span><code>[io.adapter]
