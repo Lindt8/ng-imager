@@ -206,6 +206,40 @@ your `[detectors].material_map`.
 You only need to define `[energy.lut_paths.*]` if you want to override
 these defaults or add LUTs for new materials.
 
+### 2.2 Path resolution: config vs CLI
+
+Paths defined inside the TOML config under `[io]` are interpreted
+**relative to the config file’s location**. This includes:
+
+- `[io].input_path`
+- `[io].output_path`
+- `[io].restart_path` (future)
+- `[io.extra_text_files]` values
+
+For example, if your config lives at:
+
+    configs/my_config.toml
+
+and you write:
+
+    [io]
+    input_path  = "../data/usrdef.out"
+    output_path = "../results/example.h5"
+
+then both paths are resolved relative to `configs/`, no matter where
+you run `ng-run` from.
+
+By contrast, any CLI overrides such as:
+
+    ng-run configs/my_config.toml \
+      --input-path ./override_input.out \
+      --output-path ./override_output.h5
+
+treat `./override_input.out` and `./override_output.h5` as paths
+relative to your current shell working directory.
+
+
+
 ---
 
 ## 3. Run the pipeline

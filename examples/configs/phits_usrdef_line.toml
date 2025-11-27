@@ -48,8 +48,8 @@ until = "image"
 [io]
 # Input PHITS usrdef tally and output HDF5 path
 input_format = "phits_usrdef"       # phits_usrdef | root_novo_ddaq | hdf5_ngimager
-input_path  = "examples/imaging_datasets/PHITS_toy_line_source/usrdef.out"
-output_path = "examples/imaging_datasets/PHITS_toy_line_source/usrdef_out.h5"
+input_path  = "../imaging_datasets/PHITS_toy_line_source/usrdef.out"
+output_path = "../imaging_datasets/PHITS_toy_line_source/usrdef_out.h5"
 hdf5_overwrite = true 
 
 [io.adapter]

@@ -154,6 +154,32 @@ At the moment, most runs use `until = "image"`. Future work will make it easy to
     # file already exists.
     hdf5_overwrite = true
 
+### 4.0.1 Path resolution
+
+All paths defined inside the `[io]` table are interpreted **relative to the location of the TOML config file**, unless they are absolute paths.
+
+In particular:
+
+- `[io].input_path`
+- `[io].output_path`
+- `[io].restart_path` (future use)
+- values under `[io.extra_text_files]`
+
+are resolved relative to the directory that contains the config file.
+
+By contrast, any **CLI overrides** passed to `ng-run`, such as:
+
+- `--input-path PATH`
+- `--output-path PATH`
+
+are interpreted relative to the **current working directory** where you
+invoke the command.
+
+This means a config file can be moved or checked into version control and
+its internal paths remain valid, while ad-hoc CLI overrides behave like
+normal shell paths.
+
+
 ### 4.1. [io.adapter] – PHITS usrdef Adapter
 
 For the PHITS user-defined tally case:

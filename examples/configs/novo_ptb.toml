@@ -18,7 +18,7 @@ gammas   = true
 
 # Operational toggles (can also be overridden by CLI flags)
 fast = false                   # use more aggressive thresholds / cone caps
-list = true                   # also write list-mode per-cone sparse images
+list = false                   # also write list-mode per-cone sparse images
 
 # Execution / performance
 workers     = 0                # 0 = auto
@@ -57,9 +57,10 @@ until = "image"
 
 [io]
 # Input PHITS usrdef tally and output HDF5 path
+# If paths are relative, they are interpreted relative to the location of this TOML config file.
 input_format = "root_novo_ddaq"       # phits_usrdef | root_novo_ddaq | hdf5_ngimager
-input_path  = "examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041.root"
-output_path = "examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041_out.h5"
+input_path  = "../imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041.root"
+output_path = "../imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041_out.h5"
 hdf5_overwrite = true 
 
 [io.adapter]
