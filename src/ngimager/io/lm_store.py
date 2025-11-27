@@ -403,10 +403,20 @@ def write_projections(
         u_roi  : [nu] float32, ROI-limited u projection (zeros outside ROI)
         v_roi  : [nv] float32, ROI-limited v projection (zeros outside ROI)
 
-        metrics/u/all/*   – scalar metrics for "all" curve along u
-        metrics/u/roi/*   – scalar metrics for ROI curve along u (if ROI defined)
-        metrics/v/all/*   – likewise for v
-        metrics/v/roi/*   – likewise for v-ROI
+    Metrics layout (per species):
+
+        metrics/u      : scalar metrics for the "all" u-projection
+        metrics/v      : scalar metrics for the "all" v-projection
+        metrics/u_roi  : scalar metrics for the ROI u-projection (if ROI defined)
+        metrics/v_roi  : scalar metrics for the ROI v-projection (if ROI defined)
+
+    Each metrics group contains 0D datasets such as:
+
+        total_counts
+        mean_cm, median_cm, std_cm
+        peak_pos_cm, peak_value
+        edge_low_cm, edge_high_cm, edge_width_cm
+        summary_ok, peak_ok, edges_ok
 
     The imaging plane grid (u_min/u_max/v_min/v_max/du/dv) is read from
     /meta.attrs as written by write_init().
@@ -451,42 +461,39 @@ def write_projections(
             proj_u_roi[u_mask] = block.sum(axis=0)
             proj_v_roi[v_mask] = block.sum(axis=1)
 
-            grp.attrs["roi_u_min_cm"] = float(ru_min)
-            grp.attrs["roi_u_max_cm"] = float(ru_max)
-            grp.attrs["roi_v_min_cm"] = float(rv_min)
-            grp.attrs["roi_v_max_cm"] = float(rv_max)
-        else:
-            # No pixels inside ROI – clear any stale ROI attrs
-            for key in ("roi_u_min_cm", "roi_u_max_cm", "roi_v_min_cm", "roi_v_max_cm"):
-                if key in grp.attrs:
-                    del grp.attrs[key]
-    else:
-        # No ROI configured – clear any stale ROI attrs
-        for key in ("roi_u_min_cm", "roi_u_max_cm", "roi_v_min_cm", "roi_v_max_cm"):
-            if key in grp.attrs:
-                del grp.attrs[key]
+        # Store ROI bounds as attributes on the species group
+        grp.attrs["roi_u_min_cm"] = float(ru_min)
+        grp.attrs["roi_u_max_cm"] = float(ru_max)
+        grp.attrs["roi_v_min_cm"] = float(rv_min)
+        grp.attrs["roi_v_max_cm"] = float(rv_max)
 
-    # Write projection datasets (overwrite if present)
-    for name, data in (("u", proj_u), ("v", proj_v)):
+    # Write projections themselves
+    for name, data in (
+        ("u", proj_u),
+        ("v", proj_v),
+    ):
         if name in grp:
             del grp[name]
-        grp.create_dataset(name, data=np.asarray(data, dtype=np.float32), compression="gzip")
+        grp.create_dataset(name, data=data.astype(np.float32), compression="gzip")
 
-    if proj_u_roi is not None and proj_v_roi is not None:
-        for name, data in (("u_roi", proj_u_roi), ("v_roi", proj_v_roi)):
-            if name in grp:
-                del grp[name]
-            grp.create_dataset(name, data=np.asarray(data, dtype=np.float32), compression="gzip")
-    else:
-        # Remove stale ROI datasets if ROI disabled
-        for name in ("u_roi", "v_roi"):
-            if name in grp:
-                del grp[name]
+    if proj_u_roi is not None:
+        if "u_roi" in grp:
+            del grp["u_roi"]
+        grp.create_dataset("u_roi", data=proj_u_roi.astype(np.float32), compression="gzip")
 
-    # ---------------- Metrics (stats) ----------------
+    if proj_v_roi is not None:
+        if "v_roi" in grp:
+            del grp["v_roi"]
+        grp.create_dataset("v_roi", data=proj_v_roi.astype(np.float32), compression="gzip")
+
+    # ------------------------------------------------------------------
+    # Optional metrics
+    # ------------------------------------------------------------------
     if metrics_cfg is None or not metrics_cfg.enabled:
-        # If we previously wrote stats, it's reasonable to leave them;
-        # alternatively, you could clear grp["stats"] here.
+        # No metrics requested; nothing else to do here.
+        # If you want to aggressively clean old metrics, you could:
+        #   del grp["metrics"]
+        # but for now we leave any existing metrics untouched.
         return
 
     metrics = compute_projection_metrics(
@@ -504,30 +511,47 @@ def write_projections(
 
     stats_root = grp.require_group("metrics")
 
-    # u / v axis-level groups, with some attrs
+    # Axis-level groups: "u", "v" for all-pixel metrics; "u_roi", "v_roi" for ROI metrics.
     for axis_name, axis_metrics in metrics.items():
-        axis_grp = stats_root.require_group(axis_name)
-
         axis_cfg: ProjectionAxisMetricsCfg = getattr(metrics_cfg, axis_name)
 
+        # ---- "all" curve → metrics/u or metrics/v ----
+        all_metrics = axis_metrics.get("all")
+        axis_grp = stats_root.require_group(axis_name)
+
+        # Axis-level attrs (apply to both all+ROI for this axis)
         axis_grp.attrs["edge_low_frac"] = float(axis_cfg.edge_low_frac)
         axis_grp.attrs["edge_high_frac"] = float(axis_cfg.edge_high_frac)
         axis_grp.attrs["min_counts"] = float(axis_cfg.min_counts)
 
-        for which_curve, curve_metrics in axis_metrics.items():
-            curve_grp = axis_grp.require_group(which_curve)
+        # Clear any stale datasets in the "all" group
+        for ds_name in list(axis_grp.keys()):
+            del axis_grp[ds_name]
 
-            # Clear any stale datasets
-            for ds_name in list(curve_grp.keys()):
-                del curve_grp[ds_name]
-
-            # Write each scalar metric as a 0D dataset
-            for key, value in curve_metrics.items():
+        if all_metrics:
+            for key, value in all_metrics.items():
                 if value is None:
                     continue
-                if key in curve_grp:
-                    del curve_grp[key]
-                curve_grp.create_dataset(key, data=value)
+                if key in axis_grp:
+                    del axis_grp[key]
+                axis_grp.create_dataset(key, data=value)
+
+        # ---- ROI curve → metrics/u_roi or metrics/v_roi ----
+        roi_metrics = axis_metrics.get("roi")
+        if roi_metrics:
+            roi_group_name = f"{axis_name}_roi"
+            roi_grp = stats_root.require_group(roi_group_name)
+
+            # Clear any stale datasets in the ROI group
+            for ds_name in list(roi_grp.keys()):
+                del roi_grp[ds_name]
+
+            for key, value in roi_metrics.items():
+                if value is None:
+                    continue
+                if key in roi_grp:
+                    del roi_grp[key]
+                roi_grp.create_dataset(key, data=value)
 
 
 

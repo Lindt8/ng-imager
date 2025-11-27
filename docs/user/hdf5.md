@@ -225,75 +225,104 @@ These projections provide a convenient sanity check for the u/v orientation and 
 
 ### `/images/summed/projections/*/metrics` — Projection Statistics and Fitting Results
 
-When `[vis.projections.metrics]` is enabled, ng-imager computes and stores
-per-axis (u, v) metrics for each species (`n`, `g`, `all`).  
+When `[vis.projections.metrics]` is enabled, ng-imager computes and
+stores per-axis (u, v) metrics for each species (`n`, `g`, `all`).
+
 Metrics are written under:
 
-```
-/images/summed/projections/{species}/metrics/u
-/images/summed/projections/{species}/metrics/v
-```
+    /images/summed/projections/{species}/metrics/u
+    /images/summed/projections/{species}/metrics/v
 
-Each axis group contains zero or more of the following datasets,
-depending on enabled options.
+If a rectangular ROI is configured, additional groups exist:
+
+    /images/summed/projections/{species}/metrics/u_roi
+    /images/summed/projections/{species}/metrics/v_roi
+
+Each of these groups contains scalar (0D) datasets describing the
+corresponding 1D projection curve.
 
 #### Summary statistics (`compute_summary = true`)
+
 Scalar datasets:
 
-- `sum_total` (float64)
-- `mean_coord`
-- `median_coord`
-- `std_coord`
-- `max_value`
-- `max_coord`
+- `total_counts` (float64) – sum of all counts in the projection
+- `mean_cm`      (float64) – weighted mean coordinate (cm)
+- `median_cm`    (float64) – median coordinate (cm) from the CDF
+- `std_cm`       (float64) – standard deviation (cm) about the mean
+- `summary_ok`   (bool)    – validity flag (true if enough counts, etc.)
 
-#### Gaussian peak fitting (`compute_peak = true`)
-Stored in the same axis group:
+`summary_ok` is set to `false` and the coordinate-valued metrics are
+set to NaN if the total counts fall below `min_counts`.
 
-- `peak_coord` (float64)
-- `peak_value` (float64)
-- `sigma` (float64)
-- `success` (int8; 1 = fit ok, 0 = failed)
+#### Peak metrics (`compute_peak = true`)
 
-Fit failures are non-fatal; datasets are present but values may be NaN.
+Peak metrics are currently based on the location of the **maximum bin**
+of the projection (no Gaussian fit yet):
+
+- `peak_pos_cm`  (float64) – coordinate of the maximum bin (cm)
+- `peak_value`   (float64) – value of the maximum bin (counts)
+- `peak_ok`      (bool)    – validity flag
 
 #### Fractional edges (`compute_edges = true`)
-Stored alongside summary/peak metrics:
 
-- `edge_low_coord`  (float64)
-- `edge_high_coord` (float64)
-- `edge_low_frac`   (float64, attribute)
-- `edge_high_frac`  (float64, attribute)
+Edges are derived from the normalized cumulative integral of the
+projection, using configuration:
 
-Edges are derived from normalized cumulative integrals of projections.
+- `edge_low_frac`   (float64, attribute on metrics/u and metrics/v)
+- `edge_high_frac`  (float64, attribute on metrics/u and metrics/v)
+- `min_counts`      (float64, attribute)
+
+Scalar datasets in each metrics group:
+
+- `edge_low_cm`    (float64) – coordinate where CDF crosses `edge_low_frac`
+- `edge_high_cm`   (float64) – coordinate where CDF crosses `edge_high_frac`
+- `edge_width_cm`  (float64) – `edge_high_cm - edge_low_cm`
+- `edges_ok`       (bool)    – validity flag
 
 #### ROI metrics
-If an ROI is defined, additional groups exist:
 
-```
-/images/summed/projections/{species}/metrics/u_roi
-/images/summed/projections/{species}/metrics/v_roi
-```
+If an ROI is defined via `[vis.projections]`, the ROI-limited metrics
+are stored under:
 
-These contain the identical dataset names as the non-ROI metrics.
+    /images/summed/projections/{species}/metrics/u_roi
+    /images/summed/projections/{species}/metrics/v_roi
 
-Note: ROI projections use the *full* u/v length; bins outside the ROI are
-zero.
+These groups contain the same dataset names and semantics as the
+non-ROI metrics. ROI projections use the *full* u/v index range; bins
+outside the ROI are zero.
 
 #### 2D centroid (`compute_centroid = true`)
+
 Stored at:
 
-```
-/images/summed/projections/{species}/metrics/centroid
-```
+    /images/summed/projections/{species}/metrics/centroid
 
 Datasets:
 
-- `u_centroid`
-- `v_centroid`
-- `sum_total`
+- `u_centroid`   (float64)
+- `v_centroid`   (float64)
+- `total_counts` (float64)
 
 These describe the centroid of the full 2D reconstructed image.
+
+---
+
+### Additional notes for downstream tools
+
+- Metrics are always **datasets**, not attributes (except the edge
+  configuration, which lives as attributes on `metrics/u` and
+  `metrics/v`).
+- Tools should detect metric availability by checking dataset
+  existence.
+- Coordinate values are stored in **centimeters**, regardless of
+  plot-unit setting.
+- ROI bounds appear as attributes under each species projection group:
+
+    roi_u_min_cm
+    roi_u_max_cm
+    roi_v_min_cm
+    roi_v_max_cm
+
 
 ---
 

@@ -147,19 +147,26 @@ def _get_projection_metrics_axes(
     """
     Locate the metric subgroups for u and v for a given species.
 
-    Expected new layout (per species):
+    Preferred (current) layout per species:
 
-        /images/summed/projections/<species>/metrics/u/all/...
-        /images/summed/projections/<species>/metrics/u/roi/...
-        /images/summed/projections/<species>/metrics/v/all/...
-        /images/summed/projections/<species>/metrics/v/roi/...
+        /images/summed/projections/<species>/metrics/u
+        /images/summed/projections/<species>/metrics/v
+        /images/summed/projections/<species>/metrics/u_roi   (optional)
+        /images/summed/projections/<species>/metrics/v_roi   (optional)
 
-    For backward-compatibility, this also works if metrics are stored
-    directly under 'u' or 'v' without the 'all'/'roi' subgroups.
+    ROI groups, when present, contain the same dataset names as the
+    non-ROI metrics. When both exist and prefer_roi=True, the ROI
+    groups are selected.
 
-    Returns a pair (g_u, g_v), where each is either:
-      - the selected subgroup (typically 'roi' if present, else 'all'), or
-      - the axis group itself in the legacy layout, or
+    For backward-compatibility, this also supports:
+
+      - metrics/u/all, metrics/u/roi, metrics/v/all, metrics/v/roi
+      - metrics stored directly under metrics/u and metrics/v.
+
+    Returns (g_u, g_v), where each is either:
+
+      - the selected group (ROI or all),
+      - the axis group itself (legacy layout), or
       - None if metrics are missing.
     """
     proj_root = summed_grp.get("projections")
@@ -170,33 +177,47 @@ def _get_projection_metrics_axes(
     if sp_root is None or not isinstance(sp_root, h5py.Group):
         return None, None
 
-    metrics_root: Optional[h5py.Group] = None
     g = sp_root.get("metrics")
-    if isinstance(g, h5py.Group):
-        metrics_root = g
-
-    if metrics_root is None:
+    if not isinstance(g, h5py.Group):
         return None, None
+    metrics_root: h5py.Group = g
 
     def pick_axis(axis_name: str) -> Optional[h5py.Group]:
-        g_axis = metrics_root.get(axis_name)
-        if not isinstance(g_axis, h5py.Group):
-            return None
+        # -------- Preferred layout: metrics/u, metrics/u_roi --------
+        g_all = metrics_root.get(axis_name)
+        g_roi = metrics_root.get(f"{axis_name}_roi")
 
-        # New layout: u/all, u/roi (and same for v)
-        has_all = "all" in g_axis
-        has_roi = "roi" in g_axis
+        has_all = isinstance(g_all, h5py.Group)
+        has_roi = isinstance(g_roi, h5py.Group)
 
         if has_all or has_roi:
             if prefer_roi and has_roi:
-                return g_axis["roi"]
+                return g_roi  # type: ignore[return-value]
             if has_all:
-                return g_axis["all"]
-            # Only ROI present
-            return g_axis["roi"]
+                return g_all  # type: ignore[return-value]
+            # Only ROI exists
+            return g_roi  # type: ignore[return-value]
 
-        # Legacy layout: metrics directly under u/v
-        return g_axis
+        # -------- Older layout: metrics/u/all, metrics/u/roi --------
+        g_axis = metrics_root.get(axis_name)
+        if isinstance(g_axis, h5py.Group):
+            g_all_old = g_axis.get("all")
+            g_roi_old = g_axis.get("roi")
+
+            has_all_old = isinstance(g_all_old, h5py.Group)
+            has_roi_old = isinstance(g_roi_old, h5py.Group)
+
+            if has_all_old or has_roi_old:
+                if prefer_roi and has_roi_old:
+                    return g_roi_old  # type: ignore[return-value]
+                if has_all_old:
+                    return g_all_old  # type: ignore[return-value]
+                return g_roi_old  # type: ignore[return-value]
+
+            # Legacy-legacy: metrics directly under u/v
+            return g_axis
+
+        return None
 
     return pick_axis("u"), pick_axis("v")
 

@@ -654,83 +654,98 @@ the *all-pixels* projections and the ROI-limited projections.
 
 These values are written into the HDF5 file under:
 
-```
-/images/summed/projections/{species}/metrics/u/*
-/images/summed/projections/{species}/metrics/v/*
-```
+    /images/summed/projections/{species}/metrics/u
+    /images/summed/projections/{species}/metrics/v
+    /images/summed/projections/{species}/metrics/u_roi   # if ROI enabled
+    /images/summed/projections/{species}/metrics/v_roi   # if ROI enabled
+
+Each of these groups contains scalar (0D) datasets describing the 1D
+projection curves.
 
 Enable metrics via:
 
-```toml
-[vis.projections.metrics]
-enabled = true         # master toggle
+    ```toml
+    [vis.projections.metrics]
+    enabled = true         # master toggle
 
-[vis.projections.metrics.u]
-compute_summary = true
-compute_peak    = true
-compute_edges   = false
-edge_low_frac   = 0.2
-edge_high_frac  = 0.8
-min_counts      = 100.0
+    [vis.projections.metrics.u]
+    compute_summary = true
+    compute_peak    = true
+    compute_edges   = false
+    edge_low_frac   = 0.2
+    edge_high_frac  = 0.8
+    min_counts      = 100.0
 
-[vis.projections.metrics.v]
-compute_summary = true
-compute_peak    = true
-compute_edges   = true
-edge_low_frac   = 0.2
-edge_high_frac  = 0.8
-min_counts      = 100.0
+    [vis.projections.metrics.v]
+    compute_summary = true
+    compute_peak    = true
+    compute_edges   = true
+    edge_low_frac   = 0.2
+    edge_high_frac  = 0.8
+    min_counts      = 100.0
 
-# optional centroid of the full 2D image
-compute_centroid = false
-```
+    # optional centroid of the full 2D image
+    compute_centroid = false
+    ```
 
 #### Summary statistics (`compute_summary`)
-Computed for each 1D projection:
 
-- `sum_total`
-- `mean_coord`
-- `median_coord`
-- `std_coord`
-- `max_value`, `max_coord`
+Computed for each 1D projection (all-pixels and, if present, ROI-limited):
 
-#### Peak fitting (`compute_peak`)
-Finds the peak position by fitting a 1D Gaussian to each projection
-(all-pixels and ROI-limited).
+- `total_counts`  – sum of all counts in the curve
+- `mean_cm`       – weighted mean coordinate (cm)
+- `median_cm`     – median coordinate (cm) from the cumulative distribution
+- `std_cm`        – standard deviation (cm) about the mean
+- `summary_ok`    – boolean flag indicating whether the summary is valid
 
-Saved values:
+Summaries are only marked valid (`summary_ok = true`) when the
+projection has at least `min_counts` total counts; otherwise the
+coordinate-valued metrics are present but set to NaN.
 
-- `peak_coord`
-- `peak_value`
-- `sigma`
-- `success` flag
+#### Peak metrics (`compute_peak`)
 
-Fitting failures are non-fatal; all fields exist but `success=0`.
+Peak metrics are *currently* based on the **maximum bin** of each
+projection (no Gaussian fit yet):
+
+- `peak_pos_cm`   – coordinate of the maximum bin (cm)
+- `peak_value`    – value of the maximum bin (counts)
+- `peak_ok`       – boolean flag indicating validity (enough counts, etc.)
+
+These are only considered valid when the total counts exceed
+`min_counts` and `compute_peak = true`.
 
 #### Fractional edges (`compute_edges`)
-Locates where the normalized cumulative integral crosses the configured
-fractions, e.g.:
 
-```toml
-edge_low_frac  = 0.2
-edge_high_frac = 0.8
-```
+Fractional edges are derived from the normalized cumulative integral of
+the projection:
+
+    edge_low_frac  = 0.2
+    edge_high_frac = 0.8
 
 Saved values:
 
-- `edge_low_coord`
-- `edge_high_coord`
+- `edge_low_cm`    – coordinate (cm) where CDF crosses `edge_low_frac`
+- `edge_high_cm`   – coordinate (cm) where CDF crosses `edge_high_frac`
+- `edge_width_cm`  – `edge_high_cm - edge_low_cm`
+- `edges_ok`       – boolean flag indicating validity
 
-Useful for beam-range imaging.
+The edge configuration is also mirrored as attributes on the
+non-ROI axis groups `metrics/u` and `metrics/v`:
+
+- `edge_low_frac`
+- `edge_high_frac`
+- `min_counts`
 
 #### 2D centroid (`compute_centroid`)
+
 Computes the centroid of the *2D summed image* and writes:
 
-```
-/images/summed/projections/{species}/metrics/centroid/u_centroid
-/images/summed/projections/{species}/metrics/centroid/v_centroid
-/images/summed/projections/{species}/metrics/centroid/sum_total
-```
+    /images/summed/projections/{species}/metrics/centroid/u_centroid
+    /images/summed/projections/{species}/metrics/centroid/v_centroid
+    /images/summed/projections/{species}/metrics/centroid/total_counts
+
+These describe the centroid of the full 2D reconstructed image.
+
 
 ---
 
