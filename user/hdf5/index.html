@@ -435,6 +435,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Config snapshot and README">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metaconfig_effective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /meta/config_effective
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -805,16 +822,22 @@ designed to be:</p>
 <h2 id="top-level-structure">Top-level structure<a class="headerlink" href="#top-level-structure" title="Permanent link">&para;</a></h2>
 <p>At the top level, the file contains:</p>
 <ul>
-<li>attributes:</li>
-<li><code>format_version</code></li>
-<li><code>created_utc</code></li>
-<li><code>software</code></li>
-<li><code>config_text</code> (legacy snapshot, kept for compatibility)</li>
-<li>groups:</li>
+<li>attributes:<ul>
+<li><code>format_version</code> (str): ng-imager HDF5 schema version.</li>
+<li><code>created_utc</code> (str): ISO-8601 timestamp of file creation.</li>
+<li><code>software</code> (str): software tag, e.g. <code>"ng-imager 0.3.1"</code>, derived from the installed package metadata.</li>
+<li><code>run_command</code> (str, optional): shell-style command string used to launch the run, e.g. <code>python -m ngimager.pipelines.core examples/configs/foo.toml --fast</code>.</li>
+<li><code>run_command_argv_json</code> (str, optional): JSON-encoded <code>argv</code> list corresponding to <code>run_command</code>, e.g. <code>["python","-m","ngimager.pipelines.core","examples/configs/foo.toml","--fast"]</code>.</li>
+<li><code>config_text</code> (str): verbatim TOML config snapshot as used.</li>
+</ul>
+</li>
+<li>groups:<ul>
 <li><code>/meta</code></li>
 <li><code>/images</code></li>
 <li><code>/cones</code></li>
 <li><code>/lm</code> (list-mode and event/hit info; always present, richer in list mode)</li>
+</ul>
+</li>
 </ul>
 <hr />
 <h2 id="meta">/meta<a class="headerlink" href="#meta" title="Permanent link">&para;</a></h2>
@@ -849,6 +872,18 @@ designed to be:</p>
 <li><code>/meta/readme</code> — a short README (array of strings) summarizing the layout and
   pointing to the online documentation. (You are here, welcome.)</li>
 </ul>
+<h4 id="metaconfig_effective"><code>/meta/config_effective</code><a class="headerlink" href="#metaconfig_effective" title="Permanent link">&para;</a></h4>
+<p>A structured snapshot of the effective configuration used for the run,
+including any CLI overrides that were applied on top of the TOML file.</p>
+<p>It is represented as three parallel 1D datasets:</p>
+<ul>
+<li><code>/meta/config_effective/keys</code>   (str[N]) – dotted field paths such as
+  <code>"run.fast"</code>, <code>"run.list"</code>, <code>"io.input.path"</code>, <code>"run.meta.beam"</code>.</li>
+<li><code>/meta/config_effective/types</code>  (str[N]) – Python type names for each entry,
+  e.g. <code>"bool"</code>, <code>"int"</code>, <code>"float"</code>, <code>"str"</code>, <code>"list"</code>, etc.</li>
+<li><code>/meta/config_effective/values</code> (str[N]) – JSON-encoded representation of the value when possible (e.g. <code>true</code>, <code>"foo"</code>, <code>["a","b"]</code>), otherwise a stringified <code>repr(...)</code> of the value.</li>
+</ul>
+<p>This table mirrors <code>cfg.model_dump()</code> at the time of writing the HDF5 file and therefore reflects the actual settings used, not just the raw TOML contents.</p>
 <h3 id="extra-text-metadata">Extra text metadata<a class="headerlink" href="#extra-text-metadata" title="Permanent link">&para;</a></h3>
 <p>If <code>[io.extra_text_files]</code> is set in the TOML config, ng-imager will
 embed those files under:</p>
@@ -887,11 +922,13 @@ facility  = &quot;PTB&quot;
 </code></pre></div>
 <p>the HDF5 file will contain:</p>
 <ul>
-<li>group <code>/meta/run_meta</code> with attributes:</li>
+<li>group <code>/meta/run_meta</code> with attributes:<ul>
 <li><code>beam      = "175 MeV proton"</code></li>
 <li><code>target    = "Geometry B"</code></li>
 <li><code>det_setup = "Arrangement 3"</code></li>
 <li><code>facility  = "PTB"</code></li>
+</ul>
+</li>
 </ul>
 <p>If <code>[run].plot_label</code> is set, its value is also stored as the
 <code>plot_label</code> attribute on <code>/meta/run_meta</code>. Visualization tools
