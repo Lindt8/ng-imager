@@ -265,6 +265,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#what-the-pipeline-does" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -622,8 +633,9 @@
 <p>import ngimager</p>
 </li>
 <li>
-<p><strong>Planned PyPI package</strong>: <code>ngimager</code><br />
-  (Eventually installable via <code>pip install ngimager</code>.)</p>
+<p><strong>PyPI package</strong>: <code>ngimager</code><br />
+  Installable with:</p>
+<p>pip install ngimager</p>
 </li>
 </ul>
 <p>Throughout the docs:</p>
@@ -632,13 +644,30 @@
 <li>“<code>ngimager</code>” refers to the Python package and APIs.</li>
 </ul>
 <hr />
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<p>For most users, the easiest way to get started is to install from PyPI:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>ngimager
+</code></pre></div>
+<p>This will provide:</p>
+<ul>
+<li>the <code>ngimager</code> Python package, and</li>
+<li>the CLI tools: <code>ng-run</code>, <code>ng-viz</code>, and <code>ng-inspect</code>.</li>
+</ul>
+<p>You can check that the package and CLI are available:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import ngimager; print(ngimager.__file__)&quot;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ng-run<span class="w"> </span>--help
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>ng-viz<span class="w"> </span>--help
+</code></pre></div>
+<p>For development (editable install from a clone), see the README on GitHub.</p>
+<hr />
 <h2 id="what-the-pipeline-does">What the Pipeline Does<a class="headerlink" href="#what-the-pipeline-does" title="Permanent link">&para;</a></h2>
 <p>At a high level, the ng-imager pipeline:</p>
 <ol>
 <li><strong>Reads raw data</strong> via an adapter</li>
 <li>PHITS usrdef text tallies</li>
+<li>Experimental ROOT data (NOVO DDAQ)</li>
 <li>
-<p>(Planned / developing) ROOT data, ng-imager HDF5 restarts</p>
+<p>(Planned / developing) ng-imager HDF5 restarts</p>
 </li>
 <li>
 <p><strong>Builds hits and typed events</strong></p>
