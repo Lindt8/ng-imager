@@ -15196,7 +15196,43 @@ later and remain relative to the current working directory.</p>
 <span class="normal"><a href="#__codelineno-0-532">532</a></span>
 <span class="normal"><a href="#__codelineno-0-533">533</a></span>
 <span class="normal"><a href="#__codelineno-0-534">534</a></span>
-<span class="normal"><a href="#__codelineno-0-535">535</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-144" name="__codelineno-0-144"></a><span class="k">def</span><span class="w"> </span><span class="nf">render_summed_images</span><span class="p">(</span>
+<span class="normal"><a href="#__codelineno-0-535">535</a></span>
+<span class="normal"><a href="#__codelineno-0-536">536</a></span>
+<span class="normal"><a href="#__codelineno-0-537">537</a></span>
+<span class="normal"><a href="#__codelineno-0-538">538</a></span>
+<span class="normal"><a href="#__codelineno-0-539">539</a></span>
+<span class="normal"><a href="#__codelineno-0-540">540</a></span>
+<span class="normal"><a href="#__codelineno-0-541">541</a></span>
+<span class="normal"><a href="#__codelineno-0-542">542</a></span>
+<span class="normal"><a href="#__codelineno-0-543">543</a></span>
+<span class="normal"><a href="#__codelineno-0-544">544</a></span>
+<span class="normal"><a href="#__codelineno-0-545">545</a></span>
+<span class="normal"><a href="#__codelineno-0-546">546</a></span>
+<span class="normal"><a href="#__codelineno-0-547">547</a></span>
+<span class="normal"><a href="#__codelineno-0-548">548</a></span>
+<span class="normal"><a href="#__codelineno-0-549">549</a></span>
+<span class="normal"><a href="#__codelineno-0-550">550</a></span>
+<span class="normal"><a href="#__codelineno-0-551">551</a></span>
+<span class="normal"><a href="#__codelineno-0-552">552</a></span>
+<span class="normal"><a href="#__codelineno-0-553">553</a></span>
+<span class="normal"><a href="#__codelineno-0-554">554</a></span>
+<span class="normal"><a href="#__codelineno-0-555">555</a></span>
+<span class="normal"><a href="#__codelineno-0-556">556</a></span>
+<span class="normal"><a href="#__codelineno-0-557">557</a></span>
+<span class="normal"><a href="#__codelineno-0-558">558</a></span>
+<span class="normal"><a href="#__codelineno-0-559">559</a></span>
+<span class="normal"><a href="#__codelineno-0-560">560</a></span>
+<span class="normal"><a href="#__codelineno-0-561">561</a></span>
+<span class="normal"><a href="#__codelineno-0-562">562</a></span>
+<span class="normal"><a href="#__codelineno-0-563">563</a></span>
+<span class="normal"><a href="#__codelineno-0-564">564</a></span>
+<span class="normal"><a href="#__codelineno-0-565">565</a></span>
+<span class="normal"><a href="#__codelineno-0-566">566</a></span>
+<span class="normal"><a href="#__codelineno-0-567">567</a></span>
+<span class="normal"><a href="#__codelineno-0-568">568</a></span>
+<span class="normal"><a href="#__codelineno-0-569">569</a></span>
+<span class="normal"><a href="#__codelineno-0-570">570</a></span>
+<span class="normal"><a href="#__codelineno-0-571">571</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-144" name="__codelineno-0-144"></a><span class="k">def</span><span class="w"> </span><span class="nf">render_summed_images</span><span class="p">(</span>
 <a id="__codelineno-0-145" name="__codelineno-0-145"></a>    <span class="n">h5_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
 <a id="__codelineno-0-146" name="__codelineno-0-146"></a>    <span class="n">species</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">),</span>
 <a id="__codelineno-0-147" name="__codelineno-0-147"></a>    <span class="n">filename_pattern</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{species}</span><span class="s2">_</span><span class="si">{stem}</span><span class="s2">.</span><span class="si">{ext}</span><span class="s2">&quot;</span><span class="p">,</span>
@@ -15573,21 +15609,57 @@ later and remain relative to the current working directory.</p>
 <a id="__codelineno-0-518" name="__codelineno-0-518"></a>            <span class="c1"># Leave room for suptitle</span>
 <a id="__codelineno-0-519" name="__codelineno-0-519"></a>            <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">0.93</span><span class="p">)</span>
 <a id="__codelineno-0-520" name="__codelineno-0-520"></a>
-<a id="__codelineno-0-521" name="__codelineno-0-521"></a>            <span class="c1"># Save in all requested formats</span>
-<a id="__codelineno-0-522" name="__codelineno-0-522"></a>            <span class="k">for</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">fmt_list</span><span class="p">:</span>
-<a id="__codelineno-0-523" name="__codelineno-0-523"></a>                <span class="n">out_name</span> <span class="o">=</span> <span class="n">filename_pattern</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-<a id="__codelineno-0-524" name="__codelineno-0-524"></a>                    <span class="n">stem</span><span class="o">=</span><span class="n">stem</span><span class="p">,</span>
-<a id="__codelineno-0-525" name="__codelineno-0-525"></a>                    <span class="n">species</span><span class="o">=</span><span class="n">sp</span><span class="p">,</span>
-<a id="__codelineno-0-526" name="__codelineno-0-526"></a>                    <span class="n">ext</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span>
-<a id="__codelineno-0-527" name="__codelineno-0-527"></a>                <span class="p">)</span>
-<a id="__codelineno-0-528" name="__codelineno-0-528"></a>                <span class="n">out_path</span> <span class="o">=</span> <span class="n">h5_path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">out_name</span><span class="p">)</span>
-<a id="__codelineno-0-529" name="__codelineno-0-529"></a>                <span class="n">dpi</span> <span class="o">=</span> <span class="mi">150</span> <span class="k">if</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;png&quot;</span><span class="p">,</span> <span class="s2">&quot;jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;jpeg&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-<a id="__codelineno-0-530" name="__codelineno-0-530"></a>                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
-<a id="__codelineno-0-531" name="__codelineno-0-531"></a>                <span class="n">out_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_path</span><span class="p">)</span>
-<a id="__codelineno-0-532" name="__codelineno-0-532"></a>
-<a id="__codelineno-0-533" name="__codelineno-0-533"></a>            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
-<a id="__codelineno-0-534" name="__codelineno-0-534"></a>
-<a id="__codelineno-0-535" name="__codelineno-0-535"></a>    <span class="k">return</span> <span class="n">out_paths</span>
+<a id="__codelineno-0-521" name="__codelineno-0-521"></a>            <span class="c1"># ----------------------------------------------------------------------</span>
+<a id="__codelineno-0-522" name="__codelineno-0-522"></a>            <span class="c1"># Add ngimager footer annotation (version + hyperlink)</span>
+<a id="__codelineno-0-523" name="__codelineno-0-523"></a>            <span class="c1"># ----------------------------------------------------------------------</span>
+<a id="__codelineno-0-524" name="__codelineno-0-524"></a>
+<a id="__codelineno-0-525" name="__codelineno-0-525"></a>            <span class="c1"># HDF5 attributes already loaded earlier in the function</span>
+<a id="__codelineno-0-526" name="__codelineno-0-526"></a>            <span class="n">software</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;software&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-527" name="__codelineno-0-527"></a>            <span class="n">docs_url</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;docs_url&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-528" name="__codelineno-0-528"></a>
+<a id="__codelineno-0-529" name="__codelineno-0-529"></a>            <span class="c1"># Text formatting (subtle, italic, gray)</span>
+<a id="__codelineno-0-530" name="__codelineno-0-530"></a>            <span class="n">footer_font</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-0-531" name="__codelineno-0-531"></a>                <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#666666&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-532" name="__codelineno-0-532"></a>                <span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-533" name="__codelineno-0-533"></a>                <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+<a id="__codelineno-0-534" name="__codelineno-0-534"></a>                <span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="s1">&#39;italic&#39;</span>
+<a id="__codelineno-0-535" name="__codelineno-0-535"></a>            <span class="p">}</span>
+<a id="__codelineno-0-536" name="__codelineno-0-536"></a>
+<a id="__codelineno-0-537" name="__codelineno-0-537"></a>            <span class="c1"># Build footer string (only include URL/version if present)</span>
+<a id="__codelineno-0-538" name="__codelineno-0-538"></a>            <span class="n">footer_parts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Figure generated by ng-imager&quot;</span><span class="p">]</span>
+<a id="__codelineno-0-539" name="__codelineno-0-539"></a>            <span class="k">if</span> <span class="n">docs_url</span><span class="p">:</span>
+<a id="__codelineno-0-540" name="__codelineno-0-540"></a>                <span class="n">footer_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;· </span><span class="si">{</span><span class="n">docs_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-541" name="__codelineno-0-541"></a>            <span class="k">if</span> <span class="n">software</span><span class="p">:</span>
+<a id="__codelineno-0-542" name="__codelineno-0-542"></a>                <span class="n">footer_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;· </span><span class="si">{</span><span class="n">software</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-543" name="__codelineno-0-543"></a>
+<a id="__codelineno-0-544" name="__codelineno-0-544"></a>            <span class="n">footer_text</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">footer_parts</span><span class="p">)</span>
+<a id="__codelineno-0-545" name="__codelineno-0-545"></a>
+<a id="__codelineno-0-546" name="__codelineno-0-546"></a>            <span class="c1"># Place text at bottom-left of figure</span>
+<a id="__codelineno-0-547" name="__codelineno-0-547"></a>            <span class="c1"># url=docs_url makes this a working hyperlink in PDF output</span>
+<a id="__codelineno-0-548" name="__codelineno-0-548"></a>            <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+<a id="__codelineno-0-549" name="__codelineno-0-549"></a>                <span class="mf">0.005</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">,</span>
+<a id="__codelineno-0-550" name="__codelineno-0-550"></a>                <span class="n">footer_text</span><span class="p">,</span>
+<a id="__codelineno-0-551" name="__codelineno-0-551"></a>                <span class="n">fontdict</span><span class="o">=</span><span class="n">footer_font</span><span class="p">,</span>
+<a id="__codelineno-0-552" name="__codelineno-0-552"></a>                <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-553" name="__codelineno-0-553"></a>                <span class="n">va</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-554" name="__codelineno-0-554"></a>                <span class="n">url</span><span class="o">=</span><span class="n">docs_url</span> <span class="k">if</span> <span class="n">docs_url</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-555" name="__codelineno-0-555"></a>            <span class="p">)</span>
+<a id="__codelineno-0-556" name="__codelineno-0-556"></a>
+<a id="__codelineno-0-557" name="__codelineno-0-557"></a>            <span class="c1"># Save in all requested formats</span>
+<a id="__codelineno-0-558" name="__codelineno-0-558"></a>            <span class="k">for</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">fmt_list</span><span class="p">:</span>
+<a id="__codelineno-0-559" name="__codelineno-0-559"></a>                <span class="n">out_name</span> <span class="o">=</span> <span class="n">filename_pattern</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<a id="__codelineno-0-560" name="__codelineno-0-560"></a>                    <span class="n">stem</span><span class="o">=</span><span class="n">stem</span><span class="p">,</span>
+<a id="__codelineno-0-561" name="__codelineno-0-561"></a>                    <span class="n">species</span><span class="o">=</span><span class="n">sp</span><span class="p">,</span>
+<a id="__codelineno-0-562" name="__codelineno-0-562"></a>                    <span class="n">ext</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span>
+<a id="__codelineno-0-563" name="__codelineno-0-563"></a>                <span class="p">)</span>
+<a id="__codelineno-0-564" name="__codelineno-0-564"></a>                <span class="n">out_path</span> <span class="o">=</span> <span class="n">h5_path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">out_name</span><span class="p">)</span>
+<a id="__codelineno-0-565" name="__codelineno-0-565"></a>                <span class="n">dpi</span> <span class="o">=</span> <span class="mi">150</span> <span class="k">if</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;png&quot;</span><span class="p">,</span> <span class="s2">&quot;jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;jpeg&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-566" name="__codelineno-0-566"></a>                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+<a id="__codelineno-0-567" name="__codelineno-0-567"></a>                <span class="n">out_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_path</span><span class="p">)</span>
+<a id="__codelineno-0-568" name="__codelineno-0-568"></a>
+<a id="__codelineno-0-569" name="__codelineno-0-569"></a>            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+<a id="__codelineno-0-570" name="__codelineno-0-570"></a>
+<a id="__codelineno-0-571" name="__codelineno-0-571"></a>    <span class="k">return</span> <span class="n">out_paths</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -35141,7 +35213,43 @@ a main() entry point.</p>
 <span class="normal"><a href="#__codelineno-0-532">532</a></span>
 <span class="normal"><a href="#__codelineno-0-533">533</a></span>
 <span class="normal"><a href="#__codelineno-0-534">534</a></span>
-<span class="normal"><a href="#__codelineno-0-535">535</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-144" name="__codelineno-0-144"></a><span class="k">def</span><span class="w"> </span><span class="nf">render_summed_images</span><span class="p">(</span>
+<span class="normal"><a href="#__codelineno-0-535">535</a></span>
+<span class="normal"><a href="#__codelineno-0-536">536</a></span>
+<span class="normal"><a href="#__codelineno-0-537">537</a></span>
+<span class="normal"><a href="#__codelineno-0-538">538</a></span>
+<span class="normal"><a href="#__codelineno-0-539">539</a></span>
+<span class="normal"><a href="#__codelineno-0-540">540</a></span>
+<span class="normal"><a href="#__codelineno-0-541">541</a></span>
+<span class="normal"><a href="#__codelineno-0-542">542</a></span>
+<span class="normal"><a href="#__codelineno-0-543">543</a></span>
+<span class="normal"><a href="#__codelineno-0-544">544</a></span>
+<span class="normal"><a href="#__codelineno-0-545">545</a></span>
+<span class="normal"><a href="#__codelineno-0-546">546</a></span>
+<span class="normal"><a href="#__codelineno-0-547">547</a></span>
+<span class="normal"><a href="#__codelineno-0-548">548</a></span>
+<span class="normal"><a href="#__codelineno-0-549">549</a></span>
+<span class="normal"><a href="#__codelineno-0-550">550</a></span>
+<span class="normal"><a href="#__codelineno-0-551">551</a></span>
+<span class="normal"><a href="#__codelineno-0-552">552</a></span>
+<span class="normal"><a href="#__codelineno-0-553">553</a></span>
+<span class="normal"><a href="#__codelineno-0-554">554</a></span>
+<span class="normal"><a href="#__codelineno-0-555">555</a></span>
+<span class="normal"><a href="#__codelineno-0-556">556</a></span>
+<span class="normal"><a href="#__codelineno-0-557">557</a></span>
+<span class="normal"><a href="#__codelineno-0-558">558</a></span>
+<span class="normal"><a href="#__codelineno-0-559">559</a></span>
+<span class="normal"><a href="#__codelineno-0-560">560</a></span>
+<span class="normal"><a href="#__codelineno-0-561">561</a></span>
+<span class="normal"><a href="#__codelineno-0-562">562</a></span>
+<span class="normal"><a href="#__codelineno-0-563">563</a></span>
+<span class="normal"><a href="#__codelineno-0-564">564</a></span>
+<span class="normal"><a href="#__codelineno-0-565">565</a></span>
+<span class="normal"><a href="#__codelineno-0-566">566</a></span>
+<span class="normal"><a href="#__codelineno-0-567">567</a></span>
+<span class="normal"><a href="#__codelineno-0-568">568</a></span>
+<span class="normal"><a href="#__codelineno-0-569">569</a></span>
+<span class="normal"><a href="#__codelineno-0-570">570</a></span>
+<span class="normal"><a href="#__codelineno-0-571">571</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-144" name="__codelineno-0-144"></a><span class="k">def</span><span class="w"> </span><span class="nf">render_summed_images</span><span class="p">(</span>
 <a id="__codelineno-0-145" name="__codelineno-0-145"></a>    <span class="n">h5_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
 <a id="__codelineno-0-146" name="__codelineno-0-146"></a>    <span class="n">species</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">),</span>
 <a id="__codelineno-0-147" name="__codelineno-0-147"></a>    <span class="n">filename_pattern</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{species}</span><span class="s2">_</span><span class="si">{stem}</span><span class="s2">.</span><span class="si">{ext}</span><span class="s2">&quot;</span><span class="p">,</span>
@@ -35518,21 +35626,57 @@ a main() entry point.</p>
 <a id="__codelineno-0-518" name="__codelineno-0-518"></a>            <span class="c1"># Leave room for suptitle</span>
 <a id="__codelineno-0-519" name="__codelineno-0-519"></a>            <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">0.93</span><span class="p">)</span>
 <a id="__codelineno-0-520" name="__codelineno-0-520"></a>
-<a id="__codelineno-0-521" name="__codelineno-0-521"></a>            <span class="c1"># Save in all requested formats</span>
-<a id="__codelineno-0-522" name="__codelineno-0-522"></a>            <span class="k">for</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">fmt_list</span><span class="p">:</span>
-<a id="__codelineno-0-523" name="__codelineno-0-523"></a>                <span class="n">out_name</span> <span class="o">=</span> <span class="n">filename_pattern</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-<a id="__codelineno-0-524" name="__codelineno-0-524"></a>                    <span class="n">stem</span><span class="o">=</span><span class="n">stem</span><span class="p">,</span>
-<a id="__codelineno-0-525" name="__codelineno-0-525"></a>                    <span class="n">species</span><span class="o">=</span><span class="n">sp</span><span class="p">,</span>
-<a id="__codelineno-0-526" name="__codelineno-0-526"></a>                    <span class="n">ext</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span>
-<a id="__codelineno-0-527" name="__codelineno-0-527"></a>                <span class="p">)</span>
-<a id="__codelineno-0-528" name="__codelineno-0-528"></a>                <span class="n">out_path</span> <span class="o">=</span> <span class="n">h5_path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">out_name</span><span class="p">)</span>
-<a id="__codelineno-0-529" name="__codelineno-0-529"></a>                <span class="n">dpi</span> <span class="o">=</span> <span class="mi">150</span> <span class="k">if</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;png&quot;</span><span class="p">,</span> <span class="s2">&quot;jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;jpeg&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-<a id="__codelineno-0-530" name="__codelineno-0-530"></a>                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
-<a id="__codelineno-0-531" name="__codelineno-0-531"></a>                <span class="n">out_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_path</span><span class="p">)</span>
-<a id="__codelineno-0-532" name="__codelineno-0-532"></a>
-<a id="__codelineno-0-533" name="__codelineno-0-533"></a>            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
-<a id="__codelineno-0-534" name="__codelineno-0-534"></a>
-<a id="__codelineno-0-535" name="__codelineno-0-535"></a>    <span class="k">return</span> <span class="n">out_paths</span>
+<a id="__codelineno-0-521" name="__codelineno-0-521"></a>            <span class="c1"># ----------------------------------------------------------------------</span>
+<a id="__codelineno-0-522" name="__codelineno-0-522"></a>            <span class="c1"># Add ngimager footer annotation (version + hyperlink)</span>
+<a id="__codelineno-0-523" name="__codelineno-0-523"></a>            <span class="c1"># ----------------------------------------------------------------------</span>
+<a id="__codelineno-0-524" name="__codelineno-0-524"></a>
+<a id="__codelineno-0-525" name="__codelineno-0-525"></a>            <span class="c1"># HDF5 attributes already loaded earlier in the function</span>
+<a id="__codelineno-0-526" name="__codelineno-0-526"></a>            <span class="n">software</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;software&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-527" name="__codelineno-0-527"></a>            <span class="n">docs_url</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;docs_url&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-528" name="__codelineno-0-528"></a>
+<a id="__codelineno-0-529" name="__codelineno-0-529"></a>            <span class="c1"># Text formatting (subtle, italic, gray)</span>
+<a id="__codelineno-0-530" name="__codelineno-0-530"></a>            <span class="n">footer_font</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-0-531" name="__codelineno-0-531"></a>                <span class="s1">&#39;color&#39;</span><span class="p">:</span> <span class="s1">&#39;#666666&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-532" name="__codelineno-0-532"></a>                <span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-533" name="__codelineno-0-533"></a>                <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+<a id="__codelineno-0-534" name="__codelineno-0-534"></a>                <span class="s1">&#39;style&#39;</span><span class="p">:</span> <span class="s1">&#39;italic&#39;</span>
+<a id="__codelineno-0-535" name="__codelineno-0-535"></a>            <span class="p">}</span>
+<a id="__codelineno-0-536" name="__codelineno-0-536"></a>
+<a id="__codelineno-0-537" name="__codelineno-0-537"></a>            <span class="c1"># Build footer string (only include URL/version if present)</span>
+<a id="__codelineno-0-538" name="__codelineno-0-538"></a>            <span class="n">footer_parts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Figure generated by ng-imager&quot;</span><span class="p">]</span>
+<a id="__codelineno-0-539" name="__codelineno-0-539"></a>            <span class="k">if</span> <span class="n">docs_url</span><span class="p">:</span>
+<a id="__codelineno-0-540" name="__codelineno-0-540"></a>                <span class="n">footer_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;· </span><span class="si">{</span><span class="n">docs_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-541" name="__codelineno-0-541"></a>            <span class="k">if</span> <span class="n">software</span><span class="p">:</span>
+<a id="__codelineno-0-542" name="__codelineno-0-542"></a>                <span class="n">footer_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;· </span><span class="si">{</span><span class="n">software</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-543" name="__codelineno-0-543"></a>
+<a id="__codelineno-0-544" name="__codelineno-0-544"></a>            <span class="n">footer_text</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">footer_parts</span><span class="p">)</span>
+<a id="__codelineno-0-545" name="__codelineno-0-545"></a>
+<a id="__codelineno-0-546" name="__codelineno-0-546"></a>            <span class="c1"># Place text at bottom-left of figure</span>
+<a id="__codelineno-0-547" name="__codelineno-0-547"></a>            <span class="c1"># url=docs_url makes this a working hyperlink in PDF output</span>
+<a id="__codelineno-0-548" name="__codelineno-0-548"></a>            <span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+<a id="__codelineno-0-549" name="__codelineno-0-549"></a>                <span class="mf">0.005</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">,</span>
+<a id="__codelineno-0-550" name="__codelineno-0-550"></a>                <span class="n">footer_text</span><span class="p">,</span>
+<a id="__codelineno-0-551" name="__codelineno-0-551"></a>                <span class="n">fontdict</span><span class="o">=</span><span class="n">footer_font</span><span class="p">,</span>
+<a id="__codelineno-0-552" name="__codelineno-0-552"></a>                <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-553" name="__codelineno-0-553"></a>                <span class="n">va</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-554" name="__codelineno-0-554"></a>                <span class="n">url</span><span class="o">=</span><span class="n">docs_url</span> <span class="k">if</span> <span class="n">docs_url</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-555" name="__codelineno-0-555"></a>            <span class="p">)</span>
+<a id="__codelineno-0-556" name="__codelineno-0-556"></a>
+<a id="__codelineno-0-557" name="__codelineno-0-557"></a>            <span class="c1"># Save in all requested formats</span>
+<a id="__codelineno-0-558" name="__codelineno-0-558"></a>            <span class="k">for</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="n">fmt_list</span><span class="p">:</span>
+<a id="__codelineno-0-559" name="__codelineno-0-559"></a>                <span class="n">out_name</span> <span class="o">=</span> <span class="n">filename_pattern</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+<a id="__codelineno-0-560" name="__codelineno-0-560"></a>                    <span class="n">stem</span><span class="o">=</span><span class="n">stem</span><span class="p">,</span>
+<a id="__codelineno-0-561" name="__codelineno-0-561"></a>                    <span class="n">species</span><span class="o">=</span><span class="n">sp</span><span class="p">,</span>
+<a id="__codelineno-0-562" name="__codelineno-0-562"></a>                    <span class="n">ext</span><span class="o">=</span><span class="n">fmt</span><span class="p">,</span>
+<a id="__codelineno-0-563" name="__codelineno-0-563"></a>                <span class="p">)</span>
+<a id="__codelineno-0-564" name="__codelineno-0-564"></a>                <span class="n">out_path</span> <span class="o">=</span> <span class="n">h5_path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">out_name</span><span class="p">)</span>
+<a id="__codelineno-0-565" name="__codelineno-0-565"></a>                <span class="n">dpi</span> <span class="o">=</span> <span class="mi">150</span> <span class="k">if</span> <span class="n">fmt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;png&quot;</span><span class="p">,</span> <span class="s2">&quot;jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;jpeg&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+<a id="__codelineno-0-566" name="__codelineno-0-566"></a>                <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+<a id="__codelineno-0-567" name="__codelineno-0-567"></a>                <span class="n">out_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out_path</span><span class="p">)</span>
+<a id="__codelineno-0-568" name="__codelineno-0-568"></a>
+<a id="__codelineno-0-569" name="__codelineno-0-569"></a>            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+<a id="__codelineno-0-570" name="__codelineno-0-570"></a>
+<a id="__codelineno-0-571" name="__codelineno-0-571"></a>    <span class="k">return</span> <span class="n">out_paths</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
