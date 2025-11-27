@@ -222,6 +222,98 @@ If a rectangular ROI is configured via `[vis.projections]`, the ROI-limited proj
 
 These projections provide a convenient sanity check for the u/v orientation and are intended to simplify downstream 1D analyses (e.g. peak finding, edge detection) without needing to re-derive them from the 2D images.
 
+
+### `/images/summed/projections/*/metrics` — Projection Statistics and Fitting Results
+
+When `[vis.projections.metrics]` is enabled, ng-imager computes and stores
+per-axis (u, v) metrics for each species (`n`, `g`, `all`).  
+Metrics are written under:
+
+```
+/images/summed/projections/{species}/metrics/u
+/images/summed/projections/{species}/metrics/v
+```
+
+Each axis group contains zero or more of the following datasets,
+depending on enabled options.
+
+#### Summary statistics (`compute_summary = true`)
+Scalar datasets:
+
+- `sum_total` (float64)
+- `mean_coord`
+- `median_coord`
+- `std_coord`
+- `max_value`
+- `max_coord`
+
+#### Gaussian peak fitting (`compute_peak = true`)
+Stored in the same axis group:
+
+- `peak_coord` (float64)
+- `peak_value` (float64)
+- `sigma` (float64)
+- `success` (int8; 1 = fit ok, 0 = failed)
+
+Fit failures are non-fatal; datasets are present but values may be NaN.
+
+#### Fractional edges (`compute_edges = true`)
+Stored alongside summary/peak metrics:
+
+- `edge_low_coord`  (float64)
+- `edge_high_coord` (float64)
+- `edge_low_frac`   (float64, attribute)
+- `edge_high_frac`  (float64, attribute)
+
+Edges are derived from normalized cumulative integrals of projections.
+
+#### ROI metrics
+If an ROI is defined, additional groups exist:
+
+```
+/images/summed/projections/{species}/metrics/u_roi
+/images/summed/projections/{species}/metrics/v_roi
+```
+
+These contain the identical dataset names as the non-ROI metrics.
+
+Note: ROI projections use the *full* u/v length; bins outside the ROI are
+zero.
+
+#### 2D centroid (`compute_centroid = true`)
+Stored at:
+
+```
+/images/summed/projections/{species}/metrics/centroid
+```
+
+Datasets:
+
+- `u_centroid`
+- `v_centroid`
+- `sum_total`
+
+These describe the centroid of the full 2D reconstructed image.
+
+---
+
+### Additional notes for downstream tools
+
+- Metrics are always **datasets**, not attributes (except fractional edge config).
+- Tools should detect metric availability by checking dataset existence.
+- Coordinate values are stored in **centimeters**, regardless of plot-unit setting.
+- ROI bounds appear as attributes under the species projection group:
+
+```
+roi_u_min_cm
+roi_u_max_cm
+roi_v_min_cm
+roi_v_max_cm
+```
+
+
+
+
 ---
 
 ## /cones

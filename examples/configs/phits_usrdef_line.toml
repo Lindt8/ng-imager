@@ -228,3 +228,33 @@ roi_u_max_cm =  8.0
 roi_v_min_cm = -5.0
 roi_v_max_cm = 10.0
 
+
+# --- metrics: what to compute and write into HDF5 ---
+[vis.projections.metrics]
+enabled = true         # master toggle – turn metrics on/off
+
+# u-axis metrics (e.g. transverse direction)
+[vis.projections.metrics.u]
+compute_summary = true   # mean, std, median, total_counts
+compute_peak    = true   # argmax position + height
+compute_edges   = false  # CDF-based edges along u (off by default)
+edge_low_frac   = 0.2    # used if compute_edges = true
+edge_high_frac  = 0.8
+min_counts      = 100.0  # below this, metrics are marked *_ok = False
+
+# v-axis metrics (e.g. beam/range direction for line sources)
+[vis.projections.metrics.v]
+compute_summary = true
+compute_peak    = true
+compute_edges   = true   # enable edges here for line/range studies
+edge_low_frac   = 0.2
+edge_high_frac  = 0.8
+min_counts      = 100.0
+
+# --- plotting options for vis/hdf.py (overlays, annotations) ---
+[vis.projections.plot]
+show_peak_markers = true
+show_edge_markers = true
+show_centroid_2d  = false   # future overlay on the 2D image
+annotate_summary  = false   # future: small text with key metrics
+show_metrics_panel = false  # future: extra panel with a table of metrics

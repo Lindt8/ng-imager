@@ -1,5 +1,5 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ValidationInfo
 from typing import Literal, Optional, Dict, List, Union, Any
 
 class RunCfg(BaseModel):
@@ -384,26 +384,170 @@ class UncertaintyCfg(BaseModel):
     use_lut_bands: bool = False
 
 
+class ProjectionAxisMetricsCfg(BaseModel):
+    """
+    Per-axis projection metrics controls.
+
+    These are applied separately for the u and v axes.
+    """
+
+    compute_summary: bool = True
+    # mean/median/std, total counts
+
+    compute_peak: bool = True
+    # simple argmax-based peak position / height
+
+    compute_edges: bool = False
+    # CDF-based edge positions (for line / range studies)
+
+    edge_low_frac: float = 0.2
+    edge_high_frac: float = 0.8
+    # fractions in (0, 1), e.g. 0.2 and 0.8 → 20–80% edge width
+
+    min_counts: float = 100.0
+    # below this total counts, metrics are marked invalid (NaN + *_ok=False)
+
+    @field_validator("edge_low_frac", "edge_high_frac")
+    @classmethod
+    def _check_edge_fracs(cls, v: float) -> float:
+        if not (0.0 < v < 1.0):
+            raise ValueError("edge_*_frac must be in the open interval (0, 1)")
+        return v
+
+    @field_validator("edge_high_frac")
+    @classmethod
+    def _check_edge_order(
+            cls,
+            v: float,
+            info: ValidationInfo,
+    ) -> float:
+        # In Pydantic v2, the second argument is ValidationInfo; use info.data.
+        data = info.data or {}
+        low = data.get("edge_low_frac")
+        if low is not None and v <= low:
+            raise ValueError("edge_high_frac must be > edge_low_frac")
+        return v
+
+class ProjectionMetricsCfg(BaseModel):
+    """
+    Controls whether projection metrics are computed and written to HDF5.
+    """
+
+    enabled: bool = False
+    # master toggle – when false, no metrics are computed/written
+
+    u: ProjectionAxisMetricsCfg = Field(default_factory=ProjectionAxisMetricsCfg)
+    v: ProjectionAxisMetricsCfg = Field(default_factory=ProjectionAxisMetricsCfg)
+
+
+class ProjectionPlotCfg(BaseModel):
+    """
+    Controls how projection metrics are visualized in vis/hdf.py.
+
+    (Plotting code will read these; they do not affect HDF5 contents.)
+    """
+
+    show_peak_markers: bool = True
+    show_edge_markers: bool = True
+    show_centroid_2d: bool = False
+
+    # Future expansion: annotate summaries, stats panels, etc.
+    annotate_summary: bool = False
+    show_metrics_panel: bool = False
+
+
 class VisProjectionsCfg(BaseModel):
     """
-    Configuration for 1D u/v projections of the summed images.
+    Configuration for 1D projections and their analysis/visualization.
 
-    All coordinates are in the native imaging-plane units (cm), matching
-    the [plane] section and /meta.grid.* attributes in the HDF5 output.
+    TOML:
+
+        [vis.projections]
+        enabled      = true
+        roi_u_min_cm = -5.0
+        roi_u_max_cm =  5.0
+        roi_v_min_cm = -5.0
+        roi_v_max_cm =  5.0
+
+        [vis.projections.metrics]
+        enabled = true
+
+        [vis.projections.metrics.u]
+        compute_summary = true
+        compute_peak    = true
+        compute_edges   = false
+        edge_low_frac   = 0.2
+        edge_high_frac  = 0.8
+        min_counts      = 100.0
+
+        [vis.projections.metrics.v]
+        compute_summary = true
+        compute_peak    = true
+        compute_edges   = true
+
+        [vis.projections.plot]
+        show_peak_markers = true
+        show_edge_markers = true
+        show_centroid_2d  = false
     """
 
-    # Enable computation and storage of 1D projections in the HDF5 file,
-    # and use them when rendering images (u/v side panels).
     enabled: bool = False
 
-    # Optional rectangular region-of-interest (ROI) in (u, v) coordinates.
-    # If all four are provided, ROI-limited projections are computed by
-    # summing only pixels whose centers fall inside this window.
-    roi_u_min_cm: float | None = None
-    roi_u_max_cm: float | None = None
-    roi_v_min_cm: float | None = None
-    roi_v_max_cm: float | None = None
+    # Optional ROI window in plane coordinates (cm).
+    # If any of these are None, the ROI is treated as "disabled".
+    roi_u_min_cm: Optional[float] = None
+    roi_u_max_cm: Optional[float] = None
+    roi_v_min_cm: Optional[float] = None
+    roi_v_max_cm: Optional[float] = None
 
+    metrics: ProjectionMetricsCfg = Field(default_factory=ProjectionMetricsCfg)
+    plot: ProjectionPlotCfg = Field(default_factory=ProjectionPlotCfg)
+
+    @field_validator("roi_u_max_cm")
+    @classmethod
+    def _check_roi_u(
+            cls,
+            vmax: Optional[float],
+            info: ValidationInfo,
+    ) -> Optional[float]:
+        # In Pydantic v2, `info` is ValidationInfo; use `info.data` to access other fields.
+        data = info.data or {}
+        vmin = data.get("roi_u_min_cm")
+        if vmax is not None and vmin is not None and vmax < vmin:
+            raise ValueError("roi_u_max_cm must be >= roi_u_min_cm")
+        return vmax
+
+    @field_validator("roi_v_max_cm")
+    @classmethod
+    def _check_roi_v(
+            cls,
+            vmax: Optional[float],
+            info: ValidationInfo,
+    ) -> Optional[float]:
+        data = info.data or {}
+        vmin = data.get("roi_v_min_cm")
+        if vmax is not None and vmin is not None and vmax < vmin:
+            raise ValueError("roi_v_max_cm must be >= roi_v_min_cm")
+        return vmax
+
+    def roi_bounds_cm(self) -> Optional[tuple[float, float, float, float]]:
+        """
+        Return (u_min, u_max, v_min, v_max) in cm if a full ROI is defined,
+        otherwise None.
+        """
+        if (
+            self.roi_u_min_cm is None
+            or self.roi_u_max_cm is None
+            or self.roi_v_min_cm is None
+            or self.roi_v_max_cm is None
+        ):
+            return None
+        return (
+            float(self.roi_u_min_cm),
+            float(self.roi_u_max_cm),
+            float(self.roi_v_min_cm),
+            float(self.roi_v_max_cm),
+        )
 
 
 class VisCfg(BaseModel):
@@ -420,6 +564,9 @@ class VisCfg(BaseModel):
     # Legacy / advanced option: a single dataset path.
     # Kept for backward compatibility with older configs and helper scripts.
     summed_dataset: str = "/images/summed/n"
+
+    # 1D projection outputs and analysis
+    projections: VisProjectionsCfg = Field(default_factory=VisProjectionsCfg)
 
     # Which summed images to render automatically from `/images/summed`.
     #

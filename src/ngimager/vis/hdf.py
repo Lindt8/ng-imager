@@ -139,6 +139,108 @@ def _axes_from_meta(
 
     return extent, axis_labels, (du_plot, dv_plot), uv_range_cm
 
+def _get_projection_metrics_axes(
+    summed_grp: h5py.Group,
+    species: str,
+    prefer_roi: bool = True,
+) -> tuple[Optional[h5py.Group], Optional[h5py.Group]]:
+    """
+    Locate the metric subgroups for u and v for a given species.
+
+    Expected new layout (per species):
+
+        /images/summed/projections/<species>/metrics/u/all/...
+        /images/summed/projections/<species>/metrics/u/roi/...
+        /images/summed/projections/<species>/metrics/v/all/...
+        /images/summed/projections/<species>/metrics/v/roi/...
+
+    For backward-compatibility, this also works if metrics are stored
+    directly under 'u' or 'v' without the 'all'/'roi' subgroups.
+
+    Returns a pair (g_u, g_v), where each is either:
+      - the selected subgroup (typically 'roi' if present, else 'all'), or
+      - the axis group itself in the legacy layout, or
+      - None if metrics are missing.
+    """
+    proj_root = summed_grp.get("projections")
+    if proj_root is None or not isinstance(proj_root, h5py.Group):
+        return None, None
+
+    sp_root = proj_root.get(species)
+    if sp_root is None or not isinstance(sp_root, h5py.Group):
+        return None, None
+
+    metrics_root: Optional[h5py.Group] = None
+    g = sp_root.get("metrics")
+    if isinstance(g, h5py.Group):
+        metrics_root = g
+
+    if metrics_root is None:
+        return None, None
+
+    def pick_axis(axis_name: str) -> Optional[h5py.Group]:
+        g_axis = metrics_root.get(axis_name)
+        if not isinstance(g_axis, h5py.Group):
+            return None
+
+        # New layout: u/all, u/roi (and same for v)
+        has_all = "all" in g_axis
+        has_roi = "roi" in g_axis
+
+        if has_all or has_roi:
+            if prefer_roi and has_roi:
+                return g_axis["roi"]
+            if has_all:
+                return g_axis["all"]
+            # Only ROI present
+            return g_axis["roi"]
+
+        # Legacy layout: metrics directly under u/v
+        return g_axis
+
+    return pick_axis("u"), pick_axis("v")
+
+
+def _read_axis_metric_position(
+    g_axis: Optional[h5py.Group],
+    kind: str,
+) -> Optional[float]:
+    """
+    Read a single position metric (in cm) from an axis metrics group.
+
+    kind ∈ {"peak", "edge_low", "edge_high"}.
+
+    Expected dataset names:
+
+        peak_pos_cm
+        edge_low_cm
+        edge_high_cm
+
+    Returns None if the dataset or group is missing.
+    """
+    if g_axis is None:
+        return None
+
+    name_map = {
+        "peak": "peak_pos_cm",
+        "edge_low": "edge_low_cm",
+        "edge_high": "edge_high_cm",
+    }
+    dname = name_map.get(kind)
+    if dname is None or dname not in g_axis:
+        return None
+
+    val = g_axis[dname][()]
+
+    # Handle scalar datasets vs 0-d arrays robustly
+    try:
+        return float(val)
+    except TypeError:
+        arr = np.asarray(val)
+        if arr.size == 0:
+            return None
+        return float(arr.ravel()[0])
+
 
 
 def render_summed_images(
@@ -267,6 +369,35 @@ def render_summed_images(
                     proj_u_roi[u_mask] = block.sum(axis=0)
                     proj_v_roi[v_mask] = block.sum(axis=1)
 
+            # ------------------------------------------------------------------
+            # Optional: read precomputed projection metrics (positions in cm)
+            # ------------------------------------------------------------------
+            peak_u_cm = peak_v_cm = None
+            edge_low_u_cm = edge_high_u_cm = None
+            edge_low_v_cm = edge_high_v_cm = None
+
+            if projections:
+                # Prefer ROI metrics if an ROI was defined in the config and
+                # therefore ROI projections exist; otherwise fall back to "all".
+                prefer_roi = roi_cm is not None
+
+                g_u_metrics, g_v_metrics = _get_projection_metrics_axes(
+                    summed_grp,
+                    sp,
+                    prefer_roi=prefer_roi,
+                )
+
+                if g_u_metrics is not None:
+                    peak_u_cm = _read_axis_metric_position(g_u_metrics, "peak")
+                    edge_low_u_cm = _read_axis_metric_position(g_u_metrics, "edge_low")
+                    edge_high_u_cm = _read_axis_metric_position(g_u_metrics, "edge_high")
+
+                if g_v_metrics is not None:
+                    peak_v_cm = _read_axis_metric_position(g_v_metrics, "peak")
+                    edge_low_v_cm = _read_axis_metric_position(g_v_metrics, "edge_low")
+                    edge_high_v_cm = _read_axis_metric_position(g_v_metrics, "edge_high")
+
+
             # Convert centers to plot units (cm or mm) and apply centering
             u_mid_cm = 0.5 * (u_min_cm + u_max_cm)
             v_mid_cm = 0.5 * (v_min_cm + v_max_cm)
@@ -278,7 +409,40 @@ def render_summed_images(
             else:
                 u_centers_plot = u_centers_cm * unit_scale
                 v_centers_plot = v_centers_cm * unit_scale
+            
+            # Convert metric positions (if any) into plot units
+            peak_u_plot = edge_low_u_plot = edge_high_u_plot = None
+            peak_v_plot = edge_low_v_plot = edge_high_v_plot = None
 
+            def _cm_to_plot_u(x_cm: Optional[float]) -> Optional[float]:
+                if x_cm is None:
+                    return None
+                if center_on_plane_center:
+                    return (x_cm - u_mid_cm) * unit_scale
+                return x_cm * unit_scale
+
+            def _cm_to_plot_v(y_cm: Optional[float]) -> Optional[float]:
+                if y_cm is None:
+                    return None
+                if center_on_plane_center:
+                    return (y_cm - v_mid_cm) * unit_scale
+                return y_cm * unit_scale
+
+            if peak_u_cm is not None:
+                peak_u_plot = _cm_to_plot_u(peak_u_cm)
+            if edge_low_u_cm is not None:
+                edge_low_u_plot = _cm_to_plot_u(edge_low_u_cm)
+            if edge_high_u_cm is not None:
+                edge_high_u_plot = _cm_to_plot_u(edge_high_u_cm)
+
+            if peak_v_cm is not None:
+                peak_v_plot = _cm_to_plot_v(peak_v_cm)
+            if edge_low_v_cm is not None:
+                edge_low_v_plot = _cm_to_plot_v(edge_low_v_cm)
+            if edge_high_v_cm is not None:
+                edge_high_v_plot = _cm_to_plot_v(edge_high_v_cm)
+
+            
             # ----------------- Figure layout -----------------
             if projections and (nu > 1 or nv > 1):
                 # Layout:
@@ -447,7 +611,32 @@ def render_summed_images(
                     )
                 else:
                     ax_top.legend(loc="upper right", fontsize=8)
+                
+                
+                # Overlay u-axis metrics if available
+                if peak_u_plot is not None:
+                    ax_top.axvline(
+                        peak_u_plot,
+                        linestyle="-.",
+                        color="C2",
+                        linewidth=1.0,
+                    )
+                if edge_low_u_plot is not None:
+                    ax_top.axvline(
+                        edge_low_u_plot,
+                        linestyle=":",
+                        color="C3",
+                        linewidth=1.0,
+                    )
+                if edge_high_u_plot is not None:
+                    ax_top.axvline(
+                        edge_high_u_plot,
+                        linestyle=":",
+                        color="C3",
+                        linewidth=1.0,
+                    )
 
+                
                 # -------------------------
                 # V-projection (left panel)
                 # -------------------------
@@ -499,6 +688,29 @@ def render_summed_images(
                     )
                     ax_left2.set_xlabel("")
                     ax_left2.set_ylabel("")
+
+                # Overlay v-axis metrics if available
+                if peak_v_plot is not None:
+                    ax_left.axhline(
+                        peak_v_plot,
+                        linestyle="-.",
+                        color="C2",
+                        linewidth=1.0,
+                    )
+                if edge_low_v_plot is not None:
+                    ax_left.axhline(
+                        edge_low_v_plot,
+                        linestyle=":",
+                        color="C3",
+                        linewidth=1.0,
+                    )
+                if edge_high_v_plot is not None:
+                    ax_left.axhline(
+                        edge_high_v_plot,
+                        linestyle=":",
+                        color="C3",
+                        linewidth=1.0,
+                    )
 
             # Suptitle for the whole figure
             species_label = {

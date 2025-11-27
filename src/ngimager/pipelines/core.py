@@ -973,14 +973,27 @@ def run_pipeline(
                 "shape=", img_all.shape,
             )
             
-    # --- 4c.1. 1D projections (optional) ------------------------------------
-    if projections_enabled:
-        if img_n is not None:
-            write_projections(f, "n", img_n, roi=roi)
-        if img_g is not None:
-            write_projections(f, "g", img_g, roi=roi)
-        if img_all is not None:
-            write_projections(f, "all", img_all, roi=roi)
+    # --- 4c.1. 1D projections + metrics (u / v, all + ROI) (optional) ---
+    # Use [vis.projections] config, if present, to control whether projections
+    # and metrics are written to the HDF5 file.
+    if projections_enabled and proj_cfg is not None:
+        metrics_cfg = getattr(proj_cfg, "metrics", None)
+
+        def _maybe_write_projections(species_label: str, img):
+            if img is None:
+                return
+            write_projections(
+                f,
+                species_label,
+                img,
+                roi_bounds_cm=roi,
+                metrics_cfg=metrics_cfg,
+            )
+
+        # Per-species projections (u/v, all + ROI) + metrics
+        _maybe_write_projections("n", img_n)
+        _maybe_write_projections("g", img_g)
+        _maybe_write_projections("all", img_all)
 
 
     # --- 4d. List-mode extras: explicit cone → pixel mapping + event survival ---

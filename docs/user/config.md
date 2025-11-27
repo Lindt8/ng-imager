@@ -646,6 +646,117 @@ roi_v_min_cm = -5.0
 roi_v_max_cm =  5.0
 ```
 
+### 11.2. `[vis.projections.metrics]` — Projection Statistics / Fitting
+
+The projection subsystem can optionally compute statistical summaries,
+peak positions, and edge locations for each axis (u and v) and for both
+the *all-pixels* projections and the ROI-limited projections.
+
+These values are written into the HDF5 file under:
+
+```
+/images/summed/projections/{species}/metrics/u/*
+/images/summed/projections/{species}/metrics/v/*
+```
+
+Enable metrics via:
+
+```toml
+[vis.projections.metrics]
+enabled = true         # master toggle
+
+[vis.projections.metrics.u]
+compute_summary = true
+compute_peak    = true
+compute_edges   = false
+edge_low_frac   = 0.2
+edge_high_frac  = 0.8
+min_counts      = 100.0
+
+[vis.projections.metrics.v]
+compute_summary = true
+compute_peak    = true
+compute_edges   = true
+edge_low_frac   = 0.2
+edge_high_frac  = 0.8
+min_counts      = 100.0
+
+# optional centroid of the full 2D image
+compute_centroid = false
+```
+
+#### Summary statistics (`compute_summary`)
+Computed for each 1D projection:
+
+- `sum_total`
+- `mean_coord`
+- `median_coord`
+- `std_coord`
+- `max_value`, `max_coord`
+
+#### Peak fitting (`compute_peak`)
+Finds the peak position by fitting a 1D Gaussian to each projection
+(all-pixels and ROI-limited).
+
+Saved values:
+
+- `peak_coord`
+- `peak_value`
+- `sigma`
+- `success` flag
+
+Fitting failures are non-fatal; all fields exist but `success=0`.
+
+#### Fractional edges (`compute_edges`)
+Locates where the normalized cumulative integral crosses the configured
+fractions, e.g.:
+
+```toml
+edge_low_frac  = 0.2
+edge_high_frac = 0.8
+```
+
+Saved values:
+
+- `edge_low_coord`
+- `edge_high_coord`
+
+Useful for beam-range imaging.
+
+#### 2D centroid (`compute_centroid`)
+Computes the centroid of the *2D summed image* and writes:
+
+```
+/images/summed/projections/{species}/metrics/centroid/u_centroid
+/images/summed/projections/{species}/metrics/centroid/v_centroid
+/images/summed/projections/{species}/metrics/centroid/sum_total
+```
+
+---
+
+### 11.3. `[vis.projections.plot]` — Plotting of Metrics
+
+Visualization of the above derived metrics is controlled separately:
+
+```toml
+[vis.projections.plot]
+show_peaks    = true
+show_edges    = false
+show_centroid = false
+show_metrics_panel = false
+annotate_summary   = false
+```
+
+These affect **only** the visualization overlay behavior inside
+`vis/hdf.py`, not the content of the HDF5 file.
+
+Plots may include:
+
+- vertical dashed lines (Gaussian peak centers)
+- dotted vertical lines (fractional edges)
+- 2D centroid marker (crosshair)
+- optional metrics summary text panel
+
 
 ---
 

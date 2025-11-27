@@ -1,15 +1,16 @@
 from __future__ import annotations
-from typing import Any, Dict, Iterable, List, Sequence, Tuple, Mapping
+from typing import Any, Dict, Iterable, List, Sequence, Tuple, Mapping, Optional
 import h5py
 import numpy as np
 import re
 import shlex
 from datetime import datetime, timezone
 from pathlib import Path
-from ngimager.config.schemas import Config
+from ngimager.config.schemas import Config, ProjectionMetricsCfg, ProjectionAxisMetricsCfg
 from ngimager.config.load import snapshot_config_toml, json_dumps
 from ngimager.geometry.plane import Plane
 from ngimager.physics.events import NeutronEvent, GammaEvent
+from ngimager.imaging.projection_metrics import compute_projection_metrics
 
 # Optional helpers for discovering installed package name/version
 try:  # Python 3.8+
@@ -356,6 +357,14 @@ def _ensure_summed_group(f: h5py.File):
     return f.require_group("images").require_group("summed")
 
 
+def _ensure_projections_group(f: h5py.File) -> h5py.Group:
+    """
+    Ensure the /images/summed/projections group exists and return it.
+    """
+    summed = _ensure_summed_group(f)
+    return summed.require_group("projections")
+
+
 def write_summed(
     f: h5py.File,
     species: str,
@@ -380,95 +389,146 @@ def write_projections(
     f: h5py.File,
     species: str,
     img: np.ndarray,
-    roi: tuple[float, float, float, float] | None = None,
+    roi_bounds_cm: Optional[tuple[float, float, float, float]] = None,
+    metrics_cfg: Optional[ProjectionMetricsCfg] = None,
 ) -> None:
     """
-    Write 1D u/v projections for a given summed image.
+    Write 1D u/v projections (and optional ROI-limited projections) to HDF5,
+    and optionally compute/write metrics.
 
-    Layout (all under /images/summed/projections/{species}):
+    Layout under /images/summed/projections/{species}:
 
         u      : [nu] float32, sum over v (rows)
         v      : [nv] float32, sum over u (cols)
-        u_roi  : [nu] float32, ROI-limited u projection (optional)
-        v_roi  : [nv] float32, ROI-limited v projection (optional)
+        u_roi  : [nu] float32, ROI-limited u projection (zeros outside ROI)
+        v_roi  : [nv] float32, ROI-limited v projection (zeros outside ROI)
 
-    Parameters
-    ----------
-    f : open h5py.File
-        HDF5 file handle (already open in read/write mode).
-    species : str
-        "n", "g", or "all".
-    img : ndarray
-        2D image array with shape (nv, nu).
-    roi : tuple or None
-        Optional ROI in plane coordinates (cm):
+        metrics/u/all/*   – scalar metrics for "all" curve along u
+        metrics/u/roi/*   – scalar metrics for ROI curve along u (if ROI defined)
+        metrics/v/all/*   – likewise for v
+        metrics/v/roi/*   – likewise for v-ROI
 
-            (u_min_cm, u_max_cm, v_min_cm, v_max_cm)
-
-        If provided, ROI-limited projections are computed by summing only the
-        pixels whose centers fall inside this rectangle, and bins outside the
-        ROI range are set to zero.
+    The imaging plane grid (u_min/u_max/v_min/v_max/du/dv) is read from
+    /meta.attrs as written by write_init().
     """
-    summed_grp = _ensure_summed_group(f)
-    proj_root = summed_grp.require_group("projections")
-    grp = proj_root.require_group(species)
-
-    img = np.asarray(img, dtype=np.float32)
+    img = np.asarray(img, dtype=float)
     nv, nu = img.shape
 
-    # --- Global projections -------------------------------------------------
-    proj_u = img.sum(axis=0, dtype=np.float64)  # sum over v (rows)
-    proj_v = img.sum(axis=1, dtype=np.float64)  # sum over u (cols)
+    proj_root = _ensure_projections_group(f)
+    grp = proj_root.require_group(species)
 
+    # Global projections
+    proj_u = img.sum(axis=0)  # over v
+    proj_v = img.sum(axis=1)  # over u
+
+    # Fetch grid info from meta
+    meta_attrs = f["meta"].attrs
+    u_min_cm = float(meta_attrs["grid.u_min"])
+    v_min_cm = float(meta_attrs["grid.v_min"])
+    du_cm = float(meta_attrs["grid.du"])
+    dv_cm = float(meta_attrs["grid.dv"])
+
+    # Pixel-center coordinates in cm
+    u_centers_cm = u_min_cm + (np.arange(nu) + 0.5) * du_cm
+    v_centers_cm = v_min_cm + (np.arange(nv) + 0.5) * dv_cm
+
+    # ROI projections (same length as global; zeros outside ROI)
+    proj_u_roi: Optional[np.ndarray] = None
+    proj_v_roi: Optional[np.ndarray] = None
+
+    if roi_bounds_cm is not None:
+        ru_min, ru_max, rv_min, rv_max = roi_bounds_cm
+
+        u_mask = (u_centers_cm >= ru_min) & (u_centers_cm <= ru_max)
+        v_mask = (v_centers_cm >= rv_min) & (v_centers_cm <= rv_max)
+
+        if np.any(u_mask) and np.any(v_mask):
+            block = img[np.ix_(v_mask, u_mask)]
+
+            proj_u_roi = np.zeros_like(proj_u)
+            proj_v_roi = np.zeros_like(proj_v)
+
+            proj_u_roi[u_mask] = block.sum(axis=0)
+            proj_v_roi[v_mask] = block.sum(axis=1)
+
+            grp.attrs["roi_u_min_cm"] = float(ru_min)
+            grp.attrs["roi_u_max_cm"] = float(ru_max)
+            grp.attrs["roi_v_min_cm"] = float(rv_min)
+            grp.attrs["roi_v_max_cm"] = float(rv_max)
+        else:
+            # No pixels inside ROI – clear any stale ROI attrs
+            for key in ("roi_u_min_cm", "roi_u_max_cm", "roi_v_min_cm", "roi_v_max_cm"):
+                if key in grp.attrs:
+                    del grp.attrs[key]
+    else:
+        # No ROI configured – clear any stale ROI attrs
+        for key in ("roi_u_min_cm", "roi_u_max_cm", "roi_v_min_cm", "roi_v_max_cm"):
+            if key in grp.attrs:
+                del grp.attrs[key]
+
+    # Write projection datasets (overwrite if present)
     for name, data in (("u", proj_u), ("v", proj_v)):
         if name in grp:
             del grp[name]
-        grp.create_dataset(name, data=data.astype(np.float32), compression="gzip")
+        grp.create_dataset(name, data=np.asarray(data, dtype=np.float32), compression="gzip")
 
-    # Clear any stale ROI datasets if we are not writing ROI this time.
-    if roi is None:
+    if proj_u_roi is not None and proj_v_roi is not None:
+        for name, data in (("u_roi", proj_u_roi), ("v_roi", proj_v_roi)):
+            if name in grp:
+                del grp[name]
+            grp.create_dataset(name, data=np.asarray(data, dtype=np.float32), compression="gzip")
+    else:
+        # Remove stale ROI datasets if ROI disabled
         for name in ("u_roi", "v_roi"):
             if name in grp:
                 del grp[name]
-        for attr in ("roi_u_min_cm", "roi_u_max_cm", "roi_v_min_cm", "roi_v_max_cm"):
-            if attr in grp.attrs:
-                del grp.attrs[attr]
+
+    # ---------------- Metrics (stats) ----------------
+    if metrics_cfg is None or not metrics_cfg.enabled:
+        # If we previously wrote stats, it's reasonable to leave them;
+        # alternatively, you could clear grp["stats"] here.
         return
 
-    # --- ROI-limited projections -------------------------------------------
-    meta = f["meta"].attrs
-    u_min_cm = float(meta["grid.u_min"])
-    du_cm = float(meta["grid.du"])
-    v_min_cm = float(meta["grid.v_min"])
-    dv_cm = float(meta["grid.dv"])
+    metrics = compute_projection_metrics(
+        u_centers_cm=u_centers_cm,
+        v_centers_cm=v_centers_cm,
+        proj_u=proj_u,
+        proj_v=proj_v,
+        proj_u_roi=proj_u_roi,
+        proj_v_roi=proj_v_roi,
+        cfg=metrics_cfg,
+    )
 
-    roi_u_min_cm, roi_u_max_cm, roi_v_min_cm, roi_v_max_cm = roi
+    if not metrics:
+        return
 
-    # Pixel-center positions in cm
-    u_centers = u_min_cm + (np.arange(nu) + 0.5) * du_cm
-    v_centers = v_min_cm + (np.arange(nv) + 0.5) * dv_cm
+    stats_root = grp.require_group("metrics")
 
-    u_mask = (u_centers >= roi_u_min_cm) & (u_centers <= roi_u_max_cm)
-    v_mask = (v_centers >= roi_v_min_cm) & (v_centers <= roi_v_max_cm)
+    # u / v axis-level groups, with some attrs
+    for axis_name, axis_metrics in metrics.items():
+        axis_grp = stats_root.require_group(axis_name)
 
-    # Full-length projections, zeros outside ROI
-    proj_u_roi = np.zeros_like(proj_u)
-    proj_v_roi = np.zeros_like(proj_v)
+        axis_cfg: ProjectionAxisMetricsCfg = getattr(metrics_cfg, axis_name)
 
-    if np.any(u_mask) and np.any(v_mask):
-        block = img[np.ix_(v_mask, u_mask)]
-        proj_u_roi[u_mask] = block.sum(axis=0, dtype=np.float64)
-        proj_v_roi[v_mask] = block.sum(axis=1, dtype=np.float64)
+        axis_grp.attrs["edge_low_frac"] = float(axis_cfg.edge_low_frac)
+        axis_grp.attrs["edge_high_frac"] = float(axis_cfg.edge_high_frac)
+        axis_grp.attrs["min_counts"] = float(axis_cfg.min_counts)
 
-    for name, data in (("u_roi", proj_u_roi), ("v_roi", proj_v_roi)):
-        if name in grp:
-            del grp[name]
-        grp.create_dataset(name, data=data.astype(np.float32), compression="gzip")
+        for which_curve, curve_metrics in axis_metrics.items():
+            curve_grp = axis_grp.require_group(which_curve)
 
-    grp.attrs["roi_u_min_cm"] = float(roi_u_min_cm)
-    grp.attrs["roi_u_max_cm"] = float(roi_u_max_cm)
-    grp.attrs["roi_v_min_cm"] = float(roi_v_min_cm)
-    grp.attrs["roi_v_max_cm"] = float(roi_v_max_cm)
+            # Clear any stale datasets
+            for ds_name in list(curve_grp.keys()):
+                del curve_grp[ds_name]
+
+            # Write each scalar metric as a 0D dataset
+            for key, value in curve_metrics.items():
+                if value is None:
+                    continue
+                if key in curve_grp:
+                    del curve_grp[key]
+                curve_grp.create_dataset(key, data=value)
+
 
 
 
