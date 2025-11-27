@@ -515,6 +515,89 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#imagessummedprojectionsmetrics-projection-statistics-and-fitting-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /images/summed/projections/*/metrics — Projection Statistics and Fitting Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="/images/summed/projections/*/metrics — Projection Statistics and Fitting Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary-statistics-compute_summary-true" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary statistics (compute_summary = true)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gaussian-peak-fitting-compute_peak-true" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gaussian peak fitting (compute_peak = true)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fractional-edges-compute_edges-true" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fractional edges (compute_edges = true)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roi-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ROI metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2d-centroid-compute_centroid-true" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2D centroid (compute_centroid = true)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#additional-notes-for-downstream-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional notes for downstream tools
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -998,6 +1081,75 @@ diagnostics.</p>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    roi_v_max_cm
 </code></pre></div>
 <p>These projections provide a convenient sanity check for the u/v orientation and are intended to simplify downstream 1D analyses (e.g. peak finding, edge detection) without needing to re-derive them from the 2D images.</p>
+<h3 id="imagessummedprojectionsmetrics-projection-statistics-and-fitting-results"><code>/images/summed/projections/*/metrics</code> — Projection Statistics and Fitting Results<a class="headerlink" href="#imagessummedprojectionsmetrics-projection-statistics-and-fitting-results" title="Permanent link">&para;</a></h3>
+<p>When <code>[vis.projections.metrics]</code> is enabled, ng-imager computes and stores
+per-axis (u, v) metrics for each species (<code>n</code>, <code>g</code>, <code>all</code>).<br />
+Metrics are written under:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>/images/summed/projections/{species}/metrics/u
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>/images/summed/projections/{species}/metrics/v
+</code></pre></div>
+<p>Each axis group contains zero or more of the following datasets,
+depending on enabled options.</p>
+<h4 id="summary-statistics-compute_summary-true">Summary statistics (<code>compute_summary = true</code>)<a class="headerlink" href="#summary-statistics-compute_summary-true" title="Permanent link">&para;</a></h4>
+<p>Scalar datasets:</p>
+<ul>
+<li><code>sum_total</code> (float64)</li>
+<li><code>mean_coord</code></li>
+<li><code>median_coord</code></li>
+<li><code>std_coord</code></li>
+<li><code>max_value</code></li>
+<li><code>max_coord</code></li>
+</ul>
+<h4 id="gaussian-peak-fitting-compute_peak-true">Gaussian peak fitting (<code>compute_peak = true</code>)<a class="headerlink" href="#gaussian-peak-fitting-compute_peak-true" title="Permanent link">&para;</a></h4>
+<p>Stored in the same axis group:</p>
+<ul>
+<li><code>peak_coord</code> (float64)</li>
+<li><code>peak_value</code> (float64)</li>
+<li><code>sigma</code> (float64)</li>
+<li><code>success</code> (int8; 1 = fit ok, 0 = failed)</li>
+</ul>
+<p>Fit failures are non-fatal; datasets are present but values may be NaN.</p>
+<h4 id="fractional-edges-compute_edges-true">Fractional edges (<code>compute_edges = true</code>)<a class="headerlink" href="#fractional-edges-compute_edges-true" title="Permanent link">&para;</a></h4>
+<p>Stored alongside summary/peak metrics:</p>
+<ul>
+<li><code>edge_low_coord</code>  (float64)</li>
+<li><code>edge_high_coord</code> (float64)</li>
+<li><code>edge_low_frac</code>   (float64, attribute)</li>
+<li><code>edge_high_frac</code>  (float64, attribute)</li>
+</ul>
+<p>Edges are derived from normalized cumulative integrals of projections.</p>
+<h4 id="roi-metrics">ROI metrics<a class="headerlink" href="#roi-metrics" title="Permanent link">&para;</a></h4>
+<p>If an ROI is defined, additional groups exist:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>/images/summed/projections/{species}/metrics/u_roi
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>/images/summed/projections/{species}/metrics/v_roi
+</code></pre></div>
+<p>These contain the identical dataset names as the non-ROI metrics.</p>
+<p>Note: ROI projections use the <em>full</em> u/v length; bins outside the ROI are
+zero.</p>
+<h4 id="2d-centroid-compute_centroid-true">2D centroid (<code>compute_centroid = true</code>)<a class="headerlink" href="#2d-centroid-compute_centroid-true" title="Permanent link">&para;</a></h4>
+<p>Stored at:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>/images/summed/projections/{species}/metrics/centroid
+</code></pre></div>
+<p>Datasets:</p>
+<ul>
+<li><code>u_centroid</code></li>
+<li><code>v_centroid</code></li>
+<li><code>sum_total</code></li>
+</ul>
+<p>These describe the centroid of the full 2D reconstructed image.</p>
+<hr />
+<h3 id="additional-notes-for-downstream-tools">Additional notes for downstream tools<a class="headerlink" href="#additional-notes-for-downstream-tools" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Metrics are always <strong>datasets</strong>, not attributes (except fractional edge config).</li>
+<li>Tools should detect metric availability by checking dataset existence.</li>
+<li>Coordinate values are stored in <strong>centimeters</strong>, regardless of plot-unit setting.</li>
+<li>ROI bounds appear as attributes under the species projection group:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>roi_u_min_cm
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>roi_u_max_cm
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>roi_v_min_cm
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>roi_v_max_cm
+</code></pre></div>
 <hr />
 <h2 id="cones">/cones<a class="headerlink" href="#cones" title="Permanent link">&para;</a></h2>
 <p><code>/cones</code> stores the geometric and physical properties of each cone.</p>
@@ -1092,14 +1244,14 @@ makes it easy to map:</p>
 <li><code>/images/list_mode/cone_pixel_indices</code> : alias (HDF5 soft link) to <code>/lm/cone_pixel_indices</code></li>
 </ul>
 <p>Each row is:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>(cone_id, flat_pixel_index)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>(cone_id, flat_pixel_index)
 </code></pre></div>
 <p>where:</p>
 <ul>
 <li><code>cone_id</code> is an index into <code>/cones/cone_id</code> and the other cone arrays, and</li>
 <li><code>flat_pixel_index</code> is a flattened <code>(u, v)</code> index:</li>
 </ul>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>flat = v * nu + u
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>flat = v * nu + u
 </code></pre></div>
 <p>You can recover <code>(u, v)</code> from <code>flat</code> using <code>divmod(flat, nu)</code>.</p>
 <p>Only cones that actually intersect the imaging plane appear in this dataset.</p>
@@ -1118,9 +1270,9 @@ makes it easy to map:</p>
    or <code>-1</code> if none of that event’s cones hit the plane.</li>
 </ol>
 <p>Together, the mapping looks like:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>hit (lm/hit_*)   ← event_index ← event_survival[:, 0]
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>                               ↘ first_cone_index      → cones/*
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>                                ↘ first_imaged_cone_index → cone_pixel_indices
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>hit (lm/hit_*)   ← event_index ← event_survival[:, 0]
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>                               ↘ first_cone_index      → cones/*
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>                                ↘ first_imaged_cone_index → cone_pixel_indices
 </code></pre></div>
 <p>If you need more detailed correlations (e.g. many cones per event), you can
 walk:</p>

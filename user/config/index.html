@@ -676,6 +676,78 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#112-visprojectionsmetrics-projection-statistics-fitting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2. [vis.projections.metrics] — Projection Statistics / Fitting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.2. [vis.projections.metrics] — Projection Statistics / Fitting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary-statistics-compute_summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary statistics (compute_summary)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#peak-fitting-compute_peak" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Peak fitting (compute_peak)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fractional-edges-compute_edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fractional edges (compute_edges)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2d-centroid-compute_centroid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2D centroid (compute_centroid)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#113-visprojectionsplot-plotting-of-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3. [vis.projections.plot] — Plotting of Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1448,6 +1520,94 @@ extra_formats          = []
 <a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="n">roi_v_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
 <a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="n">roi_v_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
 </code></pre></div>
+<h3 id="112-visprojectionsmetrics-projection-statistics-fitting">11.2. <code>[vis.projections.metrics]</code> — Projection Statistics / Fitting<a class="headerlink" href="#112-visprojectionsmetrics-projection-statistics-fitting" title="Permanent link">&para;</a></h3>
+<p>The projection subsystem can optionally compute statistical summaries,
+peak positions, and edge locations for each axis (u and v) and for both
+the <em>all-pixels</em> projections and the ROI-limited projections.</p>
+<p>These values are written into the HDF5 file under:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>/images/summed/projections/{species}/metrics/u/*
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>/images/summed/projections/{species}/metrics/v/*
+</code></pre></div>
+<p>Enable metrics via:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[vis.projections.metrics]</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">         </span><span class="c1"># master toggle</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">[vis.projections.metrics.u]</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">compute_summary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">compute_peak</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">compute_edges</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">edge_low_frac</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">edge_high_frac</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="n">min_counts</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mf">100.0</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="k">[vis.projections.metrics.v]</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="n">compute_summary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="n">compute_peak</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="n">compute_edges</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="n">edge_low_frac</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="n">edge_high_frac</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="n">min_counts</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mf">100.0</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="c1"># optional centroid of the full 2D image</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="n">compute_centroid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</code></pre></div>
+<h4 id="summary-statistics-compute_summary">Summary statistics (<code>compute_summary</code>)<a class="headerlink" href="#summary-statistics-compute_summary" title="Permanent link">&para;</a></h4>
+<p>Computed for each 1D projection:</p>
+<ul>
+<li><code>sum_total</code></li>
+<li><code>mean_coord</code></li>
+<li><code>median_coord</code></li>
+<li><code>std_coord</code></li>
+<li><code>max_value</code>, <code>max_coord</code></li>
+</ul>
+<h4 id="peak-fitting-compute_peak">Peak fitting (<code>compute_peak</code>)<a class="headerlink" href="#peak-fitting-compute_peak" title="Permanent link">&para;</a></h4>
+<p>Finds the peak position by fitting a 1D Gaussian to each projection
+(all-pixels and ROI-limited).</p>
+<p>Saved values:</p>
+<ul>
+<li><code>peak_coord</code></li>
+<li><code>peak_value</code></li>
+<li><code>sigma</code></li>
+<li><code>success</code> flag</li>
+</ul>
+<p>Fitting failures are non-fatal; all fields exist but <code>success=0</code>.</p>
+<h4 id="fractional-edges-compute_edges">Fractional edges (<code>compute_edges</code>)<a class="headerlink" href="#fractional-edges-compute_edges" title="Permanent link">&para;</a></h4>
+<p>Locates where the normalized cumulative integral crosses the configured
+fractions, e.g.:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">edge_low_frac</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">edge_high_frac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span>
+</code></pre></div>
+<p>Saved values:</p>
+<ul>
+<li><code>edge_low_coord</code></li>
+<li><code>edge_high_coord</code></li>
+</ul>
+<p>Useful for beam-range imaging.</p>
+<h4 id="2d-centroid-compute_centroid">2D centroid (<code>compute_centroid</code>)<a class="headerlink" href="#2d-centroid-compute_centroid" title="Permanent link">&para;</a></h4>
+<p>Computes the centroid of the <em>2D summed image</em> and writes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>/images/summed/projections/{species}/metrics/centroid/u_centroid
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>/images/summed/projections/{species}/metrics/centroid/v_centroid
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>/images/summed/projections/{species}/metrics/centroid/sum_total
+</code></pre></div>
+<hr />
+<h3 id="113-visprojectionsplot-plotting-of-metrics">11.3. <code>[vis.projections.plot]</code> — Plotting of Metrics<a class="headerlink" href="#113-visprojectionsplot-plotting-of-metrics" title="Permanent link">&para;</a></h3>
+<p>Visualization of the above derived metrics is controlled separately:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">[vis.projections.plot]</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">show_peaks</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">show_edges</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">show_centroid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">show_metrics_panel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">annotate_summary</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</code></pre></div>
+<p>These affect <strong>only</strong> the visualization overlay behavior inside
+<code>vis/hdf.py</code>, not the content of the HDF5 file.</p>
+<p>Plots may include:</p>
+<ul>
+<li>vertical dashed lines (Gaussian peak centers)</li>
+<li>dotted vertical lines (fractional edges)</li>
+<li>2D centroid marker (crosshair)</li>
+<li>optional metrics summary text panel</li>
+</ul>
 <hr />
 <h2 id="12-putting-it-together">12. Putting It Together<a class="headerlink" href="#12-putting-it-together" title="Permanent link">&para;</a></h2>
 <p>The example config file:</p>
