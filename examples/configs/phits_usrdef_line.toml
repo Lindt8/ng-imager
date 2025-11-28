@@ -256,7 +256,7 @@ min_counts      = 100.0
 [vis.projections.plot]
 show_peak_markers  = true
 show_edge_markers  = true
-show_centroid_2d   = false      # future overlay on the 2D image
+show_centroid_2d   = true      # future overlay on the 2D image
 metrics_source     = "both"     # which numbers to display: ["auto", "all", "roi", "both"]
 curve_mode         = "all+roi"  # which projection curves to display: ["all+roi", "all_only", "roi_only"]
 annotate_summary   = "full"  # small text with key metrics: "off" | "compact" | "full"

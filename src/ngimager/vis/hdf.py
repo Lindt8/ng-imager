@@ -382,6 +382,9 @@ def render_summed_images(
     curve_mode: str = "all+roi",
     annotate_summary: str = "compact",
     show_metrics_panel: bool = False,
+    show_peak_markers: bool = True,
+    show_edge_markers: bool = True,
+    show_centroid_2d: bool = False,
 ) -> list[Path]:
     """
     Render `/images/summed/*` datasets from an ng-imager HDF5 file to image files.
@@ -745,7 +748,33 @@ def render_summed_images(
                     peak_v_cm = v_metrics.get("peak_pos_cm")
                     edge_low_v_cm = v_metrics.get("edge_low_cm")
                     edge_high_v_cm = v_metrics.get("edge_high_cm")
-                    
+                
+                # -------------------------
+                # Centroid metrics (cm)
+                # Prefer ROI centroid if available, else ALL
+                # -------------------------
+                u_centroid_cm = None
+                v_centroid_cm = None
+
+                # ROI has priority
+                if u_metrics_source == "roi":
+                    u_centroid_cm = u_metrics.get("mean_cm")
+                elif u_metrics_source == "all":
+                    u_centroid_cm = u_metrics.get("mean_cm")
+                else:
+                    # "auto" case handled via u_metrics_source
+                    if u_metrics is not None:
+                        u_centroid_cm = u_metrics.get("mean_cm")
+
+                if v_metrics_source == "roi":
+                    v_centroid_cm = v_metrics.get("mean_cm")
+                elif v_metrics_source == "all":
+                    v_centroid_cm = v_metrics.get("mean_cm")
+                else:
+                    if v_metrics is not None:
+                        v_centroid_cm = v_metrics.get("mean_cm")
+
+                
                 # Edge fractions (0–1) from metrics/u and metrics/v attributes
                 edge_fracs: dict[str, tuple[Optional[float], Optional[float]]] = {}
 
@@ -797,6 +826,8 @@ def render_summed_images(
             # Convert metric positions (if any) into plot units
             peak_u_plot = edge_low_u_plot = edge_high_u_plot = None
             peak_v_plot = edge_low_v_plot = edge_high_v_plot = None
+            u_centroid_plot = None
+            v_centroid_plot = None
 
             def _cm_to_plot_u(x_cm: Optional[float]) -> Optional[float]:
                 if x_cm is None:
@@ -825,6 +856,13 @@ def render_summed_images(
                 edge_low_v_plot = _cm_to_plot_v(edge_low_v_cm)
             if edge_high_v_cm is not None:
                 edge_high_v_plot = _cm_to_plot_v(edge_high_v_cm)
+                
+            # Convert centroids
+            if u_centroid_cm is not None:
+                u_centroid_plot = _cm_to_plot_u(u_centroid_cm)
+            if v_centroid_cm is not None:
+                v_centroid_plot = _cm_to_plot_v(v_centroid_cm)
+
 
             # ----------------- Figure layout -----------------
             if projections and (nu > 1 or nv > 1):
@@ -968,7 +1006,54 @@ def render_summed_images(
                     alpha=0.9,
                 )
                 ax_img.add_patch(rect)
+            
+            # 2D centroid crosshair overlay
+            if projections and show_centroid_2d:
+                if (u_centroid_plot is not None) and (v_centroid_plot is not None):
 
+                    # Short crosshair arms (5% of image span)
+                    u_span = extent[1] - extent[0]
+                    v_span = extent[3] - extent[2]
+                    hu = 0.05 * u_span
+                    hv = 0.05 * v_span
+
+                    # Horizontal line
+                    ax_img.hlines(
+                        v_centroid_plot,
+                        u_centroid_plot - hu,
+                        u_centroid_plot + hu,
+                        colors="white",
+                        linewidth=1.2,
+                        alpha=0.9,
+                    )
+                    # Vertical line
+                    ax_img.vlines(
+                        u_centroid_plot,
+                        v_centroid_plot - hv,
+                        v_centroid_plot + hv,
+                        colors="white",
+                        linewidth=1.2,
+                        alpha=0.9,
+                    )
+
+                    # Annotation (top-left inside image)
+                    ax_img.text(
+                        0.02, 0.98,
+                        f"centroid = ({u_centroid_plot:.2f}, {v_centroid_plot:.2f}) {axis_units}",
+                        transform=ax_img.transAxes,
+                        ha="left",
+                        va="top",
+                        fontsize=8,
+                        color="white",
+                        bbox=dict(
+                            boxstyle="round,pad=0.2",
+                            facecolor="black",
+                            edgecolor="none",
+                            alpha=0.4,
+                        ),
+                    )
+
+            
             # Cone-count annotation (above image, inside its axes coordinates)
             n_cones = _count_cones_for_species(f, sp)
             if n_cones is not None:
@@ -1068,19 +1153,19 @@ def render_summed_images(
                             ax_top.set_ylim(0.0, 1.0)
 
                 # Overlay u-axis metrics if available
-                if peak_u_plot is not None:
+                if peak_u_plot is not None and show_peak_markers:
                     ax_top.axvline(
                         peak_u_plot,
                         linewidth=1.0,
                         **_METRIC_STYLE_PEAK,
                     )
-                if edge_low_u_plot is not None:
+                if edge_low_u_plot is not None and show_edge_markers:
                     ax_top.axvline(
                         edge_low_u_plot,
                         linewidth=1.0,
                         **_METRIC_STYLE_EDGE,
                     )
-                if edge_high_u_plot is not None:
+                if edge_high_u_plot is not None and show_edge_markers:
                     ax_top.axvline(
                         edge_high_u_plot,
                         linewidth=1.0,
@@ -1089,7 +1174,7 @@ def render_summed_images(
                     
                 # Tiny annotations showing edge_low_frac / edge_high_frac (in %)
                 u_low_frac, u_high_frac = edge_fracs.get("u", (None, None))
-                if edge_low_u_plot is not None and u_low_frac is not None:
+                if edge_low_u_plot is not None and u_low_frac is not None and show_edge_markers:
                     ax_top.text(
                         edge_low_u_plot,
                         1.01,
@@ -1100,7 +1185,7 @@ def render_summed_images(
                         fontsize=5,
                         color=_METRIC_STYLE_EDGE["color"],
                     )
-                if edge_high_u_plot is not None and u_high_frac is not None:
+                if edge_high_u_plot is not None and u_high_frac is not None and show_edge_markers:
                     ax_top.text(
                         edge_high_u_plot,
                         1.01,
@@ -1219,19 +1304,19 @@ def render_summed_images(
                             ax_left.set_xlim(0.0, 1.0)
 
                 # Overlay v-axis metrics if available
-                if peak_v_plot is not None:
+                if peak_v_plot is not None and show_peak_markers:
                     ax_left.axhline(
                         peak_v_plot,
                         linewidth=1.0,
                         **_METRIC_STYLE_PEAK,
                     )
-                if edge_low_v_plot is not None:
+                if edge_low_v_plot is not None and show_edge_markers:
                     ax_left.axhline(
                         edge_low_v_plot,
                         linewidth=1.0,
                         **_METRIC_STYLE_EDGE,
                     )
-                if edge_high_v_plot is not None:
+                if edge_high_v_plot is not None and show_edge_markers:
                     ax_left.axhline(
                         edge_high_v_plot,
                         linewidth=1.0,
@@ -1240,7 +1325,7 @@ def render_summed_images(
                     
                 # Tiny annotations showing edge_low_frac / edge_high_frac (in %)
                 v_low_frac, v_high_frac = edge_fracs.get("v", (None, None))
-                if edge_low_v_plot is not None and v_low_frac is not None:
+                if edge_low_v_plot is not None and v_low_frac is not None and show_edge_markers:
                     ax_left.text(
                         1.002,  # just to the right of the axis frame
                         edge_low_v_plot,
@@ -1251,7 +1336,7 @@ def render_summed_images(
                         fontsize=5,
                         color=_METRIC_STYLE_EDGE["color"],
                     )
-                if edge_high_v_plot is not None and v_high_frac is not None:
+                if edge_high_v_plot is not None and v_high_frac is not None and show_edge_markers:
                     ax_left.text(
                         1.002,
                         edge_high_v_plot,

@@ -897,6 +897,9 @@ def run_pipeline(
     curve_mode = "all+roi"
     annotate_summary = "compact"
     show_metrics_panel = False
+    show_peak_markers = True
+    show_edge_markers = True
+    show_centroid_2d = False
     if proj_cfg is not None:
         plot_cfg = getattr(proj_cfg, "plot", None)
         if plot_cfg is not None:
@@ -904,6 +907,9 @@ def run_pipeline(
             curve_mode = getattr(plot_cfg, "curve_mode", curve_mode)
             annotate_summary = getattr(plot_cfg, "annotate_summary", annotate_summary)
             show_metrics_panel = getattr(plot_cfg, "show_metrics_panel", show_metrics_panel)
+            show_peak_markers = getattr(plot_cfg, "show_peak_markers", show_peak_markers)
+            show_edge_markers = getattr(plot_cfg, "show_edge_markers", show_edge_markers)
+            show_centroid_2d = getattr(plot_cfg, "show_centroid_2d", show_centroid_2d)
 
     # --- 4a. Neutron-only image ---
     if cones_n:
@@ -1075,6 +1081,9 @@ def run_pipeline(
                 curve_mode=curve_mode,
                 annotate_summary=annotate_summary,
                 show_metrics_panel=show_metrics_panel,
+                show_peak_markers=show_peak_markers,
+                show_edge_markers=show_edge_markers,
+                show_centroid_2d=show_centroid_2d,
             )
 
             if cfg.run.diagnostics_level >= 1:
