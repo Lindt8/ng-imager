@@ -1608,22 +1608,45 @@ non-ROI axis groups <code>metrics/u</code> and <code>metrics/v</code>:</p>
 <p>These describe the centroid of the full 2D reconstructed image.</p>
 <hr />
 <h3 id="113-visprojectionsplot-plotting-of-metrics">11.3. <code>[vis.projections.plot]</code> — Plotting of Metrics<a class="headerlink" href="#113-visprojectionsplot-plotting-of-metrics" title="Permanent link">&para;</a></h3>
-<p>Visualization of the above derived metrics is controlled separately:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[vis.projections.plot]</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">show_peaks</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">show_edges</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">show_centroid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">show_metrics_panel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">annotate_summary</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<p>Visualization of the derived projection metrics is controlled separately:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="w">    </span><span class="k">[vis.projections.plot]</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="c1"># Basic visual toggles</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="n">show_peak_markers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">    </span><span class="c1"># vertical / horizontal lines at peak_pos_cm</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="n">show_edge_markers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">    </span><span class="c1"># lines at edge_low_cm / edge_high_cm</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="n">show_centroid_2d</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">   </span><span class="c1"># crosshair at 2D centroid (if computed)</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="c1"># Which metrics to use when both &quot;all&quot; and ROI curves exist:</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="c1">#   &quot;auto&quot; : prefer ROI metrics when ROI projections are available,</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="c1">#            otherwise fall back to the all-pixels metrics</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="c1">#   &quot;all&quot;  : always use metrics from the all-pixels projections</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="c1">#   &quot;roi&quot;  : always use metrics from the ROI-limited projections</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="c1">#   &quot;both&quot; : expose both all and ROI metrics (styling handled in vis/hdf.py)</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">    </span><span class="n">metrics_source</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;auto&quot;</span><span class="w">     </span><span class="c1"># &quot;auto&quot; | &quot;all&quot; | &quot;roi&quot; | &quot;both&quot;</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="c1"># Which projection curves to draw:</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">    </span><span class="c1">#   &quot;all+roi&quot;  : show both all-pixels and ROI curves</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">    </span><span class="c1">#   &quot;all_only&quot; : show only the all-pixels projection</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">    </span><span class="c1">#   &quot;roi_only&quot; : show only the ROI-limited projection (if present)</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">    </span><span class="n">curve_mode</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;all+roi&quot;</span><span class="w">  </span><span class="c1"># &quot;all+roi&quot; | &quot;all_only&quot; | &quot;roi_only&quot;</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">    </span><span class="c1"># Numeric summaries on the projections:</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="w">    </span><span class="c1">#   &quot;off&quot;     : no numeric text</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="w">    </span><span class="c1">#   &quot;compact&quot; : minimal, high-level summary (default)</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">    </span><span class="c1">#   &quot;full&quot;    : more detailed summary (e.g. including edges)</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">    </span><span class="n">annotate_summary</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;compact&quot;</span><span class="w">  </span><span class="c1"># &quot;off&quot; | &quot;compact&quot; | &quot;full&quot;</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="w">    </span><span class="c1"># Optional extra panel with a table of metrics (future)</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="w">    </span><span class="n">show_metrics_panel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </code></pre></div>
 <p>These affect <strong>only</strong> the visualization overlay behavior inside
 <code>vis/hdf.py</code>, not the content of the HDF5 file.</p>
 <p>Plots may include:</p>
 <ul>
 <li>vertical dashed lines (Gaussian peak centers)</li>
-<li>dotted vertical lines (fractional edges)</li>
-<li>2D centroid marker (crosshair)</li>
-<li>optional metrics summary text panel</li>
+<li>dotted lines at fractional edges (low/high)</li>
+<li>a 2D centroid marker (crosshair)</li>
+<li>optional numeric summaries overlaid on the projections</li>
+<li>an optional metrics summary panel when <code>show_metrics_panel = true</code></li>
 </ul>
 <hr />
 <h2 id="12-putting-it-together">12. Putting It Together<a class="headerlink" href="#12-putting-it-together" title="Permanent link">&para;</a></h2>
