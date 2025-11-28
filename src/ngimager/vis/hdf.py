@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Sequence, Literal, Optional
+from typing import Sequence, Literal, Optional, Mapping, Any
 
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Rectangle
+from matplotlib.lines import Line2D
 
+# Centralized styles for projections and metric overlays
+_PROJ_STYLE_ALL = {"color": "C0", "linestyle": "-"}
+_PROJ_STYLE_ROI = {"color": "C1", "linestyle": "--"}
+_METRIC_STYLE_PEAK = {"color": "C2", "linestyle": "-."}
+_METRIC_STYLE_EDGE = {"color": "C3", "linestyle": ":"}
 
 def _count_cones_for_species(f: h5py.File, species: str) -> Optional[int]:
     """
@@ -139,128 +145,221 @@ def _axes_from_meta(
 
     return extent, axis_labels, (du_plot, dv_plot), uv_range_cm
 
-def _get_projection_metrics_axes(
+
+def _load_projection_metrics(
     summed_grp: h5py.Group,
     species: str,
-    prefer_roi: bool = True,
-) -> tuple[Optional[h5py.Group], Optional[h5py.Group]]:
+) -> dict[str, dict[str, dict[str, Any]]]:
     """
-    Locate the metric subgroups for u and v for a given species.
+    Load projection metrics for a given species into a nested dict structure.
 
-    Preferred (current) layout per species:
+    The returned structure is:
+
+        {
+            "u": {
+                "all": {metric_name: value, ...},   # if available
+                "roi": {metric_name: value, ...},   # if available
+            },
+            "v": {
+                "all": {...},
+                "roi": {...},
+            },
+        }
+
+    This assumes the current ng-imager layout:
 
         /images/summed/projections/<species>/metrics/u
+        /images/summed/projections/<species>/metrics/u_roi
         /images/summed/projections/<species>/metrics/v
-        /images/summed/projections/<species>/metrics/u_roi   (optional)
-        /images/summed/projections/<species>/metrics/v_roi   (optional)
+        /images/summed/projections/<species>/metrics/v_roi
 
-    ROI groups, when present, contain the same dataset names as the
-    non-ROI metrics. When both exist and prefer_roi=True, the ROI
-    groups are selected.
-
-    For backward-compatibility, this also supports:
-
-      - metrics/u/all, metrics/u/roi, metrics/v/all, metrics/v/roi
-      - metrics stored directly under metrics/u and metrics/v.
-
-    Returns (g_u, g_v), where each is either:
-
-      - the selected group (ROI or all),
-      - the axis group itself (legacy layout), or
-      - None if metrics are missing.
+    Missing groups simply do not appear in the nested dict.
     """
     proj_root = summed_grp.get("projections")
     if proj_root is None or not isinstance(proj_root, h5py.Group):
-        return None, None
+        return {}
 
     sp_root = proj_root.get(species)
     if sp_root is None or not isinstance(sp_root, h5py.Group):
-        return None, None
+        return {}
 
     g = sp_root.get("metrics")
     if not isinstance(g, h5py.Group):
-        return None, None
+        return {}
+
     metrics_root: h5py.Group = g
 
-    def pick_axis(axis_name: str) -> Optional[h5py.Group]:
-        # -------- Preferred layout: metrics/u, metrics/u_roi --------
-        g_all = metrics_root.get(axis_name)
-        g_roi = metrics_root.get(f"{axis_name}_roi")
+    def _read_group_datasets(grp: h5py.Group) -> dict[str, Any]:
+        out: dict[str, Any] = {}
+        for name, obj in grp.items():
+            if isinstance(obj, h5py.Dataset):
+                value = obj[()]
+                # Convert 0-d numpy arrays to Python scalars where possible
+                try:
+                    value = value.item()
+                except AttributeError:
+                    pass
+                out[name] = value
+        return out
 
-        has_all = isinstance(g_all, h5py.Group)
-        has_roi = isinstance(g_roi, h5py.Group)
+    out: dict[str, dict[str, dict[str, Any]]] = {"u": {}, "v": {}}
 
-        if has_all or has_roi:
-            if prefer_roi and has_roi:
-                return g_roi  # type: ignore[return-value]
+    for axis_name in ("u", "v"):
+        axis_metrics: dict[str, dict[str, Any]] = {}
+
+        all_grp = metrics_root.get(axis_name)
+        roi_grp = metrics_root.get(f"{axis_name}_roi")
+
+        if isinstance(all_grp, h5py.Group):
+            axis_metrics["all"] = _read_group_datasets(all_grp)
+        if isinstance(roi_grp, h5py.Group):
+            axis_metrics["roi"] = _read_group_datasets(roi_grp)
+
+        if axis_metrics:
+            out[axis_name] = axis_metrics
+
+    return out
+
+
+def _resolve_projection_metrics(
+    metrics: Mapping[str, Mapping[str, Mapping[str, Any]]],
+    metrics_source: str,
+) -> dict[str, dict[str, dict[str, Any]]]:
+    """
+    Filter the raw metrics dict according to the requested metrics_source.
+
+    Parameters
+    ----------
+    metrics :
+        Output of _load_projection_metrics(...), keyed as metrics[axis][source].
+        axis   : "u" or "v"
+        source : "all" or "roi"
+    metrics_source :
+        One of "auto", "all", "roi", "both" (case-insensitive).
+
+    Returns
+    -------
+    dict
+        Same structure as the input, but with axes/sources possibly filtered.
+
+        For example, with metrics_source="all":
+
+            {
+                "u": {"all": {...}},
+                "v": {"all": {...}},
+            }
+    """
+    msrc = (metrics_source or "auto").lower()
+    result: dict[str, dict[str, dict[str, Any]]] = {"u": {}, "v": {}}
+
+    def _resolve_axis(axis_metrics: Mapping[str, Mapping[str, Any]]) -> dict[str, dict[str, Any]]:
+        if not axis_metrics:
+            return {}
+
+        has_all = "all" in axis_metrics and axis_metrics["all"]
+        has_roi = "roi" in axis_metrics and axis_metrics["roi"]
+
+        if msrc == "all":
+            return {"all": axis_metrics["all"]} if has_all else {}
+        if msrc == "roi":
+            return {"roi": axis_metrics["roi"]} if has_roi else {}
+        if msrc == "both":
+            out: dict[str, dict[str, Any]] = {}
             if has_all:
-                return g_all  # type: ignore[return-value]
-            # Only ROI exists
-            return g_roi  # type: ignore[return-value]
+                out["all"] = axis_metrics["all"]
+            if has_roi:
+                out["roi"] = axis_metrics["roi"]
+            return out
 
-        # -------- Older layout: metrics/u/all, metrics/u/roi --------
-        g_axis = metrics_root.get(axis_name)
-        if isinstance(g_axis, h5py.Group):
-            g_all_old = g_axis.get("all")
-            g_roi_old = g_axis.get("roi")
+        # "auto" (default) and unknown:
+        # Prefer ROI when available, otherwise all.
+        if has_roi:
+            return {"roi": axis_metrics["roi"]}
+        if has_all:
+            return {"all": axis_metrics["all"]}
+        return {}
 
-            has_all_old = isinstance(g_all_old, h5py.Group)
-            has_roi_old = isinstance(g_roi_old, h5py.Group)
+    for axis_name in ("u", "v"):
+        axis_metrics = metrics.get(axis_name, {})
+        resolved = _resolve_axis(axis_metrics)
+        if resolved:
+            result[axis_name] = resolved
 
-            if has_all_old or has_roi_old:
-                if prefer_roi and has_roi_old:
-                    return g_roi_old  # type: ignore[return-value]
-                if has_all_old:
-                    return g_all_old  # type: ignore[return-value]
-                return g_roi_old  # type: ignore[return-value]
-
-            # Legacy-legacy: metrics directly under u/v
-            return g_axis
-
-        return None
-
-    return pick_axis("u"), pick_axis("v")
+    return result
 
 
-def _read_axis_metric_position(
-    g_axis: Optional[h5py.Group],
-    kind: str,
-) -> Optional[float]:
+
+
+
+def _resolve_projection_plot_prefs(
+    has_roi: bool,
+    metrics_source: str,
+    curve_mode: str,
+) -> tuple[bool, bool, bool]:
     """
-    Read a single position metric (in cm) from an axis metrics group.
+    Decide which curves to draw and which metrics to prefer.
 
-    kind ∈ {"peak", "edge_low", "edge_high"}.
+    Parameters
+    ----------
+    has_roi :
+        True when ROI-limited projections/metrics are available.
+    metrics_source :
+        One of "auto", "all", "roi", "both" (case-insensitive).
+    curve_mode :
+        One of "all+roi", "all_only", "roi_only" (case-insensitive).
 
-    Expected dataset names:
-
-        peak_pos_cm
-        edge_low_cm
-        edge_high_cm
-
-    Returns None if the dataset or group is missing.
+    Returns
+    -------
+    draw_all, draw_roi, prefer_roi_metrics
+        draw_all :
+            Whether to draw the all-pixels projection curve.
+        draw_roi :
+            Whether to draw the ROI-limited projection curve.
+        prefer_roi_metrics :
+            Whether metrics helpers should prefer ROI metrics when both
+            ROI and all-pixels metrics exist.
     """
-    if g_axis is None:
-        return None
+    msrc = (metrics_source or "auto").lower()
+    cmode = (curve_mode or "all+roi").lower()
 
-    name_map = {
-        "peak": "peak_pos_cm",
-        "edge_low": "edge_low_cm",
-        "edge_high": "edge_high_cm",
-    }
-    dname = name_map.get(kind)
-    if dname is None or dname not in g_axis:
-        return None
+    # -----------------------------
+    # Curve visibility (all / ROI)
+    # -----------------------------
+    if not has_roi:
+        # No ROI projections: always fall back to "all" only.
+        draw_all = True
+        draw_roi = False
+    else:
+        if cmode == "all_only":
+            draw_all, draw_roi = True, False
+        elif cmode == "roi_only":
+            draw_all, draw_roi = False, True
+        else:  # "all+roi" or anything unexpected
+            draw_all, draw_roi = True, True
 
-    val = g_axis[dname][()]
+    # -----------------------------
+    # Which metrics to prefer?
+    # -----------------------------
+    if not has_roi:
+        # No ROI metrics: always use "all" if present.
+        prefer_roi_metrics = False
+    else:
+        if msrc == "all":
+            prefer_roi_metrics = False
+        elif msrc == "roi":
+            prefer_roi_metrics = True
+        else:
+            # "auto" / "both" / unknown:
+            # tie metrics to whichever curve is emphasized.
+            if draw_roi and not draw_all:
+                prefer_roi_metrics = True
+            elif draw_all and not draw_roi:
+                prefer_roi_metrics = False
+            else:
+                # Both curves visible → default to ROI metrics
+                prefer_roi_metrics = True
 
-    # Handle scalar datasets vs 0-d arrays robustly
-    try:
-        return float(val)
-    except TypeError:
-        arr = np.asarray(val)
-        if arr.size == 0:
-            return None
-        return float(arr.ravel()[0])
+    return draw_all, draw_roi, prefer_roi_metrics
 
 
 
@@ -279,6 +378,10 @@ def render_summed_images(
     roi_v_min_cm: float | None = None,
     roi_v_max_cm: float | None = None,
     plot_label: str | None = None,
+    metrics_source: str = "auto",
+    curve_mode: str = "all+roi",
+    annotate_summary: str = "compact",
+    show_metrics_panel: bool = False,
 ) -> list[Path]:
     """
     Render `/images/summed/*` datasets from an ng-imager HDF5 file to image files.
@@ -390,33 +493,293 @@ def render_summed_images(
                     proj_u_roi[u_mask] = block.sum(axis=0)
                     proj_v_roi[v_mask] = block.sum(axis=1)
 
+            # Flags describing ROI / curves / metrics
+            has_roi_projections = (proj_u_roi is not None) and (proj_v_roi is not None)
+            draw_all_curve = True
+            draw_roi_curve = False
+            prefer_roi_metrics = False
+
+            if projections:
+                draw_all_curve, draw_roi_curve, prefer_roi_metrics = _resolve_projection_plot_prefs(
+                    has_roi_projections,
+                    metrics_source,
+                    curve_mode,
+                )
+
             # ------------------------------------------------------------------
             # Optional: read precomputed projection metrics (positions in cm)
             # ------------------------------------------------------------------
             peak_u_cm = peak_v_cm = None
             edge_low_u_cm = edge_high_u_cm = None
             edge_low_v_cm = edge_high_v_cm = None
+            
+            def _format_axis_summary(
+                axis_label: str,
+                metrics: Mapping[str, Any],
+                mode: str,
+            ) -> Optional[str]:
+                """
+                Build a small annotation string for one axis from its metrics.
+
+                axis_label: "u" or "v"
+                mode      : "off" | "compact" | "full"
+                """
+                mode = (mode or "off").lower()
+                if mode == "off":
+                    return None
+
+                def _get(name: str) -> Optional[float]:
+                    val = metrics.get(name)
+                    try:
+                        val = float(val)
+                    except (TypeError, ValueError):
+                        return None
+                    if not np.isfinite(val):
+                        return None
+                    return val
+
+                peak = _get("peak_pos_cm")
+                width = _get("edge_width_cm")
+                mean = _get("mean_cm")
+                std = _get("std_cm")
+                edge_low = _get("edge_low_cm")
+                edge_high = _get("edge_high_cm")
+
+                # Convert from cm to the chosen axis_units (cm or mm)
+                scale = 10.0 if axis_units == "mm" else 1.0
+                unit_label = axis_units
+
+                def _conv(x: Optional[float]) -> Optional[float]:
+                    if x is None:
+                        return None
+                    return x * scale
+
+                peak = _conv(peak)
+                width = _conv(width)
+                mean = _conv(mean)
+                std = _conv(std)
+                edge_low = _conv(edge_low)
+                edge_high = _conv(edge_high)
+
+                parts: list[str] = []
+
+                if mode == "compact":
+                    # Prefer peak + width when available
+                    if peak is not None:
+                        parts.append(f"peak={peak:.2f} {unit_label}")
+                    if width is not None:
+                        parts.append(f"width={width:.2f} {unit_label}")
+                    if not parts and mean is not None and std is not None:
+                        parts.append(f"mean={mean:.2f}±{std:.2f} {unit_label}")
+                else:  # "full"
+                    if peak is not None:
+                        parts.append(f"peak={peak:.2f} {unit_label}")
+                    if mean is not None:
+                        parts.append(f"mean={mean:.2f} {unit_label}")
+                    if std is not None:
+                        parts.append(f"std={std:.2f} {unit_label}")
+                    if edge_low is not None and edge_high is not None:
+                        parts.append(
+                            f"edges=[{edge_low:.2f}, {edge_high:.2f}] {unit_label}"
+                        )
+                    elif width is not None:
+                        parts.append(f"width={width:.2f} {unit_label}")
+
+                if not parts:
+                    return None
+
+                lines = [f"{axis_label}:"]
+                for p in parts:
+                    lines.append(f"  {p}")
+                return "\n".join(lines)
+
+            def _render_metrics_panel(
+                    ax_panel,
+                    metrics: Mapping[str, Mapping[str, Mapping[str, Any]]],
+            ) -> None:
+                """
+                Render a table of metrics into ax_panel.
+
+                metrics[axis][source] -> dict of scalar values
+                axis   in {"u", "v"}
+                source in {"all", "roi"}
+                """
+                # Collect rows in a stable order
+                rows: list[tuple[str, str, Mapping[str, Any]]] = []
+                for axis_name in ("u", "v"):
+                    axis_metrics = metrics.get(axis_name, {})
+                    for src_name in ("all", "roi"):
+                        m = axis_metrics.get(src_name)
+                        if m:
+                            rows.append((axis_name, src_name, m))
+
+                ax_panel.set_axis_off()
+
+                if not rows:
+                    ax_panel.text(
+                        0.0,
+                        1.0,
+                        "No projection metrics available",
+                        transform=ax_panel.transAxes,
+                        ha="left",
+                        va="top",
+                        fontsize=7,
+                    )
+                    return
+
+                # Helper to fetch and convert from cm to chosen axis_units
+                scale = 10.0 if axis_units == "mm" else 1.0
+                unit_label = axis_units
+
+                def _get(m: Mapping[str, Any], name: str) -> Optional[float]:
+                    val = m.get(name)
+                    try:
+                        val = float(val)
+                    except (TypeError, ValueError):
+                        return None
+                    if not np.isfinite(val):
+                        return None
+                    return val * scale
+
+                # Build table rows:
+                # [axis/source, peak, mean, median, std, low, high, width]
+                table_rows: list[list[str]] = []
+                for axis_name, src_name, m in rows:
+                    peak = _get(m, "peak_pos_cm")
+                    mean = _get(m, "mean_cm")
+                    median = _get(m, "median_cm")
+                    std = _get(m, "std_cm")
+                    edge_low = _get(m, "edge_low_cm")
+                    edge_high = _get(m, "edge_high_cm")
+                    width = _get(m, "edge_width_cm")
+
+                    def _fmt(x: Optional[float]) -> str:
+                        return f"{x:.2f}" if x is not None else ""
+
+                    row = [
+                        f"{axis_name}/{src_name}",
+                        _fmt(peak),
+                        _fmt(mean),
+                        _fmt(median),
+                        _fmt(std),
+                        _fmt(edge_low),
+                        _fmt(edge_high),
+                        _fmt(width),
+                    ]
+                    table_rows.append(row)
+
+                col_labels = [
+                    "axis/src",
+                    f"peak [{unit_label}]",
+                    f"mean [{unit_label}]",
+                    f"median [{unit_label}]",
+                    f"std [{unit_label}]",
+                    f"low [{unit_label}]",
+                    f"high [{unit_label}]",
+                    f"width [{unit_label}]",
+                ]
+
+                table = ax_panel.table(
+                    cellText=table_rows,
+                    colLabels=col_labels,
+                    loc="upper center",
+                    cellLoc="center",
+                    bbox=[0.0, -0.15, 1.0, 0.9],
+                )
+                table.auto_set_font_size(False)
+                table.set_fontsize(7)
+                table.scale(1.0, 1.2)
+
+            metrics_sel: dict[str, dict[str, dict[str, Any]]] = {}
 
             if projections:
-                # Prefer ROI metrics if an ROI was defined in the config and
-                # therefore ROI projections exist; otherwise fall back to "all".
-                prefer_roi = roi_cm is not None
+                # Load all available metrics for this species
+                metrics_raw = _load_projection_metrics(summed_grp, sp)
+                metrics_sel = _resolve_projection_metrics(metrics_raw, metrics_source)
 
-                g_u_metrics, g_v_metrics = _get_projection_metrics_axes(
-                    summed_grp,
-                    sp,
-                    prefer_roi=prefer_roi,
-                )
+                def _pick_axis_metrics(
+                    axis_name: str,
+                ) -> tuple[dict[str, Any] | None, Optional[str]]:
+                    """
+                    Return (metrics, source) for the given axis.
 
-                if g_u_metrics is not None:
-                    peak_u_cm = _read_axis_metric_position(g_u_metrics, "peak")
-                    edge_low_u_cm = _read_axis_metric_position(g_u_metrics, "edge_low")
-                    edge_high_u_cm = _read_axis_metric_position(g_u_metrics, "edge_high")
+                    source ∈ {"all", "roi"} or None if no metrics available.
+                    """
+                    axis_metrics = metrics_sel.get(axis_name, {})
+                    if not axis_metrics:
+                        return None, None
 
-                if g_v_metrics is not None:
-                    peak_v_cm = _read_axis_metric_position(g_v_metrics, "peak")
-                    edge_low_v_cm = _read_axis_metric_position(g_v_metrics, "edge_low")
-                    edge_high_v_cm = _read_axis_metric_position(g_v_metrics, "edge_high")
+                    has_all = "all" in axis_metrics and axis_metrics["all"]
+                    has_roi = "roi" in axis_metrics and axis_metrics["roi"]
+
+                    msrc = (metrics_source or "auto").lower()
+                    if msrc == "all" and has_all:
+                        return axis_metrics["all"], "all"
+                    if msrc == "roi" and has_roi:
+                        return axis_metrics["roi"], "roi"
+                    if msrc == "both":
+                        # For overlays, prefer ROI when both exist
+                        if has_roi:
+                            return axis_metrics["roi"], "roi"
+                        if has_all:
+                            return axis_metrics["all"], "all"
+                        return None, None
+
+                    # "auto" or unknown: prefer ROI, else all
+                    if has_roi:
+                        return axis_metrics["roi"], "roi"
+                    if has_all:
+                        return axis_metrics["all"], "all"
+                    return None, None
+
+                u_metrics, u_metrics_source = _pick_axis_metrics("u")
+                v_metrics, v_metrics_source = _pick_axis_metrics("v")
+
+
+                if u_metrics is not None:
+                    peak_u_cm = u_metrics.get("peak_pos_cm")
+                    edge_low_u_cm = u_metrics.get("edge_low_cm")
+                    edge_high_u_cm = u_metrics.get("edge_high_cm")
+
+                if v_metrics is not None:
+                    peak_v_cm = v_metrics.get("peak_pos_cm")
+                    edge_low_v_cm = v_metrics.get("edge_low_cm")
+                    edge_high_v_cm = v_metrics.get("edge_high_cm")
+                    
+                # Edge fractions (0–1) from metrics/u and metrics/v attributes
+                edge_fracs: dict[str, tuple[Optional[float], Optional[float]]] = {}
+
+                try:
+                    proj_root = summed_grp.get("projections")
+                    if isinstance(proj_root, h5py.Group):
+                        sp_root = proj_root.get(sp)
+                    else:
+                        sp_root = None
+                    if isinstance(sp_root, h5py.Group):
+                        metrics_root = sp_root.get("metrics")
+                    else:
+                        metrics_root = None
+
+                    if isinstance(metrics_root, h5py.Group):
+                        for axis_name in ("u", "v"):
+                            axis_grp = metrics_root.get(axis_name)
+                            if not isinstance(axis_grp, h5py.Group):
+                                continue
+                            low = axis_grp.attrs.get("edge_low_frac", None)
+                            high = axis_grp.attrs.get("edge_high_frac", None)
+                            try:
+                                low_f = float(low) if low is not None else None
+                            except (TypeError, ValueError):
+                                low_f = None
+                            try:
+                                high_f = float(high) if high is not None else None
+                            except (TypeError, ValueError):
+                                high_f = None
+                            if low_f is not None or high_f is not None:
+                                edge_fracs[axis_name] = (low_f, high_f)
+                except Exception:
+                    edge_fracs = {}
+
 
 
             # Convert centers to plot units (cm or mm) and apply centering
@@ -463,33 +826,84 @@ def render_summed_images(
             if edge_high_v_cm is not None:
                 edge_high_v_plot = _cm_to_plot_v(edge_high_v_cm)
 
-            
             # ----------------- Figure layout -----------------
             if projections and (nu > 1 or nv > 1):
-                # Layout:
-                #   row 0: [ empty | top u-proj | empty ]
-                #   row 1: [ left v-proj | image | colorbar ]
-                fig = plt.figure(figsize=(8.0, 8.0))
-                gs = GridSpec(
-                    2,
-                    3,
-                    width_ratios=[1.3, 4.0, 0.4],
-                    height_ratios=[1.3, 4.0],
-                    wspace=0.08,
-                    hspace=0.08,
-                    figure=fig,
+                # Decide whether a metrics panel makes sense for this species
+                has_any_metrics = bool(
+                    metrics_sel
+                    and any(metrics_sel.get(ax) for ax in ("u", "v"))
                 )
+                want_metrics_panel = show_metrics_panel and has_any_metrics
 
-                ax_top = fig.add_subplot(gs[0, 1])
-                ax_img = fig.add_subplot(gs[1, 1], sharex=ax_top)
-                ax_left = fig.add_subplot(gs[1, 0], sharey=ax_img)
-                ax_cb = fig.add_subplot(gs[1, 2])
+                if want_metrics_panel:
+                    # Layout with metrics panel as a wide bottom row:
+                    #   row 0: [ legend | top u-proj | empty ]
+                    #   row 1: [ left v-proj | image | colorbar ]
+                    #   row 2: [       metrics table (spans all 3 columns)      ]
+                    fig = plt.figure(figsize=(8.0, 8.5))
+                    gs = GridSpec(
+                        3,
+                        3,
+                        width_ratios=[1.3, 4.0, 0.4],
+                        height_ratios=[1.3, 4.0, 0.9],  # shrink bottom row
+                        wspace=0.08,
+                        hspace=0.12,  # slightly reduced vertical spacing
+                        figure=fig,
+                    )
+
+                    ax_legend = fig.add_subplot(gs[0, 0])
+                    ax_top = fig.add_subplot(gs[0, 1])
+                    ax_img = fig.add_subplot(gs[1, 1], sharex=ax_top)
+                    ax_left = fig.add_subplot(gs[1, 0], sharey=ax_img)
+                    ax_cb = fig.add_subplot(gs[1, 2])
+                    ax_metrics = fig.add_subplot(gs[2, :])
+                    ax_metrics.set_axis_off()
+                else:
+                    # Layout (no metrics panel):
+                    #   row 0: [ legend | top u-proj | empty ]
+                    #   row 1: [ left v-proj | image | colorbar ]
+                    fig = plt.figure(figsize=(8.0, 8.0))
+                    gs = GridSpec(
+                        2,
+                        3,
+                        width_ratios=[1.3, 4.0, 0.4],
+                        height_ratios=[1.3, 4.0],
+                        wspace=0.08,
+                        hspace=0.08,
+                        figure=fig,
+                    )
+
+                    ax_legend = fig.add_subplot(gs[0, 0])
+                    ax_top = fig.add_subplot(gs[0, 1])
+                    ax_img = fig.add_subplot(gs[1, 1], sharex=ax_top)
+                    ax_left = fig.add_subplot(gs[1, 0], sharey=ax_img)
+                    ax_cb = fig.add_subplot(gs[1, 2])
+                    ax_metrics = None
+
+
+                # Global legend in the legend panel
+                ax_legend.axis("off")
+                legend_handles = [
+                    Line2D([0], [0], label="all", **_PROJ_STYLE_ALL),
+                    Line2D([0], [0], label="ROI", **_PROJ_STYLE_ROI),
+                    Line2D([0], [0], label="peak", **_METRIC_STYLE_PEAK),
+                    Line2D([0], [0], label="edges", **_METRIC_STYLE_EDGE),
+                ]
+                ax_legend.legend(
+                    handles=legend_handles,
+                    loc="center left",
+                    bbox_to_anchor=(-0.1, 0.5),
+                    borderaxespad=0.0,
+                    frameon=False,
+                    fontsize=8,
+                )
 
                 # Hide redundant tick labels
                 plt.setp(ax_top.get_xticklabels(), visible=False)
                 # We'll show v-ticks and the v-label on the LEFT projection,
                 # and hide y tick labels on the main image to avoid overlap.
                 plt.setp(ax_img.get_yticklabels(), visible=False)
+
 
             else:
                 # Simple image + colorbar layout (no projections)
@@ -581,158 +995,308 @@ def render_summed_images(
                 # -------------------------
                 # U-projection (top panel)
                 # -------------------------
-                # Primary axis: "all"
-                line_all_u, = ax_top.plot(
-                    u_centers_plot,
-                    proj_u,
-                    color="C0",
-                    label="all",
-                )
                 ax_top.set_ylabel("Σ counts (over v)")
                 ax_top.grid(alpha=0.2)
 
-                if proj_u_roi is not None:
-                    # Secondary y-axis: scaled to ROI only
-                    ax_top2 = ax_top.twinx()
-                    line_roi_u, = ax_top2.plot(
+                line_all_u = None
+                line_roi_u = None
+                ax_top2 = None
+
+                # Primary axis: draw "all" if enabled
+                if draw_all_curve:
+                    (line_all_u,) = ax_top.plot(
                         u_centers_plot,
-                        proj_u_roi,
-                        linestyle="--",
-                        color="C1",
-                        label="ROI",
+                        proj_u,
+                        label="all",
+                        **_PROJ_STYLE_ALL,
                     )
 
-                    # Tight y-limits based on nonzero ROI values
-                    nz = proj_u_roi[proj_u_roi > 0]
-                    if nz.size > 0:
-                        ymin, ymax = float(nz.min()), float(nz.max())
-                        pad = 0.05 * (ymax - ymin) if ymax > ymin else max(ymax * 0.1, 1.0)
-                        ax_top2.set_ylim(ymin - pad, ymax + pad)
+                # ROI curve (if available and enabled)
+                if draw_roi_curve and proj_u_roi is not None:
+                    if draw_all_curve:
+                        # Secondary y-axis: scaled to ROI only
+                        ax_top2 = ax_top.twinx()
+                        (line_roi_u,) = ax_top2.plot(
+                            u_centers_plot,
+                            proj_u_roi,
+                            label="ROI",
+                            **_PROJ_STYLE_ROI,
+                        )
+
+                        # Tight y-limits based on nonzero ROI values
+                        nz = proj_u_roi[proj_u_roi > 0]
+                        if nz.size > 0:
+                            ymin, ymax = float(nz.min()), float(nz.max())
+                            pad = 0.05 * (ymax - ymin) if ymax > ymin else max(
+                                ymax * 0.1,
+                                1.0,
+                            )
+                            ax_top2.set_ylim(ymin - pad, ymax + pad)
+                        else:
+                            ax_top2.set_ylim(0.0, 1.0)
+
+                        # Inside ticks on the right, colored to match ROI curve
+                        ax_top2.yaxis.set_label_position("right")
+                        ax_top2.yaxis.tick_right()
+                        ax_top2.tick_params(
+                            axis="y",
+                            direction="out",
+                            pad=3,  # small positive: just inside the frame
+                            colors=_PROJ_STYLE_ROI["color"],
+                            labelcolor=_PROJ_STYLE_ROI["color"],
+                        )
+                        ax_top2.set_ylabel("")
                     else:
-                        ax_top2.set_ylim(0.0, 1.0)
+                        # ROI-only mode: single axis
+                        (line_roi_u,) = ax_top.plot(
+                            u_centers_plot,
+                            proj_u_roi,
+                            label="ROI",
+                            **_PROJ_STYLE_ROI,
+                        )
 
-                    # Inside ticks on the right, colored to match ROI curve
-                    ax_top2.yaxis.set_label_position("right")
-                    ax_top2.yaxis.tick_right()
-                    ax_top2.tick_params(
-                        axis="y",
-                        direction="out",
-                        pad=3,  # small positive: just inside the frame
-                        colors="C1",
-                        labelcolor="C1",
-                    )
-                    ax_top2.set_ylabel("")
+                        # Tight y-limits from ROI curve on the primary axis
+                        nz = proj_u_roi[proj_u_roi > 0]
+                        if nz.size > 0:
+                            ymin, ymax = float(nz.min()), float(nz.max())
+                            pad = 0.05 * (ymax - ymin) if ymax > ymin else max(
+                                ymax * 0.1,
+                                1.0,
+                            )
+                            ax_top.set_ylim(ymin - pad, ymax + pad)
+                        else:
+                            ax_top.set_ylim(0.0, 1.0)
 
-                    # Legend showing both curves, built from primary & secondary handles
-                    ax_top.legend(
-                        [line_all_u, line_roi_u],
-                        ["all", "ROI"],
-                        loc="upper right",
-                        fontsize=8,
-                    )
-                else:
-                    ax_top.legend(loc="upper right", fontsize=8)
-                
-                
                 # Overlay u-axis metrics if available
                 if peak_u_plot is not None:
                     ax_top.axvline(
                         peak_u_plot,
-                        linestyle="-.",
-                        color="C2",
                         linewidth=1.0,
+                        **_METRIC_STYLE_PEAK,
                     )
                 if edge_low_u_plot is not None:
                     ax_top.axvline(
                         edge_low_u_plot,
-                        linestyle=":",
-                        color="C3",
                         linewidth=1.0,
+                        **_METRIC_STYLE_EDGE,
                     )
                 if edge_high_u_plot is not None:
                     ax_top.axvline(
                         edge_high_u_plot,
-                        linestyle=":",
-                        color="C3",
                         linewidth=1.0,
+                        **_METRIC_STYLE_EDGE,
+                    )
+                    
+                # Tiny annotations showing edge_low_frac / edge_high_frac (in %)
+                u_low_frac, u_high_frac = edge_fracs.get("u", (None, None))
+                if edge_low_u_plot is not None and u_low_frac is not None:
+                    ax_top.text(
+                        edge_low_u_plot,
+                        1.01,
+                        f"{u_low_frac * 100:.0f}%",
+                        transform=ax_top.get_xaxis_transform(),
+                        ha="center",
+                        va="bottom",
+                        fontsize=5,
+                        color=_METRIC_STYLE_EDGE["color"],
+                    )
+                if edge_high_u_plot is not None and u_high_frac is not None:
+                    ax_top.text(
+                        edge_high_u_plot,
+                        1.01,
+                        f"{u_high_frac * 100:.0f}%",
+                        transform=ax_top.get_xaxis_transform(),
+                        ha="center",
+                        va="bottom",
+                        fontsize=5,
+                        color=_METRIC_STYLE_EDGE["color"],
                     )
 
-                
+
+                # Optional numeric summary annotation for u
+                mode_summary = (annotate_summary or "off").lower()
+                if mode_summary != "off" and u_metrics is not None:
+                    label_u = "u"
+                    if u_metrics_source in ("all", "roi"):
+                        label_u = f"u/{u_metrics_source}"
+                    txt_u = _format_axis_summary(label_u, u_metrics, mode_summary)
+                    if txt_u:
+                        ax_top.text(
+                            0.02,
+                            0.98,
+                            txt_u,
+                            transform=ax_top.transAxes,
+                            ha="left",
+                            va="top",
+                            fontsize=7,
+                            color="black",
+                            bbox=dict(
+                                boxstyle="round,pad=0.2",
+                                facecolor="white",
+                                edgecolor="none",
+                                alpha=0.7,
+                            ),
+                        )
+
                 # -------------------------
                 # V-projection (left panel)
                 # -------------------------
-                # Primary axis: "all"
-                line_all_v, = ax_left.plot(
-                    proj_v,
-                    v_centers_plot,
-                    color="C0",
-                    label="all",
-                )
-
-                ax_left.invert_xaxis()
                 ax_left.set_xlabel("Σ counts (over u)")
                 ax_left.set_ylabel(axis_labels[1])  # v-label lives here
                 ax_left.grid(alpha=0.2)
 
-                if proj_v_roi is not None:
-                    # Secondary x-axis (top): scaled to ROI only
-                    ax_left2 = ax_left.twiny()
-                    line_roi_v, = ax_left2.plot(
-                        proj_v_roi,
+                line_all_v = None
+                line_roi_v = None
+                ax_left2 = None
+
+                # Primary axis: draw "all" if enabled
+                if draw_all_curve:
+                    (line_all_v,) = ax_left.plot(
+                        proj_v,
                         v_centers_plot,
-                        linestyle="--",
-                        color="C1",
-                        label="ROI",
+                        label="all",
+                        **_PROJ_STYLE_ALL,
                     )
 
-                    # Tight x-limits from nonzero ROI
-                    nz = proj_v_roi[proj_v_roi > 0]
-                    if nz.size > 0:
-                        xmin, xmax = float(nz.min()), float(nz.max())
-                        pad = 0.05 * (xmax - xmin) if xmax > xmin else max(xmax * 0.1, 1.0)
-                        ax_left2.set_xlim(xmin - pad, xmax + pad)
+                # ROI curve (if available and enabled)
+                if draw_roi_curve and proj_v_roi is not None:
+                    if draw_all_curve:
+                        # Secondary x-axis (top): scaled to ROI only
+                        ax_left2 = ax_left.twiny()
+                        (line_roi_v,) = ax_left2.plot(
+                            proj_v_roi,
+                            v_centers_plot,
+                            label="ROI",
+                            **_PROJ_STYLE_ROI,
+                        )
+
+                        # Tight x-limits from nonzero ROI
+                        nz = proj_v_roi[proj_v_roi > 0]
+                        if nz.size > 0:
+                            xmin, xmax = float(nz.min()), float(nz.max())
+                            pad = 0.05 * (xmax - xmin) if xmax > xmin else max(
+                                xmax * 0.1,
+                                1.0,
+                            )
+                            ax_left2.set_xlim(xmin - pad, xmax + pad)
+                        else:
+                            ax_left2.set_xlim(0.0, 1.0)
+
+                        # Keep "zero on the right" for secondary axis as well
+                        ax_left2.invert_xaxis()
+
+                        # Inside ticks at the top edge, in ROI color
+                        ax_left2.xaxis.set_label_position("top")
+                        ax_left2.xaxis.tick_top()
+                        ax_left2.tick_params(
+                            axis="x",
+                            direction="out",
+                            pad=3,  # small positive: just inside
+                            colors=_PROJ_STYLE_ROI["color"],
+                            labelcolor=_PROJ_STYLE_ROI["color"],
+                        )
+                        ax_left2.set_xlabel("")
+                        ax_left2.set_ylabel("")
                     else:
-                        ax_left2.set_xlim(0.0, 1.0)
+                        # ROI-only mode: single axis
+                        (line_roi_v,) = ax_left.plot(
+                            proj_v_roi,
+                            v_centers_plot,
+                            label="ROI",
+                            **_PROJ_STYLE_ROI,
+                        )
 
-                    # Keep "zero on the right" for secondary axis as well
-                    ax_left2.invert_xaxis()
-
-                    # Inside ticks at the top edge, in ROI color
-                    ax_left2.xaxis.set_label_position("top")
-                    ax_left2.xaxis.tick_top()
-                    ax_left2.tick_params(
-                        axis="x",
-                        direction="out",
-                        pad=3,  # small positive: just inside
-                        colors="C1",
-                        labelcolor="C1",
-                    )
-                    ax_left2.set_xlabel("")
-                    ax_left2.set_ylabel("")
+                        # Tight x-limits from ROI curve on the primary axis
+                        nz = proj_v_roi[proj_v_roi > 0]
+                        if nz.size > 0:
+                            xmin, xmax = float(nz.min()), float(nz.max())
+                            pad = 0.05 * (xmax - xmin) if xmax > xmin else max(
+                                xmax * 0.1,
+                                1.0,
+                            )
+                            ax_left.set_xlim(xmin - pad, xmax + pad)
+                        else:
+                            ax_left.set_xlim(0.0, 1.0)
 
                 # Overlay v-axis metrics if available
                 if peak_v_plot is not None:
                     ax_left.axhline(
                         peak_v_plot,
-                        linestyle="-.",
-                        color="C2",
                         linewidth=1.0,
+                        **_METRIC_STYLE_PEAK,
                     )
                 if edge_low_v_plot is not None:
                     ax_left.axhline(
                         edge_low_v_plot,
-                        linestyle=":",
-                        color="C3",
                         linewidth=1.0,
+                        **_METRIC_STYLE_EDGE,
                     )
                 if edge_high_v_plot is not None:
                     ax_left.axhline(
                         edge_high_v_plot,
-                        linestyle=":",
-                        color="C3",
                         linewidth=1.0,
+                        **_METRIC_STYLE_EDGE,
+                    )
+                    
+                # Tiny annotations showing edge_low_frac / edge_high_frac (in %)
+                v_low_frac, v_high_frac = edge_fracs.get("v", (None, None))
+                if edge_low_v_plot is not None and v_low_frac is not None:
+                    ax_left.text(
+                        1.002,  # just to the right of the axis frame
+                        edge_low_v_plot,
+                        f"{v_low_frac * 100:.0f}%",
+                        transform=ax_left.get_yaxis_transform(),
+                        ha="left",
+                        va="center",
+                        fontsize=5,
+                        color=_METRIC_STYLE_EDGE["color"],
+                    )
+                if edge_high_v_plot is not None and v_high_frac is not None:
+                    ax_left.text(
+                        1.002,
+                        edge_high_v_plot,
+                        f"{v_high_frac * 100:.0f}%",
+                        transform=ax_left.get_yaxis_transform(),
+                        ha="left",
+                        va="center",
+                        fontsize=5,
+                        color=_METRIC_STYLE_EDGE["color"],
                     )
 
+                # Optional numeric summary annotation for v
+                mode_summary = (annotate_summary or "off").lower()
+                if mode_summary != "off" and v_metrics is not None:
+                    label_v = "v"
+                    if v_metrics_source in ("all", "roi"):
+                        label_v = f"v/{v_metrics_source}"
+                    txt_v = _format_axis_summary(label_v, v_metrics, mode_summary)
+                    if txt_v:
+                        ax_left.text(
+                            0.02,
+                            0.98,
+                            txt_v,
+                            transform=ax_left.transAxes,
+                            ha="left",
+                            va="top",
+                            fontsize=7,
+                            color="black",
+                            bbox=dict(
+                                boxstyle="round,pad=0.2",
+                                facecolor="white",
+                                edgecolor="none",
+                                alpha=0.7,
+                            ),
+                        )
+
+                
+                # Keep "zero on the right" for the primary v-projection axis as well
+                ax_left.invert_xaxis()
+
+                # Render the metrics panel, if present
+                if projections and (nu > 1 or nv > 1) and ax_metrics is not None:
+                    _render_metrics_panel(ax_metrics, metrics_sel)
+
+            
             # Suptitle for the whole figure
             species_label = {
                 "n": "n",
@@ -748,8 +1312,17 @@ def render_summed_images(
             
             fig.suptitle(title, y=0.98)
 
-            # Leave room for suptitle
-            fig.subplots_adjust(top=0.93)
+            # Leave room for suptitle. When the metrics panel is present, we
+            # pull the whole subplot region down a bit (smaller `top`) and
+            # also extend it further toward the bottom (smaller `bottom`) so
+            # that:
+            #   - the u-annotation and % labels have more headroom under the title
+            #   - the metrics table drops below the u-axis label instead of
+            #     overlapping it, filling the remaining white space.
+            if not show_metrics_panel:
+                fig.subplots_adjust(top=0.93)
+            else:
+                fig.subplots_adjust(top=0.92, bottom=0.05)
 
             # ----------------------------------------------------------------------
             # Add ngimager footer annotation (version + hyperlink)

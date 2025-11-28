@@ -892,6 +892,18 @@ def run_pipeline(
         if None not in (u0, u1, v0, v1):
             roi = (float(u0), float(u1), float(v0), float(v1))
 
+    # Projection-plotting configuration (metrics_source, curve_mode, etc.)
+    metrics_source = "auto"
+    curve_mode = "all+roi"
+    annotate_summary = "compact"
+    show_metrics_panel = False
+    if proj_cfg is not None:
+        plot_cfg = getattr(proj_cfg, "plot", None)
+        if plot_cfg is not None:
+            metrics_source = getattr(plot_cfg, "metrics_source", metrics_source)
+            curve_mode = getattr(plot_cfg, "curve_mode", curve_mode)
+            annotate_summary = getattr(plot_cfg, "annotate_summary", annotate_summary)
+            show_metrics_panel = getattr(plot_cfg, "show_metrics_panel", show_metrics_panel)
 
     # --- 4a. Neutron-only image ---
     if cones_n:
@@ -1059,6 +1071,10 @@ def run_pipeline(
                 roi_v_min_cm=roi[2] if roi is not None else None,
                 roi_v_max_cm=roi[3] if roi is not None else None,
                 plot_label=getattr(cfg.run, "plot_label", None),
+                metrics_source=metrics_source,
+                curve_mode=curve_mode,
+                annotate_summary=annotate_summary,
+                show_metrics_panel=show_metrics_panel,
             )
 
             if cfg.run.diagnostics_level >= 1:

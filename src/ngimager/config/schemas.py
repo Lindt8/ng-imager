@@ -445,15 +445,56 @@ class ProjectionPlotCfg(BaseModel):
     Controls how projection metrics are visualized in vis/hdf.py.
 
     (Plotting code will read these; they do not affect HDF5 contents.)
+
+    TOML example:
+
+        [vis.projections.plot]
+        # Basic visual toggles
+        show_peak_markers = true   # vertical / horizontal lines at peak_pos_cm
+        show_edge_markers = true   # lines at edge_low_cm / edge_high_cm
+        show_centroid_2d  = false  # crosshair at 2D centroid (if computed)
+
+        # Which metrics to use when both "all" and ROI curves exist
+        metrics_source    = "auto"     # "auto" | "all" | "roi" | "both"
+        curve_mode        = "all+roi"  # "all+roi" | "all_only" | "roi_only"
+
+        # Numeric summaries on the figure
+        # - "off"     : no text annotations
+        # - "compact" : minimal one-line summary per axis
+        # - "full"    : include more fields (e.g. edges) when available
+        annotate_summary  = "compact"
+
+        # Optional extra panel with a table of metrics (future)
+        show_metrics_panel = false
     """
 
     show_peak_markers: bool = True
     show_edge_markers: bool = True
     show_centroid_2d: bool = False
 
-    # Future expansion: annotate summaries, stats panels, etc.
-    annotate_summary: bool = False
+    # Which metrics to use when both "all" and ROI curves exist:
+    #   "auto" : prefer ROI if available, otherwise fall back to "all"
+    #   "all"  : use only "all" metrics
+    #   "roi"  : use only ROI metrics (if missing, no metrics are shown)
+    #   "both" : expose both "all" and ROI metrics (styling handled in vis/hdf.py)
+    metrics_source: Literal["auto", "all", "roi", "both"] = "auto"
+
+    # Which projection curves to draw:
+    #   "all+roi" : show both all-pixels and ROI curves (current behavior)
+    #   "all_only": show only the all-pixels projection
+    #   "roi_only": show only the ROI-limited projection (if present)
+    curve_mode: Literal["all+roi", "all_only", "roi_only"] = "all+roi"
+
+    # Numeric annotations on the projections:
+    #   "off"     : no numeric text
+    #   "compact" : minimal, high-level summary
+    #   "full"    : extended summary (e.g. including edges)
+    annotate_summary: Literal["off", "compact", "full"] = "compact"
+
+    # When true, plotting code may add a dedicated metrics panel
+    # (e.g. a small table of key values) next to the projections.
     show_metrics_panel: bool = False
+
 
 
 class VisProjectionsCfg(BaseModel):
@@ -489,6 +530,12 @@ class VisProjectionsCfg(BaseModel):
         show_peak_markers = true
         show_edge_markers = true
         show_centroid_2d  = false
+
+        metrics_source    = "auto"     # "auto" | "all" | "roi" | "both"
+        curve_mode        = "all+roi"  # "all+roi" | "all_only" | "roi_only"
+
+        annotate_summary  = "compact"  # "off" | "compact" | "full"
+        show_metrics_panel = false
     """
 
     enabled: bool = False

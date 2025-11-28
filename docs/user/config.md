@@ -751,15 +751,37 @@ These describe the centroid of the full 2D reconstructed image.
 
 ### 11.3. `[vis.projections.plot]` — Plotting of Metrics
 
-Visualization of the above derived metrics is controlled separately:
+Visualization of the derived projection metrics is controlled separately:
 
 ```toml
-[vis.projections.plot]
-show_peaks    = true
-show_edges    = false
-show_centroid = false
-show_metrics_panel = false
-annotate_summary   = false
+    [vis.projections.plot]
+    # Basic visual toggles
+    show_peak_markers = true    # vertical / horizontal lines at peak_pos_cm
+    show_edge_markers = true    # lines at edge_low_cm / edge_high_cm
+    show_centroid_2d  = false   # crosshair at 2D centroid (if computed)
+
+    # Which metrics to use when both "all" and ROI curves exist:
+    #   "auto" : prefer ROI metrics when ROI projections are available,
+    #            otherwise fall back to the all-pixels metrics
+    #   "all"  : always use metrics from the all-pixels projections
+    #   "roi"  : always use metrics from the ROI-limited projections
+    #   "both" : expose both all and ROI metrics (styling handled in vis/hdf.py)
+    metrics_source    = "auto"     # "auto" | "all" | "roi" | "both"
+
+    # Which projection curves to draw:
+    #   "all+roi"  : show both all-pixels and ROI curves
+    #   "all_only" : show only the all-pixels projection
+    #   "roi_only" : show only the ROI-limited projection (if present)
+    curve_mode        = "all+roi"  # "all+roi" | "all_only" | "roi_only"
+
+    # Numeric summaries on the projections:
+    #   "off"     : no numeric text
+    #   "compact" : minimal, high-level summary (default)
+    #   "full"    : more detailed summary (e.g. including edges)
+    annotate_summary  = "compact"  # "off" | "compact" | "full"
+
+    # Optional extra panel with a table of metrics (future)
+    show_metrics_panel = false
 ```
 
 These affect **only** the visualization overlay behavior inside
@@ -768,10 +790,10 @@ These affect **only** the visualization overlay behavior inside
 Plots may include:
 
 - vertical dashed lines (Gaussian peak centers)
-- dotted vertical lines (fractional edges)
-- 2D centroid marker (crosshair)
-- optional metrics summary text panel
-
+- dotted lines at fractional edges (low/high)
+- a 2D centroid marker (crosshair)
+- optional numeric summaries overlaid on the projections
+- an optional metrics summary panel when `show_metrics_panel = true`
 
 ---
 
