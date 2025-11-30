@@ -21,10 +21,10 @@ There are three closely related names you will see:
 
 In practice:
 
-- You clone the project from:
+- Install it from PyPI with:
 
     ```bash
-    https://github.com/Lindt8/ng-imager
+    pip install ngimager
     ```
 
 - You import the code in Python as:
@@ -33,10 +33,12 @@ In practice:
     import ngimager
     ```
 
-- Once the project is published to PyPI, you will install it with:
+- Run it with a config TOML file (and optional CLI options):
 
     ```bash
-    pip install ngimager
+    ng-run --help 
+    ng-run my_config.toml 
+    ng-run my_config.toml -i data/input.root -o results/output.h5
     ```
   
 For now, installation is done from a local clone (editable install).
@@ -186,6 +188,15 @@ force_proton_recoils = false
 type     = "point"
 point    = [0.0, 0.0, 0.0]
 strength = 1.0
+
+[vis]
+export_png_on_write    = true
+
+[vis.projections]
+enabled      = true
+
+[vis.projections.metrics]
+enabled = true 
 ```
 
 ### 2.1 Using ELUT with packaged M600/OGS LUTs
@@ -222,9 +233,11 @@ For example, if your config lives at:
 
 and you write:
 
-    [io]
-    input_path  = "../data/usrdef.out"
-    output_path = "../results/example.h5"
+```toml
+[io]
+input_path  = "../data/usrdef.out"
+output_path = "../results/example.h5"
+```
 
 then both paths are resolved relative to `configs/`, no matter where
 you run `ng-run` from.
@@ -321,7 +334,7 @@ python -m ngimager.pipelines.core my_config.toml --fast --list --no-gammas
 
 You can inspect the file with:
 
-- **HDFView** — a GUI browser, nice for sanity checks on groups and datasets.
+- [**HDFView**](https://github.com/HDFGroup/hdfview/releases/tag/v3.3.2) — a GUI browser, nice for sanity checks on groups and datasets.
 - **Python + h5py** — for scripting and analysis.
 
 Example Python session:
