@@ -404,10 +404,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-pipeline-how-far-to-run" class="md-nav__link">
+  <a href="#3-pipeline-how-far-to-run-not-yet-implemented" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. [pipeline] – How Far to Run
+        3. [pipeline] – How Far to Run (NOT YET IMPLEMENTED)
       
     </span>
   </a>
@@ -944,9 +944,8 @@
 
 <h1 id="configuration-toml-reference">Configuration: TOML Reference<a class="headerlink" href="#configuration-toml-reference" title="Permanent link">&para;</a></h1>
 <p>This page describes the TOML configuration format used by <strong>ngimager</strong> (the internal Python package for the <strong>ng-imager</strong> project).</p>
-<p>The examples below are based on:</p>
-<div class="highlight"><pre><span></span><code>examples/configs/phits_usrdef_simple.toml
-</code></pre></div>
+<p>The examples below are based on those found at:</p>
+<p><a href="https://github.com/Lindt8/ng-imager/tree/main/examples">https://github.com/Lindt8/ng-imager/tree/main/examples</a></p>
 <p>and reflect the <strong>current, working</strong> configuration schema used by the pipeline.</p>
 <hr />
 <h2 id="1-top-level-layout">1. Top-Level Layout<a class="headerlink" href="#1-top-level-layout" title="Permanent link">&para;</a></h2>
@@ -964,89 +963,89 @@
 <li>[vis] – visualization / PNG export options</li>
 </ul>
 <p>A minimal skeleton looks like:</p>
-<div class="highlight"><pre><span></span><code>[run]
-...
-
-[pipeline]
-...
-
-[io]
-...
-
-[detectors]
-...
-
-[plane]
-...
-
-[filters]
-...
-
-[energy]
-...
-
-[prior]
-...
-
-[uncertainty]
-...
-
-[vis]
-...
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">[run]</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">...</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">[pipeline]</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">...</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">[io]</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">...</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">[detectors]</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">...</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="k">[plane]</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">...</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="k">[filters]</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="p">...</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="k">[energy]</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="p">...</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="k">[prior]</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="p">...</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="k">[uncertainty]</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="p">...</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="k">[vis]</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="p">...</span>
 </code></pre></div>
 <hr />
 <h2 id="2-run-global-run-controls">2. [run] – Global Run Controls<a class="headerlink" href="#2-run-global-run-controls" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>[run]
-# High-level data source context
-# One of: &quot;cf252&quot; | &quot;dt&quot; | &quot;proton_center&quot; | &quot;phits&quot;
-source_type = &quot;phits&quot;
-
-# Which species to process
-neutrons = true
-gammas   = true
-
-# Behavioral toggles
-fast = false        # enable fast-mode cuts / plane overrides
-list = true         # enable list-mode image output
-
-# Performance / execution
-workers     = 0     # 0 = single-process; &quot;auto&quot; or &gt;0 in newer configs
-chunk_cones = &quot;auto&quot;
-jit         = false
-progress    = true
-
-# Diagnostics
-diagnostics_level = 2   # 0=off, 1=minimal, 2=verbose
-
-# Limits
-max_cones = 50000       # hard cap on number of cones to build / image
-
-# SBP imaging engine:
-#   &quot;scan&quot; – matrix scan across pixel-centered lines (continuous arcs)
-#   &quot;poly&quot; – perimeter sampling (faster, but may show dotted arcs)
-sbp_engine = &quot;scan&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[run]</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># High-level data source context</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># One of: &quot;cf252&quot; | &quot;dt&quot; | &quot;proton_center&quot; | &quot;phits&quot;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">source_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;phits&quot;</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># Which species to process</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">neutrons</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">gammas</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Behavioral toggles</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">fast</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">        </span><span class="c1"># enable fast-mode cuts / plane overrides</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">         </span><span class="c1"># enable list-mode image output</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="c1"># Performance / execution</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">workers</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w">     </span><span class="c1"># 0 or &quot;auto&quot;, or &gt;0 to select process count</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="n">chunk_cones</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;auto&quot;</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">jit</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="n">progress</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="c1"># Diagnostics</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="n">diagnostics_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="w">   </span><span class="c1"># 0=off, 1=minimal, 2=verbose</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="c1"># Limits</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="n">max_cones</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">50000</span><span class="w">       </span><span class="c1"># hard cap on number of cones to build / image</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="c1"># SBP imaging engine:</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="c1">#   &quot;scan&quot; – matrix scan across pixel-centered lines (continuous arcs)</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="c1">#   &quot;poly&quot; – perimeter sampling (faster, but may show dotted arcs)</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="n">sbp_engine</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;scan&quot;</span>
 </code></pre></div>
 <p>Notes:</p>
 <ul>
-<li><code>fast = true</code> activates fast-mode overrides defined under <code>[filters.fast]</code>.</li>
+<li><code>fast = true</code> activates fast-mode overrides defined under <code>[fast]</code>.</li>
 <li><code>list = true</code> asks the recon to keep per-cone pixel indices and to emit list-mode datasets under <code>/lm/...</code> in the HDF5 output.</li>
-<li><code>workers = 0</code> forces a single-process SBP path (nice for debugging); <code>"auto"</code> or an integer &gt; 0 uses multi-process SBP.</li>
+<li><code>workers = 0</code> / <code>"auto"</code> to use all available processes for the SBP path, 1 for single process, or an integer &gt; 1 for multi-process SBP.</li>
 <li><code>sbp_engine</code> selects the simple back-projection engine: <code>"scan"</code> (matrix scan, visually smooth arcs) or <code>"poly"</code> (perimeter sampler, usually faster).</li>
 </ul>
 <h3 id="run-metadata-and-plot-label">Run metadata and plot label<a class="headerlink" href="#run-metadata-and-plot-label" title="Permanent link">&para;</a></h3>
 <p>In addition to the core switches above, <code>[run]</code> also accepts optional free-form metadata that travel with the HDF5 file and can be used by visualization tools:</p>
-<div class="highlight"><pre><span></span><code>[run]
-# ...
-# Short, human-readable label for this run
-plot_label = &quot;175 MeV p, target B, det config 3&quot;
-
-# Optional free-form run-level metadata
-[run.meta]
-beam        = &quot;175 MeV proton&quot;
-target      = &quot;Geometry B&quot;
-det_setup   = &quot;Arrangement 3&quot;
-facility    = &quot;PTB&quot;
-notes       = &quot;DT focus scan, 2025-10-21&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[run]</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># ...</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># Short, human-readable label for this run</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">plot_label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;175 MeV p, target B, det config 2&quot;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># Optional free-form run-level metadata</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">[run.meta]</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">beam</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;175 MeV proton&quot;</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">target</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Geometry B&quot;</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">det_setup</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Arrangement 2&quot;</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="n">facility</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;OncoRay&quot;</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="n">notes</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;beam on for 10 minutes&quot;</span>
 </code></pre></div>
 <p>Fields:</p>
 <ul>
@@ -1065,26 +1064,26 @@ notes       = &quot;DT focus scan, 2025-10-21&quot;
 </ul>
 <p>All entries from <code>[run.meta]</code> are mirrored into the <code>/meta/run_meta</code> group of the HDF5 output (see the HDF5 format documentation), so that a single HDF5 file remains self-contained with respect to basic run description.</p>
 <hr />
-<h2 id="3-pipeline-how-far-to-run">3. [pipeline] – How Far to Run<a class="headerlink" href="#3-pipeline-how-far-to-run" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>[pipeline]
-# Where to stop the pipeline:
-#   &quot;hits&quot;   – stop after hit construction / hit filters
-#   &quot;events&quot; – stop after shaped/typed events
-#   &quot;cones&quot;  – stop after cone construction
-#   &quot;image&quot;  – full pipeline (cones → image)
-until = &quot;image&quot;
+<h2 id="3-pipeline-how-far-to-run-not-yet-implemented">3. [pipeline] – How Far to Run (NOT YET IMPLEMENTED)<a class="headerlink" href="#3-pipeline-how-far-to-run-not-yet-implemented" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[pipeline]</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Where to stop the pipeline:</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1">#   &quot;hits&quot;   – stop after hit construction / hit filters</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1">#   &quot;events&quot; – stop after shaped/typed events</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1">#   &quot;cones&quot;  – stop after cone construction</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1">#   &quot;image&quot;  – full pipeline (cones → image)</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">until</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;image&quot;</span>
 </code></pre></div>
 <p>At the moment, most runs use <code>until = "image"</code>. Future work will make it easy to restart from intermediate stages using ng-imager HDF5 output.</p>
 <hr />
 <h2 id="4-io-input-output-and-adapters">4. [io] – Input / Output and Adapters<a class="headerlink" href="#4-io-input-output-and-adapters" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>[io]
-input_format = &quot;phits_usrdef&quot;  # &quot;phits_usrdef&quot; | &quot;root_novo_ddaq&quot; | &quot;hdf5_ngimager&quot;
-input_path   = &quot;examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out&quot;
-output_path  = &quot;examples/imaging_datasets/PHITS_simple_ng_source/usrdef_out.h5&quot;
-
-# If true, overwrite an existing output file; if false, error out if the
-# file already exists.
-hdf5_overwrite = true
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">[io]</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">input_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;phits_usrdef&quot;</span><span class="w">  </span><span class="c1"># &quot;phits_usrdef&quot; | &quot;root_novo_ddaq&quot; | &quot;hdf5_ngimager&quot;</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">input_path</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;../imaging_datasets/PHITS_simple_ng_source/usrdef.out&quot;</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">output_path</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;../imaging_datasets/PHITS_simple_ng_source/usrdef_out.h5&quot;</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># If true, overwrite an existing output file; if false, error out if the</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># file already exists.</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">hdf5_overwrite</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 </code></pre></div>
 <h3 id="401-path-resolution">4.0.1 Path resolution<a class="headerlink" href="#401-path-resolution" title="Permanent link">&para;</a></h3>
 <p>All paths defined inside the <code>[io]</code> table are interpreted <strong>relative to the location of the TOML config file</strong>, unless they are absolute paths.</p>
@@ -1108,39 +1107,41 @@ its internal paths remain valid, while ad-hoc CLI overrides behave like
 normal shell paths.</p>
 <h3 id="41-ioadapter-phits-usrdef-adapter">4.1. [io.adapter] – PHITS usrdef Adapter<a class="headerlink" href="#41-ioadapter-phits-usrdef-adapter" title="Permanent link">&para;</a></h3>
 <p>For the PHITS user-defined tally case:</p>
-<div class="highlight"><pre><span></span><code>[io.adapter]
-type  = &quot;phits&quot;   # selects the PHITS-style adapter
-style = &quot;usrdef&quot;  # indicates the custom usrdef text layout
-
-# Units / conventions
-unit_pos_is_mm       = false   # false → positions already in cm
-time_units           = &quot;ns&quot;    # &quot;ns&quot; recommended
-require_gamma_triples = true   # enforce 3-hit gamma events for Compton cones
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[io.adapter]</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">type</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;phits&quot;</span><span class="w">   </span><span class="c1"># selects the PHITS-style adapter</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">style</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;usrdef&quot;</span><span class="w">  </span><span class="c1"># indicates the custom usrdef text layout</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># Units / conventions</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">unit_pos_is_mm</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">   </span><span class="c1"># false → positions already in cm</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">time_units</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ns&quot;</span><span class="w">    </span><span class="c1"># &quot;ns&quot; recommended</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">require_gamma_triples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">   </span><span class="c1"># enforce 3-hit gamma events for Compton cones</span>
 </code></pre></div>
-<p>Other adapters may accept different sub-keys under <code>[io.adapter]</code>; for now, the documented / tested case is the <code>"phits"</code> + <code>"usrdef"</code> combination.</p>
+<p>Other adapters may accept different sub-keys under <code>[io.adapter]</code>.</p>
 <h3 id="42-ioadapter-root-novo-ddaq-adapter">4.2. [io.adapter] – ROOT NOVO DDAQ Adapter<a class="headerlink" href="#42-ioadapter-root-novo-ddaq-adapter" title="Permanent link">&para;</a></h3>
 <p>For NOVO DDAQ ROOT files with an <code>image_tree</code> and <code>meta</code> tree:</p>
-<div class="highlight"><pre><span></span><code>[io]
-input_format = &quot;root_novo_ddaq&quot;
-input_path   = &quot;examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041.root&quot;
-output_path  = &quot;examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041_out.h5&quot;
-
-[io.adapter]
-type  = &quot;root&quot;       # selects the ROOT-based adapter
-style = &quot;novo_ddaq&quot;  # NOVO DDAQ schema (image_tree + meta)
-
-# Units / conventions
-unit_pos_is_mm        = true   # positions in input are mm; converted → cm internally
-time_units            = &quot;ns&quot;   # &quot;ns&quot; or &quot;ps&quot;
-require_gamma_triples = true   # enforce 3-hit gamma events for 3-hit gamma imaging
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">[io]</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">input_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;root_novo_ddaq&quot;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">input_path</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041.root&quot;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">output_path</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041_out.h5&quot;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">[io.adapter]</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="n">type</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;root&quot;</span><span class="w">       </span><span class="c1"># selects the ROOT-based adapter</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">style</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;novo_ddaq&quot;</span><span class="w">  </span><span class="c1"># NOVO DDAQ schema (image_tree + meta)</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">tree_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;image_tree&quot;</span><span class="w">  </span><span class="c1"># specify tree key name for imaging data</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="n">meta_tree_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;meta&quot;</span><span class="w">   </span><span class="c1"># tree name where ROOT metadata is stored</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="c1"># Units / conventions</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="n">unit_pos_is_mm</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">   </span><span class="c1"># positions in input are mm; converted → cm internally</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="n">time_units</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ns&quot;</span><span class="w">   </span><span class="c1"># &quot;ns&quot; or &quot;ps&quot;</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="n">require_gamma_triples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">   </span><span class="c1"># enforce 3-hit gamma events for 3-hit gamma imaging</span>
 </code></pre></div>
-<p>Material assignment (e.g. M600 vs OGS) is still configured via [detectors]; the ROOT adapter consults those mappings when constructing Hit objects.</p>
+<p>Material assignment (e.g. M600 vs OGS) is configured via [detectors]; the adapter consults those mappings when constructing Hit objects.</p>
 <h3 id="43-ioextra_text_files-extra-text-metadata-files">4.3. [io.extra_text_files] Extra text metadata files<a class="headerlink" href="#43-ioextra_text_files-extra-text-metadata-files" title="Permanent link">&para;</a></h3>
 <p>Sometimes it is useful to carry additional text configuration or metadata files forward into the HDF5 output (e.g. a PHITS input deck, DAQ config files, or auxiliary calibration notes). You can specify these via an optional table:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">[io.extra_text_files]</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># key = &quot;path/to/text/file&quot;</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">phits_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;phits/input/deck.inp&quot;</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">daq_config</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daq/config/daq_settings.txt&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">[io.extra_text_files]</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="c1"># key = &quot;path/to/text/file&quot;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">phits_input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;phits/input/deck.inp&quot;</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">daq_config</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daq/config/daq_settings.txt&quot;</span>
 </code></pre></div>
 <ul>
 <li>Keys become dataset names under /meta/extra_text/{key}.</li>
@@ -1151,15 +1152,15 @@ require_gamma_triples = true   # enforce 3-hit gamma events for 3-hit gamma imag
 <hr />
 <h2 id="5-detectors-material-mapping">5. [detectors] – Material Mapping<a class="headerlink" href="#5-detectors-material-mapping" title="Permanent link">&para;</a></h2>
 <p>Detector configuration is mainly used to assign materials to regions / bars, which then flow into hit construction and LUT lookup.</p>
-<div class="highlight"><pre><span></span><code>[detectors]
-default_material = &quot;OGS&quot;
-
-[detectors.material_map]
-200 = &quot;OGS&quot;
-210 = &quot;M600&quot;
-220 = &quot;OGS&quot;
-230 = &quot;M600&quot;
-240 = &quot;OGS&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">[detectors]</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">default_material</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;OGS&quot;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">[detectors.material_map]</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">200</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;OGS&quot;</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">210</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;M600&quot;</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="n">220</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;OGS&quot;</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="n">230</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;M600&quot;</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="n">240</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;OGS&quot;</span>
 </code></pre></div>
 <p>Keys:</p>
 <ul>
@@ -1170,9 +1171,9 @@ default_material = &quot;OGS&quot;
 <p>The <code>[detectors.geometry]</code> block describes how detector-frame coordinates (from the adapters) are mapped into the global <strong>world / room / imaging</strong> frame used by the imaging plane.</p>
 <p>There are two layers of transforms:</p>
 <h4 id="511-global-detector-frame-world-frame-transform-optional">5.1.1. Global detector-frame → world-frame transform (optional)<a class="headerlink" href="#511-global-detector-frame-world-frame-transform-optional" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">[detectors.geometry.frame]</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">origin_cm</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">rotation_deg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">[detectors.geometry.frame]</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">origin_cm</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">rotation_deg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span>
 </code></pre></div>
 <p>This defines a rigid transform</p>
 <div class="highlight"><pre><span></span><code>r_world = R_xyz(rotation_deg) @ r_det + origin_cm
@@ -1183,14 +1184,15 @@ default_material = &quot;OGS&quot;
 <li><code>origin_cm = [ox, oy, oz]</code> is the detector origin in world coordinates (cm)</li>
 <li><code>rotation_deg = [rx, ry, rz]</code> are Euler angles in degrees, applied in order: Rx(rx) → Ry(ry) → Rz(rz)</li>
 </ul>
-<p>If both origin_cm and rotation_deg are approximately zero, the transform is skipped (identity).</p>
+<p>If both <code>origin_cm</code> and <code>rotation_deg</code> are approximately zero, the transform is skipped (identity).</p>
 <h4 id="512-per-detector-transforms-optional">5.1.2. Per-detector transforms (optional)<a class="headerlink" href="#512-per-detector-transforms-optional" title="Permanent link">&para;</a></h4>
 <p>Each entry adjusts hit coordinates for a single detector element (bar,
 tile, module) before the global frame transform is applied.</p>
-<p>[[detectors.geometry.detectors]]
-id           = 0
-origin_cm    = [0.0, 20.0, 0.0]
-rotation_deg = [0.0, 90.0, 0.0]</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">[[detectors.geometry.detectors]]</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">id</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">origin_cm</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">20.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">rotation_deg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span>
+</code></pre></div>
 <p>Transform order:</p>
 <div class="highlight"><pre><span></span><code>r_det_corrected = R_xyz(rotation_deg) @ r_local + origin_cm
 r_world         = R_xyz(frame.rotation_deg) @ r_det_corrected + frame.origin_cm
@@ -1211,22 +1213,22 @@ hit coordinates are used as-is.</p>
 <hr />
 <h2 id="6-plane-imaging-plane-geometry">6. [plane] – Imaging Plane Geometry<a class="headerlink" href="#6-plane-imaging-plane-geometry" title="Permanent link">&para;</a></h2>
 <p>The imaging plane is specified in world coordinates:</p>
-<div class="highlight"><pre><span></span><code>[plane]
-origin = [0.0, 15.0, 0.0]   # point on the plane (cm)
-normal = [0.0, 1.0, 0.0]    # plane normal (unit-ish vector)
-
-# In-plane axes (u and v). Must be linearly independent of each other and of the normal.
-u_axis = [1.0, 0.0, 0.0]
-v_axis = [0.0, 0.0, 1.0]
-
-# u / v extents and sampling (cm)
-u_min = -20.0
-u_max =  20.0
-du    =   0.1
-
-v_min = -20.0
-v_max =  20.0
-dv    =   0.1
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">[plane]</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">origin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">15.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span><span class="w">   </span><span class="c1"># point on the plane (cm)</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">normal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span><span class="w">    </span><span class="c1"># plane normal (unit-ish vector)</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># In-plane axes (u and v). Must be linearly independent of each other and of the normal.</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="n">u_axis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="n">v_axis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">]</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="c1"># u / v extents and sampling (cm)</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="n">u_min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-20.0</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="n">u_max</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">20.0</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="n">du</span><span class="w">    </span><span class="o">=</span><span class="w">   </span><span class="mf">0.1</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="n">v_min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-20.0</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="n">v_max</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">20.0</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="n">dv</span><span class="w">    </span><span class="o">=</span><span class="w">   </span><span class="mf">0.1</span>
 </code></pre></div>
 <p>Notes:</p>
 <ul>
@@ -1240,7 +1242,7 @@ dv    =   0.1
 <li><code>[filters.hits]</code> and <code>[filters.hits.neutron]</code> / <code>[filters.hits.gamma]</code></li>
 <li><code>[filters.events]</code> and <code>[filters.events.neutron]</code> / <code>[filters.events.gamma]</code></li>
 <li><code>[filters.cones]</code> and <code>[filters.cones.neutron]</code> / <code>[filters.cones.gamma]</code></li>
-<li><code>[filters.fast]</code> – optional fast-mode overrides</li>
+<li><code>[fast]</code> – optional fast-mode overrides</li>
 </ul>
 <p>The guiding principle is:</p>
 <ul>
@@ -1248,52 +1250,53 @@ dv    =   0.1
 <li>Species-specific sections (<code>[filters.X.neutron]</code>, <code>[filters.X.gamma]</code>) override only the keys they specify.</li>
 </ul>
 <h3 id="71-hit-level-filters">7.1. Hit-Level Filters<a class="headerlink" href="#71-hit-level-filters" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>[filters.hits]
-# Universal hit cuts applied before event shaping
-min_light_MeVee = 0.0
-max_light_MeVee = 200.0
-
-# Optional bar / material inclusion / exclusion
-bars_include       = []    # e.g. [200, 210, 220]
-bars_exclude       = []    # e.g. [230]
-materials_include  = []    # e.g. [&quot;M600&quot;, &quot;OGS&quot;]
-materials_exclude  = []    # e.g. [&quot;DEAD_BAR_MATERIAL&quot;]
-
-# Optional PSD window (applied only when hits carry a PSD value,
-# e.g. ROOT NOVO DDAQ data). If psd_min / psd_max are omitted, no
-# PSD-based cut is applied at this level. Typical NOVO PSD values
-# lie in [0, 1].
-# psd_min = 0.0
-# psd_max = 1.0
-
-[filters.hits.neutron]
-# optional overrides / additions for neutron hits
-# Any field set here (including psd_min / psd_max) overrides the
-# corresponding [filters.hits] value for neutron hits only.
-# psd_min = 0.2
-# psd_max = 0.6
-
-[filters.hits.gamma]
-# optional overrides / additions for gamma hits
-# Optional overrides / additions for gamma hits.
-# psd_min = 0.0
-# psd_max = 0.2
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">[filters.hits]</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="c1"># Universal hit cuts applied before event shaping</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">min_light_MeVee</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">max_light_MeVee</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">200.0</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1"># Optional bar / material inclusion / exclusion</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="n">bars_include</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span><span class="w">    </span><span class="c1"># e.g. [200, 210, 220]</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="n">bars_exclude</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span><span class="w">    </span><span class="c1"># e.g. [230]</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="n">materials_include</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span><span class="w">    </span><span class="c1"># e.g. [&quot;M600&quot;, &quot;OGS&quot;]</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="n">materials_exclude</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span><span class="w">    </span><span class="c1"># e.g. [&quot;DEAD_BAR_MATERIAL&quot;]</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="c1"># Optional PSD window (applied only when hits carry a PSD value,</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="c1"># e.g. ROOT NOVO DDAQ data). If psd_min / psd_max are omitted, no</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="c1"># PSD-based cut is applied at this level. Typical NOVO PSD values</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="c1"># lie in [0, 1].</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="c1"># psd_min = 0.0</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="c1"># psd_max = 1.0</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="k">[filters.hits.neutron]</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="c1"># optional overrides / additions for neutron hits</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="c1"># Any field set here (including psd_min / psd_max) overrides the</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="c1"># corresponding [filters.hits] value for neutron hits only.</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="c1"># min_light_MeVee = 2.0</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="c1"># psd_min = 0.2</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="c1"># psd_max = 0.6</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a>
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="k">[filters.hits.gamma]</span>
+<a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="c1"># optional overrides / additions for gamma hits</span>
+<a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="c1"># Optional overrides / additions for gamma hits.</span>
+<a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="c1"># psd_min = 0.0</span>
+<a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="c1"># psd_max = 0.2</span>
 </code></pre></div>
 <p>The hit filters are applied uniformly to all hits in a raw event before any event-level shaping or typing occurs.  If a hit carries no PSD value (e.g. PHITS-generated data), the PSD-related settings are silently ignored.</p>
 <h3 id="72-event-level-filters">7.2. Event-Level Filters<a class="headerlink" href="#72-event-level-filters" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>[filters.events]
-# Universal event cuts (applied after shaping into typed NeutronEvent/GammaEvent)
-tof_window_ns = [0.0, 30.0]
-
-[filters.events.neutron]
-# Override only what you need; unspecified keys fall back to [filters.events]
-tof_window_ns = [0.0, 30.0]
-min_L1_MeVee  = 0.1   # minimum first-scatter light for neutron events
-min_L2_MeVee  = 0.1   # minimum second-scatter light for neutron events
-
-[filters.events.gamma]
-tof_window_ns = [0.0, 10.0]
-min_L_any_MeVee = 0.05  # minimum light on any of the gamma hits
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">[filters.events]</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="c1"># Universal event cuts (applied after shaping into typed NeutronEvent/GammaEvent)</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">tof_window_ns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">30.0</span><span class="p">]</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="k">[filters.events.neutron]</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="c1"># Override only what you need; unspecified keys fall back to [filters.events]</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="n">tof_window_ns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">30.0</span><span class="p">]</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="n">min_L1_MeVee</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">0.1</span><span class="w">   </span><span class="c1"># minimum first-scatter light for neutron events</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="n">min_L2_MeVee</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">0.1</span><span class="w">   </span><span class="c1"># minimum second-scatter light for neutron events</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="k">[filters.events.gamma]</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="n">tof_window_ns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0</span><span class="p">]</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="n">min_L_any_MeVee</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.05</span><span class="w">  </span><span class="c1"># minimum light on any of the gamma hits</span>
 </code></pre></div>
 <p>Typical uses:</p>
 <ul>
@@ -1303,20 +1306,20 @@ min_L_any_MeVee = 0.05  # minimum light on any of the gamma hits
 </ul>
 <p>Event filters operate on <strong>typed events</strong> (NeutronEvent / GammaEvent) and feed into cone building.</p>
 <h3 id="73-cone-level-filters">7.3. Cone-Level Filters<a class="headerlink" href="#73-cone-level-filters" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>[filters.cones]
-# Universal cone cuts
-max_delta_theta_deg     = 90.0   # Δθ = |φ - θ|, prior-consistency limit
-max_incident_energy_MeV = 250.0  # reject events with unphysically high incident energy
-
-[filters.cones.neutron]
-# e.g., neutron-specific overrides (empty in the example)
-# max_delta_theta_deg     = 5.0
-# max_incident_energy_MeV = 30.0
-
-[filters.cones.gamma]
-# e.g., gamma-specific overrides (empty in the example)
-# max_delta_theta_deg     = 8.0
-# max_incident_energy_MeV = 10.0
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">[filters.cones]</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="c1"># Universal cone cuts</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="n">max_delta_theta_deg</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="mf">90.0</span><span class="w">   </span><span class="c1"># Δθ = |φ - θ|, prior-consistency limit</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="n">max_incident_energy_MeV</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">250.0</span><span class="w">  </span><span class="c1"># reject events with unphysically high incident energy</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="k">[filters.cones.neutron]</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1"># e.g., neutron-specific overrides (empty in the example)</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="c1"># max_delta_theta_deg     = 5.0</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="c1"># max_incident_energy_MeV = 30.0</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="k">[filters.cones.gamma]</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="c1"># e.g., gamma-specific overrides (empty in the example)</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="c1"># max_delta_theta_deg     = 8.0</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="c1"># max_incident_energy_MeV = 10.0</span>
 </code></pre></div>
 <p>The cone filters operate on:</p>
 <ul>
@@ -1327,45 +1330,45 @@ max_incident_energy_MeV = 250.0  # reject events with unphysically high incident
 <code>max_incident_energy_MeV</code> uses the incident energy stored on each cone (<code>incident_energy_MeV</code>), which is computed by the neutron/gamma kinematics code and passed through from the cone builders.</p>
 <h3 id="74-fast-fast-mode-overrides">7.4. [fast] – Fast-Mode Overrides<a class="headerlink" href="#74-fast-fast-mode-overrides" title="Permanent link">&para;</a></h3>
 <p>Fast mode (<code>run.fast = true</code>) activates a small set of more aggressive defaults. The exact details depend on the code, but conceptually:</p>
-<div class="highlight"><pre><span></span><code>[fast]
-# More aggressive light thresholds
-min_L1_MeVee   = 0.8   # MeVee, first neutron scatter
-min_L2_MeVee   = 0.4   # MeVee, second neutron scatter
-min_L_any_MeVee = 0.2  # MeVee, any gamma deposit considered
-
-# Stop after this many cones have been built and imaged
-max_cones = 20000
-
-# Coarsen the imaging plane by this integer factor:
-# du&#39; = du * plane_downsample, dv&#39; = dv * plane_downsample
-plane_downsample = 2
-
-# SBP imaging engine:
-#   &quot;scan&quot; – matrix scan across pixel-centered lines (continuous arcs)
-#   &quot;poly&quot; – perimeter sampling (faster, but may show dotted arcs)
-sbp_engine = &quot;poly&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">[fast]</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="c1"># More aggressive light thresholds</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">min_L1_MeVee</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span><span class="w">   </span><span class="c1"># MeVee, first neutron scatter</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="n">min_L2_MeVee</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mf">0.4</span><span class="w">   </span><span class="c1"># MeVee, second neutron scatter</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="n">min_L_any_MeVee</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span><span class="w">  </span><span class="c1"># MeVee, any gamma deposit considered</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="c1"># Stop after this many cones have been built and imaged</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="n">max_cones</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20000</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="c1"># Coarsen the imaging plane by this integer factor:</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="c1"># du&#39; = du * plane_downsample, dv&#39; = dv * plane_downsample</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="n">plane_downsample</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="c1"># SBP imaging engine:</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="c1">#   &quot;scan&quot; – matrix scan across pixel-centered lines (continuous arcs)</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="c1">#   &quot;poly&quot; – perimeter sampling (faster, but may show dotted arcs)</span>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="n">sbp_engine</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;poly&quot;</span>
 </code></pre></div>
 <p>Any fast-mode cut that is defined will override the corresponding normal cut when <code>run.fast = true</code>. The exact field names and behavior are kept intentionally minimal so that the fast-mode logic does not diverge too far from the main configuration.</p>
 <hr />
 <h2 id="8-energy-energy-strategy">8. [energy] – Energy Strategy<a class="headerlink" href="#8-energy-energy-strategy" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>[energy]
-# One of: &quot;ELUT&quot; | &quot;ToF&quot; | &quot;FixedEn&quot; | &quot;Edep&quot;
-strategy = &quot;Edep&quot;
-
-# If strategy = &quot;FixedEn&quot;, this specifies the fixed incident neutron energy:
-fixed_En_MeV = 14.1
-
-# Inversion LUTs for light → energy (used when strategy = &quot;ELUT&quot;)
-[energy.lut_paths.OGS]
-proton = &quot;data/lut/OGS/lut_OGS_proton_Birks.npz&quot;
-carbon = &quot;data/lut/OGS/lut_OGS_carbon_Birks.npz&quot;
-
-[energy.lut_paths.M600]
-proton = &quot;data/lut/M600/lut_M600_proton_Birks.npz&quot;
-carbon = &quot;data/lut/M600/lut_M600_carbon_Birks.npz&quot;
-
-# When true, neutron cone construction forces proton recoils for kinematics
-force_proton_recoils = false
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="k">[energy]</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="c1"># One of: &quot;ELUT&quot; | &quot;ToF&quot; | &quot;FixedEn&quot; | &quot;Edep&quot;</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="n">strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Edep&quot;</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="c1"># If strategy = &quot;FixedEn&quot;, this specifies the fixed incident neutron energy:</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="n">fixed_En_MeV</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">14.1</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="c1"># For neutrons, assume recoils are always protons (true) or consider also carbon recoils (false)</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="n">force_proton_recoils</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="c1"># Inversion LUTs for light → energy (used when strategy = &quot;ELUT&quot;)</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="k">[energy.lut_paths.OGS]</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="n">proton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;data/lut/OGS/lut_OGS_proton_Birks.npz&quot;</span>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="n">carbon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;data/lut/OGS/lut_OGS_carbon_Birks.npz&quot;</span>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="k">[energy.lut_paths.M600]</span>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="n">proton</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;data/lut/M600/lut_M600_proton_Birks.npz&quot;</span>
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a><span class="n">carbon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;data/lut/M600/lut_M600_carbon_Birks.npz&quot;</span>
 </code></pre></div>
 <p>Strategies:</p>
 <ul>
@@ -1392,8 +1395,8 @@ sensible defaults for most runs.</p>
 </ul>
 <p>This means that a minimal ELUT configuration for standard NOVO runs can
 be as simple as:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[energy]</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ELUT&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">[energy]</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="n">strategy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ELUT&quot;</span>
 </code></pre></div>
 <p>and <code>ngimager</code> will automatically use its packaged M600/OGS proton and carbon LUTs according to your <code>[detectors].material_map</code>.</p>
 <p>You only need to touch [energy.lut_paths.*] if you want to:</p>
@@ -1403,20 +1406,20 @@ be as simple as:</p>
 </ul>
 <hr />
 <h2 id="9-prior-spatial-priors">9. [prior] – Spatial Priors<a class="headerlink" href="#9-prior-spatial-priors" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>[prior]
-# One of: &quot;point&quot; | &quot;line&quot;
-type = &quot;point&quot;
-
-# For point prior:
-point = [0.0, 0.0, -500.0]
-
-# For line prior (example):
-# [prior.line]
-# p0 = [x0, y0, z0]
-# p1 = [x1, y1, z1]
-
-# Prior strength (dimensionless weighting)
-strength = 1.0
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="k">[prior]</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="c1"># One of: &quot;point&quot; | &quot;line&quot;</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;point&quot;</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="c1"># For point prior:</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="n">point</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">-109.6</span><span class="p">]</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="c1"># For line prior (example):</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="c1"># [prior.line]</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="c1"># p0 = [x0, y0, z0]</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="c1"># p1 = [x1, y1, z1]</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="c1"># Prior strength (dimensionless weighting)</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="n">strength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span>
 </code></pre></div>
 <p>The prior is used for:</p>
 <ul>
@@ -1427,29 +1430,29 @@ strength = 1.0
 <p>When no explicit prior is given, the imaging plane center is used as an implicit prior target.</p>
 <hr />
 <h2 id="10-uncertainty-smearing-and-uncertainties">10. [uncertainty] – Smearing and Uncertainties<a class="headerlink" href="#10-uncertainty-smearing-and-uncertainties" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>[uncertainty]
-enabled = false
-smearing = &quot;thicken&quot;          # &quot;thicken&quot; | &quot;weighted&quot;
-sigma_doi_cm        = 0.35
-sigma_transverse_cm = 0.346
-sigma_time_ns       = 0.5
-use_lut_bands       = false   # if true, use LUT-provided bands where available
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="k">[uncertainty]</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="n">smearing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;thicken&quot;</span><span class="w">          </span><span class="c1"># &quot;thicken&quot; | &quot;weighted&quot;</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="n">sigma_doi_cm</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="mf">0.35</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="n">sigma_transverse_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.346</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="n">sigma_time_ns</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="n">use_lut_bands</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">   </span><span class="c1"># if true, use LUT-provided bands where available</span>
 </code></pre></div>
 <p>This block is currently mostly reserved for future work. In the current code, the SBP reconstruction runs in a nominal, non-smeared mode unless uncertainty support is explicitly wired in.</p>
 <hr />
 <h2 id="11-vis-visualization">11. [vis] – Visualization<a class="headerlink" href="#11-vis-visualization" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>[vis]
-export_png_on_write    = true
-species                = [&quot;n&quot;, &quot;g&quot;, &quot;all&quot;]
-center_on_plane_center = true
-flip_vertical          = true
-axis_units             = &quot;cm&quot;          # &quot;cm&quot; or &quot;mm&quot;
-cmap                   = &quot;cividis&quot;
-filename_pattern       = &quot;{species}_{stem}.{ext}&quot;
-extra_formats          = []
-
-# Advanced / legacy option:
-# summed_dataset       = &quot;/images/summed/n&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="k">[vis]</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="n">export_png_on_write</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="n">species</span><span class="w">                </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;g&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="n">center_on_plane_center</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="n">axis_units</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cm&quot;</span><span class="w">          </span><span class="c1"># &quot;cm&quot; or &quot;mm&quot;</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="n">cmap</span><span class="w">                   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cividis&quot;</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="n">filename_pattern</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{species}_{stem}.{ext}&quot;</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="n">extra_formats</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;pdf&quot;</span><span class="p">]</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="c1"># flip_vertical          = false</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="c1"># Advanced / legacy option:</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="c1"># summed_dataset       = &quot;/images/summed/n&quot;</span>
 </code></pre></div>
 <p>Fields:</p>
 <ul>
@@ -1471,9 +1474,6 @@ extra_formats          = []
 <p><code>center_on_plane_center</code> – if true, the u–v axes are shifted so that <code>(0, 0)</code> is at the imaging plane center. If false, the axes use the raw <code>grid.u_min</code> / <code>grid.v_min</code> coordinates stored in the HDF5 metadata.</p>
 </li>
 <li>
-<p><code>flip_vertical</code> – flips the plotted image vertically relative to the natural v-axis orientation. This is mainly useful for visual comparison with legacy images.</p>
-</li>
-<li>
 <p><code>axis_units</code> – units used for axis labels: <code>"cm"</code> (native) or <code>"mm"</code>. The underlying HDF5 metadata always stores geometry in centimeters; <code>"mm"</code> simply rescales labels by a factor of 10.</p>
 </li>
 <li>
@@ -1492,33 +1492,36 @@ extra_formats          = []
 <li>
 <p><code>extra_formats</code> – list of additional output formats to write alongside PNG (for example <code>["pdf"]</code> to also write vector PDF figures with rasterized image data).</p>
 </li>
+<li>
+<p><code>flip_vertical</code> – flips the plotted image vertically relative to the natural v-axis orientation. This is mainly useful for visual comparison with legacy images.</p>
+</li>
 </ul>
 <p>The older <code>summed_dataset</code> field is kept for backward compatibility with earlier versions and with the <code>ng-viz h5-to-png</code> command. For standard summed images you usually do not need to set it.</p>
 <h3 id="111-visprojections">11.1. <code>[vis.projections]</code><a class="headerlink" href="#111-visprojections" title="Permanent link">&para;</a></h3>
 <p>Optional configuration for 1D u/v projections of the summed images.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[vis]</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">export_png_on_write</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">species</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;g&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">center_on_plane_center</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">flip_vertical</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">axis_units</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cm&quot;</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">cmap</span><span class="w">                   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cividis&quot;</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">filename_pattern</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{species}_{stem}.{ext}&quot;</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># extra_formats        = [&quot;pdf&quot;]</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="k">[vis.projections]</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="c1"># Enable computation of 1D u/v projections and include them in the</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># automatic visualizations. When enabled, the pipeline also writes</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="c1"># the projections into /images/summed/projections in the HDF5 file.</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
-<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="c1"># Optional rectangular ROI in imaging-plane coordinates (cm).</span>
-<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="c1"># When provided, ROI-limited projections are computed by summing only</span>
-<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="c1"># pixels whose centers fall inside this window.</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="n">roi_u_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="n">roi_u_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="n">roi_v_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="n">roi_v_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="k">[vis]</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="n">export_png_on_write</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="n">species</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;g&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="n">center_on_plane_center</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="n">axis_units</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cm&quot;</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="n">cmap</span><span class="w">                   </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;cividis&quot;</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="n">filename_pattern</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;{species}_{stem}.{ext}&quot;</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="c1"># extra_formats        = [&quot;pdf&quot;]</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="c1"># flip_vertical        = false</span>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="k">[vis.projections]</span>
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="c1"># Enable computation of 1D u/v projections and include them in the</span>
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="c1"># automatic visualizations. When enabled, the pipeline also writes</span>
+<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="c1"># the projections into /images/summed/projections in the HDF5 file.</span>
+<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a>
+<a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a><span class="c1"># Optional rectangular region-of-interest ROI in imaging-plane</span>
+<a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a><span class="c1"># coordinates (cm). When provided, ROI-limited projections are computed </span>
+<a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a><span class="c1"># by summing only pixels whose centers fall inside this window.</span>
+<a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a><span class="n">roi_u_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
+<a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a><span class="n">roi_u_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
+<a id="__codelineno-21-22" name="__codelineno-21-22" href="#__codelineno-21-22"></a><span class="n">roi_v_min_cm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-5.0</span>
+<a id="__codelineno-21-23" name="__codelineno-21-23" href="#__codelineno-21-23"></a><span class="n">roi_v_max_cm</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="mf">5.0</span>
 </code></pre></div>
 <h3 id="112-visprojectionsmetrics-projection-statistics-fitting">11.2. <code>[vis.projections.metrics]</code> — Projection Statistics / Fitting<a class="headerlink" href="#112-visprojectionsmetrics-projection-statistics-fitting" title="Permanent link">&para;</a></h3>
 <p>The projection subsystem can optionally compute statistical summaries,
@@ -1533,29 +1536,27 @@ the <em>all-pixels</em> projections and the ROI-limited projections.</p>
 <p>Each of these groups contains scalar (0D) datasets describing the 1D
 projection curves.</p>
 <p>Enable metrics via:</p>
-<div class="highlight"><pre><span></span><code>```toml
-[vis.projections.metrics]
-enabled = true         # master toggle
-
-[vis.projections.metrics.u]
-compute_summary = true
-compute_peak    = true
-compute_edges   = false
-edge_low_frac   = 0.2
-edge_high_frac  = 0.8
-min_counts      = 100.0
-
-[vis.projections.metrics.v]
-compute_summary = true
-compute_peak    = true
-compute_edges   = true
-edge_low_frac   = 0.2
-edge_high_frac  = 0.8
-min_counts      = 100.0
-
-# optional centroid of the full 2D image
-compute_centroid = false
-```
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="k">[vis.projections.metrics]</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">         </span><span class="c1"># master toggle</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="k">[vis.projections.metrics.u]</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="n">compute_summary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="n">compute_peak</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="n">compute_edges</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="n">edge_low_frac</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="n">edge_high_frac</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span>
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="n">min_counts</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mf">100.0</span>
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a>
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a><span class="k">[vis.projections.metrics.v]</span>
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a><span class="n">compute_summary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a><span class="n">compute_peak</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a><span class="n">compute_edges</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a><span class="n">edge_low_frac</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span>
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a><span class="n">edge_high_frac</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span>
+<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a><span class="n">min_counts</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mf">100.0</span>
+<a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a>
+<a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a><span class="c1"># optional centroid of the full 2D image</span>
+<a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a><span class="n">compute_centroid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </code></pre></div>
 <h4 id="summary-statistics-compute_summary">Summary statistics (<code>compute_summary</code>)<a class="headerlink" href="#summary-statistics-compute_summary" title="Permanent link">&para;</a></h4>
 <p>Computed for each 1D projection (all-pixels and, if present, ROI-limited):</p>
@@ -1570,8 +1571,7 @@ compute_centroid = false
 projection has at least <code>min_counts</code> total counts; otherwise the
 coordinate-valued metrics are present but set to NaN.</p>
 <h4 id="peak-metrics-compute_peak">Peak metrics (<code>compute_peak</code>)<a class="headerlink" href="#peak-metrics-compute_peak" title="Permanent link">&para;</a></h4>
-<p>Peak metrics are <em>currently</em> based on the <strong>maximum bin</strong> of each
-projection (no Gaussian fit yet):</p>
+<p>Peak metrics are based on the <strong>maximum bin</strong> of each projection:</p>
 <ul>
 <li><code>peak_pos_cm</code>   – coordinate of the maximum bin (cm)</li>
 <li><code>peak_value</code>    – value of the maximum bin (counts)</li>
@@ -1582,8 +1582,8 @@ projection (no Gaussian fit yet):</p>
 <h4 id="fractional-edges-compute_edges">Fractional edges (<code>compute_edges</code>)<a class="headerlink" href="#fractional-edges-compute_edges" title="Permanent link">&para;</a></h4>
 <p>Fractional edges are derived from the normalized cumulative integral of
 the projection:</p>
-<div class="highlight"><pre><span></span><code>edge_low_frac  = 0.2
-edge_high_frac = 0.8
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="n">edge_low_frac</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="n">edge_high_frac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8</span>
 </code></pre></div>
 <p>Saved values:</p>
 <ul>
@@ -1609,34 +1609,34 @@ non-ROI axis groups <code>metrics/u</code> and <code>metrics/v</code>:</p>
 <hr />
 <h3 id="113-visprojectionsplot-plotting-of-metrics">11.3. <code>[vis.projections.plot]</code> — Plotting of Metrics<a class="headerlink" href="#113-visprojectionsplot-plotting-of-metrics" title="Permanent link">&para;</a></h3>
 <p>Visualization of the derived projection metrics is controlled separately:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="w">    </span><span class="k">[vis.projections.plot]</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="c1"># Basic visual toggles</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="n">show_peak_markers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">    </span><span class="c1"># vertical / horizontal lines at peak_pos_cm</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="n">show_edge_markers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">    </span><span class="c1"># lines at edge_low_cm / edge_high_cm</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="n">show_centroid_2d</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">   </span><span class="c1"># crosshair at 2D centroid (if computed)</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="c1"># Which metrics to use when both &quot;all&quot; and ROI curves exist:</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="c1">#   &quot;auto&quot; : prefer ROI metrics when ROI projections are available,</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="c1">#            otherwise fall back to the all-pixels metrics</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="c1">#   &quot;all&quot;  : always use metrics from the all-pixels projections</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="c1">#   &quot;roi&quot;  : always use metrics from the ROI-limited projections</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="c1">#   &quot;both&quot; : expose both all and ROI metrics (styling handled in vis/hdf.py)</span>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">    </span><span class="n">metrics_source</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;auto&quot;</span><span class="w">     </span><span class="c1"># &quot;auto&quot; | &quot;all&quot; | &quot;roi&quot; | &quot;both&quot;</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="c1"># Which projection curves to draw:</span>
-<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">    </span><span class="c1">#   &quot;all+roi&quot;  : show both all-pixels and ROI curves</span>
-<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">    </span><span class="c1">#   &quot;all_only&quot; : show only the all-pixels projection</span>
-<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">    </span><span class="c1">#   &quot;roi_only&quot; : show only the ROI-limited projection (if present)</span>
-<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">    </span><span class="n">curve_mode</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;all+roi&quot;</span><span class="w">  </span><span class="c1"># &quot;all+roi&quot; | &quot;all_only&quot; | &quot;roi_only&quot;</span>
-<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
-<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="w">    </span><span class="c1"># Numeric summaries on the projections:</span>
-<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="w">    </span><span class="c1">#   &quot;off&quot;     : no numeric text</span>
-<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="w">    </span><span class="c1">#   &quot;compact&quot; : minimal, high-level summary (default)</span>
-<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="w">    </span><span class="c1">#   &quot;full&quot;    : more detailed summary (e.g. including edges)</span>
-<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="w">    </span><span class="n">annotate_summary</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;compact&quot;</span><span class="w">  </span><span class="c1"># &quot;off&quot; | &quot;compact&quot; | &quot;full&quot;</span>
-<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>
-<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="w">    </span><span class="c1"># Optional extra panel with a table of metrics (future)</span>
-<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="w">    </span><span class="n">show_metrics_panel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="k">[vis.projections.plot]</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="c1"># Basic visual toggles</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="n">show_peak_markers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">    </span><span class="c1"># vertical / horizontal lines at peak_pos_cm</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="n">show_edge_markers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w">    </span><span class="c1"># lines at edge_low_cm / edge_high_cm</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="n">show_centroid_2d</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w">   </span><span class="c1"># crosshair at 2D centroid (if computed)</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="c1"># Which metrics to use when both &quot;all&quot; and ROI curves exist:</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="c1">#   &quot;auto&quot; : prefer ROI metrics when ROI projections are available,</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="c1">#            otherwise fall back to the all-pixels metrics</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="c1">#   &quot;all&quot;  : always use metrics from the all-pixels projections</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="c1">#   &quot;roi&quot;  : always use metrics from the ROI-limited projections</span>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="c1">#   &quot;both&quot; : expose both all and ROI metrics (styling handled in vis/hdf.py)</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="n">metrics_source</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;auto&quot;</span><span class="w">     </span><span class="c1"># &quot;auto&quot; | &quot;all&quot; | &quot;roi&quot; | &quot;both&quot;</span>
+<a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>
+<a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a><span class="c1"># Which projection curves to draw:</span>
+<a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a><span class="c1">#   &quot;all+roi&quot;  : show both all-pixels and ROI curves</span>
+<a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a><span class="c1">#   &quot;all_only&quot; : show only the all-pixels projection</span>
+<a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a><span class="c1">#   &quot;roi_only&quot; : show only the ROI-limited projection (if present)</span>
+<a id="__codelineno-24-19" name="__codelineno-24-19" href="#__codelineno-24-19"></a><span class="n">curve_mode</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;all+roi&quot;</span><span class="w">  </span><span class="c1"># &quot;all+roi&quot; | &quot;all_only&quot; | &quot;roi_only&quot;</span>
+<a id="__codelineno-24-20" name="__codelineno-24-20" href="#__codelineno-24-20"></a>
+<a id="__codelineno-24-21" name="__codelineno-24-21" href="#__codelineno-24-21"></a><span class="c1"># Numeric summaries on the projections:</span>
+<a id="__codelineno-24-22" name="__codelineno-24-22" href="#__codelineno-24-22"></a><span class="c1">#   &quot;off&quot;     : no numeric text</span>
+<a id="__codelineno-24-23" name="__codelineno-24-23" href="#__codelineno-24-23"></a><span class="c1">#   &quot;compact&quot; : minimal, high-level summary (default)</span>
+<a id="__codelineno-24-24" name="__codelineno-24-24" href="#__codelineno-24-24"></a><span class="c1">#   &quot;full&quot;    : more detailed summary (e.g. including edges)</span>
+<a id="__codelineno-24-25" name="__codelineno-24-25" href="#__codelineno-24-25"></a><span class="n">annotate_summary</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;compact&quot;</span><span class="w">  </span><span class="c1"># &quot;off&quot; | &quot;compact&quot; | &quot;full&quot;</span>
+<a id="__codelineno-24-26" name="__codelineno-24-26" href="#__codelineno-24-26"></a>
+<a id="__codelineno-24-27" name="__codelineno-24-27" href="#__codelineno-24-27"></a><span class="c1"># Optional extra panel with a table of metrics (future)</span>
+<a id="__codelineno-24-28" name="__codelineno-24-28" href="#__codelineno-24-28"></a><span class="n">show_metrics_panel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </code></pre></div>
 <p>These affect <strong>only</strong> the visualization overlay behavior inside
 <code>vis/hdf.py</code>, not the content of the HDF5 file.</p>
