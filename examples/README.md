@@ -11,4 +11,22 @@ For convenience, these examples are detailed here:
 
 ## PHITS imaging of a neutron line source
 
+- Config file: [configs/phits_usrdef_line.toml](configs/phits_usrdef_line.toml)
+- Dataset dir: [imaging_datasets/PHITS_toy_line_source](imaging_datasets/PHITS_toy_line_source)
+
+## PHITS imaging of a neutron + gamma combined source
+
+- Config file: [configs/phits_usrdef_simple.toml](configs/phits_usrdef_simple.toml)
+- Dataset dir: [imaging_datasets/PHITS_simple_ng_source](imaging_datasets/PHITS_simple_ng_source)
+
+## PHITS imaging of a neutron ring source
+
+- Config file: [configs/phits_usrdef_ring.toml](configs/phits_usrdef_ring.toml)
+- Dataset dir: [imaging_datasets/PHITS_toy_ring_source](imaging_datasets/PHITS_toy_ring_source)
+
+## PHITS imaging of a point gamma source
+
+- Config file: [configs/phits_legacy_point_gammas.toml](configs/phits_legacy_point_gammas.toml)
+- Dataset dir: [imaging_datasets/PHITS_point_gamma_source](imaging_datasets/PHITS_point_gamma_source)
+
 

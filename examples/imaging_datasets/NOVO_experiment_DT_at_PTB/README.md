@@ -9,9 +9,17 @@ In this particular run, from the detector array's frame of reference and the exp
 
 ### ng-imager code processing
 
-TO-DO (add run/settings details)
+Execute ngimager with the config file [novo_ptb.toml](../configs/novo_ptb.toml):
+
+``ng-run novo_ptb.toml``
+
+yielding neutron, gamma ray, and neutron+gamma images shown below:
 
 ![](autoSorted_coinc_detector_DT-14p8MeV_000041_out_n.png)
+
+![](autoSorted_coinc_detector_DT-14p8MeV_000041_out_g.png)
+
+![](autoSorted_coinc_detector_DT-14p8MeV_000041_out_all.png)
 
 ### Legacy code processing
 

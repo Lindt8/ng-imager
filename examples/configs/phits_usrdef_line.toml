@@ -35,10 +35,16 @@ diagnostics_level = 2
 #   "poly" – perimeter sampling (faster, but may show dotted arcs)
 sbp_engine = "scan"
 
-# Safety cap for total imaged cones (after filtering and selection)
+# Cap for total imaged cones (after filtering and selection)
 max_cones = 50000
 
 plot_label = "Neutron line source in PHITS"
+
+
+
+[run.meta]
+source = "14.1 MeV isotropic neutrons"
+
 
 [pipeline]
 # Where to stop the unified pipeline
@@ -92,11 +98,40 @@ default_material = "OGS"
 # 22 = "OGS"
 # 23 = "OGS"
 
-# Optional future extension (not yet required in code):
-# [detectors.geometry]
-# 200 = { center_cm = [-3.6, 16.5, 0.35],  normal = [0.0, -1.0, 0.0] }
-# 210 = { center_cm = [-3.4, 16.8, 0.59],  normal = [0.0, -1.0, 0.0] }
-# ...
+[detectors.geometry.frame]
+# Global rigid transform that maps detector-frame coordinates (as produced
+# by the adapter) into world / room / imaging coordinates.
+#
+# Mathematically:
+#   r_world = R_xyz(rotation_deg) @ r_det + origin_cm
+#
+# where rotation_deg = [rx, ry, rz] are Euler angles in degrees applied in
+# the fixed order Rx → Ry → Rz, and origin_cm is the detector origin in
+# world coordinates (cm).
+origin_cm    = [0.0, 0.0, 0.0]
+rotation_deg = [0.0, 0.0, 0.0]
+
+#[[detectors.geometry.detectors]]
+# OPTIONAL per-detector rigid transform that maps a bar- or tile-local
+# coordinate into the detector frame *before* the global frame transform is applied.  
+# This section should be repeated once per detector element to be transformed.
+#
+# For a hit with det_id == id:
+#   r_det_corrected = R_xyz(rotation_deg) @ r_local + origin_cm
+#   r_world         = R_xyz(frame.rotation_deg) @ r_det_corrected + frame.origin_cm
+#
+# Typical uses:
+#   - Correcting known misplacements of one or a few detector elements
+#     after data has been taken.
+#   - (Future) mapping bar-local coordinates into a common detector frame.
+#id          = 2
+#origin_cm    = [0.0, 20.0, 0.0]
+#rotation_deg = [0.0, 90.0, 0.0]
+#
+#[[detectors.geometry.detectors]]
+#id          = 5
+#origin_cm    = [0.0, 20.0, 0.0]
+#rotation_deg = [0.0, 90.0, 0.0]
 
 [plane]
 origin = [0.0, 0.0, 0.0]   # a point on the plane;  y ≈ detector face coordinate
@@ -184,17 +219,13 @@ strategy = "Edep"                 # ELUT | ToF | FixedEn | Edep
 fixed_En_MeV = 14.1
 
 # LUT paths for any materials present. Extend freely for new materials.
-lut_paths.M600.proton = "data/lut/M600/lut_M600_proton_Birks.npz"
-lut_paths.M600.carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
-lut_paths.OGS.proton  = "data/lut/OGS/lut_OGS_proton_Birks.npz"
-lut_paths.OGS.carbon  = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
+# lut_paths.M600.proton = "data/lut/M600/lut_M600_proton_Birks.npz"
+# lut_paths.M600.carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
+# lut_paths.OGS.proton  = "data/lut/OGS/lut_OGS_proton_Birks.npz"
+# lut_paths.OGS.carbon  = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
 
 [prior]
 type = "line"
-# type = "point"
-# point = [0.0, 3.0, 4.0]
-# line_p0 = [0.0, -1.0, 4.0]  # works, but old syntax
-# line_p1 = [0.0,  7.0, 4.0]  # works, but old syntax
 strength = 1.0
 
 [prior.line]
@@ -218,9 +249,8 @@ species                = ["n", "g", "all"]
 center_on_plane_center = true
 axis_units             = "mm"          # "cm" or "mm"
 filename_pattern       = "{stem}_{species}.{ext}"
-# flip_vertical          = true
+# flip_vertical          = false
 # extra_formats          = ["pdf"]
-# summed_dataset       = "/images/summed/n"  # advanced / legacy option
 
 [vis.projections]
 enabled      = true
