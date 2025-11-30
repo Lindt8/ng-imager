@@ -71,8 +71,7 @@ tree_key = "image_tree"
 meta_tree_key = "meta"
 unit_pos_is_mm = true
 require_gamma_triples = true
-keep_mevee = true
-time_branch_units = "ns"
+time_units = "ns"
 
 # NOTE: material-specific behavior (e.g. LUTs) is configured below in [detectors] and [energy].
 # If the adapter needs a per-detector material, it should ask cfg.detectors.

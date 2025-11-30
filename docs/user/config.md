@@ -2,9 +2,9 @@
 
 This page describes the TOML configuration format used by **ngimager** (the internal Python package for the **ng-imager** project).
 
-The examples below are based on:
+The examples below are based on those found at:
 
-    examples/configs/phits_usrdef_simple.toml
+https://github.com/Lindt8/ng-imager/tree/main/examples
 
 and reflect the **current, working** configuration schema used by the pipeline.
 
@@ -27,94 +27,100 @@ At the highest level, a config file typically contains:
 
 A minimal skeleton looks like:
 
-    [run]
-    ...
+```toml
+[run]
+...
 
-    [pipeline]
-    ...
+[pipeline]
+...
 
-    [io]
-    ...
+[io]
+...
 
-    [detectors]
-    ...
+[detectors]
+...
 
-    [plane]
-    ...
+[plane]
+...
 
-    [filters]
-    ...
+[filters]
+...
 
-    [energy]
-    ...
+[energy]
+...
 
-    [prior]
-    ...
+[prior]
+...
 
-    [uncertainty]
-    ...
+[uncertainty]
+...
 
-    [vis]
-    ...
+[vis]
+...
+```
 
 ---
 
 ## 2. [run] – Global Run Controls
 
-    [run]
-    # High-level data source context
-    # One of: "cf252" | "dt" | "proton_center" | "phits"
-    source_type = "phits"
+```toml
+[run]
+# High-level data source context
+# One of: "cf252" | "dt" | "proton_center" | "phits"
+source_type = "phits"
 
-    # Which species to process
-    neutrons = true
-    gammas   = true
+# Which species to process
+neutrons = true
+gammas   = true
 
-    # Behavioral toggles
-    fast = false        # enable fast-mode cuts / plane overrides
-    list = true         # enable list-mode image output
+# Behavioral toggles
+fast = false        # enable fast-mode cuts / plane overrides
+list = true         # enable list-mode image output
 
-    # Performance / execution
-    workers     = 0     # 0 = single-process; "auto" or >0 in newer configs
-    chunk_cones = "auto"
-    jit         = false
-    progress    = true
+# Performance / execution
+workers     = 0     # 0 or "auto", or >0 to select process count
+chunk_cones = "auto"
+jit         = false
+progress    = true
 
-    # Diagnostics
-    diagnostics_level = 2   # 0=off, 1=minimal, 2=verbose
+# Diagnostics
+diagnostics_level = 2   # 0=off, 1=minimal, 2=verbose
 
-    # Limits
-    max_cones = 50000       # hard cap on number of cones to build / image
+# Limits
+max_cones = 50000       # hard cap on number of cones to build / image
 
-    # SBP imaging engine:
-    #   "scan" – matrix scan across pixel-centered lines (continuous arcs)
-    #   "poly" – perimeter sampling (faster, but may show dotted arcs)
-    sbp_engine = "scan"
+# SBP imaging engine:
+#   "scan" – matrix scan across pixel-centered lines (continuous arcs)
+#   "poly" – perimeter sampling (faster, but may show dotted arcs)
+sbp_engine = "scan"
+```
 
 Notes:
 
-- `fast = true` activates fast-mode overrides defined under `[filters.fast]`.
+- `fast = true` activates fast-mode overrides defined under `[fast]`.
 - `list = true` asks the recon to keep per-cone pixel indices and to emit list-mode datasets under `/lm/...` in the HDF5 output.
-- `workers = 0` forces a single-process SBP path (nice for debugging); `"auto"` or an integer > 0 uses multi-process SBP.
+- `workers = 0` / `"auto"` to use all available processes for the SBP path, 1 for single process, or an integer > 1 for multi-process SBP.
 - `sbp_engine` selects the simple back-projection engine: `"scan"` (matrix scan, visually smooth arcs) or `"poly"` (perimeter sampler, usually faster).
 
 ### Run metadata and plot label
 
 In addition to the core switches above, `[run]` also accepts optional free-form metadata that travel with the HDF5 file and can be used by visualization tools:
 
-    [run]
-    # ...
-    # Short, human-readable label for this run
-    plot_label = "175 MeV p, target B, det config 3"
+```toml
+[run]
+# ...
+# Short, human-readable label for this run
+plot_label = "175 MeV p, target B, det config 2"
 
-    # Optional free-form run-level metadata
-    [run.meta]
-    beam        = "175 MeV proton"
-    target      = "Geometry B"
-    det_setup   = "Arrangement 3"
-    facility    = "PTB"
-    notes       = "DT focus scan, 2025-10-21"
-
+# Optional free-form run-level metadata
+[run.meta]
+beam        = "175 MeV proton"
+target      = "Geometry B"
+det_setup   = "Arrangement 2"
+facility    = "OncoRay"
+notes       = "beam on for 10 minutes"
+```
+    
 Fields:
 
 - `plot_label`  
@@ -129,15 +135,17 @@ All entries from `[run.meta]` are mirrored into the `/meta/run_meta` group of th
 
 ---
 
-## 3. [pipeline] – How Far to Run
+## 3. [pipeline] – How Far to Run (NOT YET IMPLEMENTED)
 
-    [pipeline]
-    # Where to stop the pipeline:
-    #   "hits"   – stop after hit construction / hit filters
-    #   "events" – stop after shaped/typed events
-    #   "cones"  – stop after cone construction
-    #   "image"  – full pipeline (cones → image)
-    until = "image"
+```toml
+[pipeline]
+# Where to stop the pipeline:
+#   "hits"   – stop after hit construction / hit filters
+#   "events" – stop after shaped/typed events
+#   "cones"  – stop after cone construction
+#   "image"  – full pipeline (cones → image)
+until = "image"
+```
 
 At the moment, most runs use `until = "image"`. Future work will make it easy to restart from intermediate stages using ng-imager HDF5 output.
 
@@ -145,14 +153,16 @@ At the moment, most runs use `until = "image"`. Future work will make it easy to
 
 ## 4. [io] – Input / Output and Adapters
 
-    [io]
-    input_format = "phits_usrdef"  # "phits_usrdef" | "root_novo_ddaq" | "hdf5_ngimager"
-    input_path   = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef.out"
-    output_path  = "examples/imaging_datasets/PHITS_simple_ng_source/usrdef_out.h5"
+```toml
+[io]
+input_format = "phits_usrdef"  # "phits_usrdef" | "root_novo_ddaq" | "hdf5_ngimager"
+input_path   = "../imaging_datasets/PHITS_simple_ng_source/usrdef.out"
+output_path  = "../imaging_datasets/PHITS_simple_ng_source/usrdef_out.h5"
 
-    # If true, overwrite an existing output file; if false, error out if the
-    # file already exists.
-    hdf5_overwrite = true
+# If true, overwrite an existing output file; if false, error out if the
+# file already exists.
+hdf5_overwrite = true
+```
 
 ### 4.0.1 Path resolution
 
@@ -184,37 +194,43 @@ normal shell paths.
 
 For the PHITS user-defined tally case:
 
-    [io.adapter]
-    type  = "phits"   # selects the PHITS-style adapter
-    style = "usrdef"  # indicates the custom usrdef text layout
+```toml
+[io.adapter]
+type  = "phits"   # selects the PHITS-style adapter
+style = "usrdef"  # indicates the custom usrdef text layout
 
-    # Units / conventions
-    unit_pos_is_mm       = false   # false → positions already in cm
-    time_units           = "ns"    # "ns" recommended
-    require_gamma_triples = true   # enforce 3-hit gamma events for Compton cones
+# Units / conventions
+unit_pos_is_mm       = false   # false → positions already in cm
+time_units           = "ns"    # "ns" recommended
+require_gamma_triples = true   # enforce 3-hit gamma events for Compton cones
+```
 
-Other adapters may accept different sub-keys under `[io.adapter]`; for now, the documented / tested case is the `"phits"` + `"usrdef"` combination.
+Other adapters may accept different sub-keys under `[io.adapter]`.
 
 
 ### 4.2. [io.adapter] – ROOT NOVO DDAQ Adapter
 
 For NOVO DDAQ ROOT files with an `image_tree` and `meta` tree:
 
-    [io]
-    input_format = "root_novo_ddaq"
-    input_path   = "examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041.root"
-    output_path  = "examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041_out.h5"
+```toml
+[io]
+input_format = "root_novo_ddaq"
+input_path   = "examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041.root"
+output_path  = "examples/imaging_datasets/NOVO_experiment_DT_at_PTB/autoSorted_coinc_detector_DT-14p8MeV_000041_out.h5"
 
-    [io.adapter]
-    type  = "root"       # selects the ROOT-based adapter
-    style = "novo_ddaq"  # NOVO DDAQ schema (image_tree + meta)
+[io.adapter]
+type  = "root"       # selects the ROOT-based adapter
+style = "novo_ddaq"  # NOVO DDAQ schema (image_tree + meta)
+tree_key = "image_tree"  # specify tree key name for imaging data
+meta_tree_key = "meta"   # tree name where ROOT metadata is stored
 
-    # Units / conventions
-    unit_pos_is_mm        = true   # positions in input are mm; converted → cm internally
-    time_units            = "ns"   # "ns" or "ps"
-    require_gamma_triples = true   # enforce 3-hit gamma events for 3-hit gamma imaging
+# Units / conventions
+unit_pos_is_mm        = true   # positions in input are mm; converted → cm internally
+time_units            = "ns"   # "ns" or "ps"
+require_gamma_triples = true   # enforce 3-hit gamma events for 3-hit gamma imaging
+``` 
 
-Material assignment (e.g. M600 vs OGS) is still configured via [detectors]; the ROOT adapter consults those mappings when constructing Hit objects.
+Material assignment (e.g. M600 vs OGS) is configured via [detectors]; the adapter consults those mappings when constructing Hit objects.
 
 
 ### 4.3. [io.extra_text_files] Extra text metadata files
@@ -240,15 +256,17 @@ If `[io.extra_text_files]` is omitted or empty, no extra text metadata is embedd
 
 Detector configuration is mainly used to assign materials to regions / bars, which then flow into hit construction and LUT lookup.
 
-    [detectors]
-    default_material = "OGS"
+```toml
+[detectors]
+default_material = "OGS"
 
-    [detectors.material_map]
-    200 = "OGS"
-    210 = "M600"
-    220 = "OGS"
-    230 = "M600"
-    240 = "OGS"
+[detectors.material_map]
+200 = "OGS"
+210 = "M600"
+220 = "OGS"
+230 = "M600"
+240 = "OGS"
+``` 
 
 Keys:
 
@@ -280,7 +298,7 @@ where:
 - `origin_cm = [ox, oy, oz]` is the detector origin in world coordinates (cm)
 - `rotation_deg = [rx, ry, rz]` are Euler angles in degrees, applied in order: Rx(rx) → Ry(ry) → Rz(rz)
 
-If both origin_cm and rotation_deg are approximately zero, the transform is skipped (identity).
+If both `origin_cm` and `rotation_deg` are approximately zero, the transform is skipped (identity).
 
 
 #### 5.1.2. Per-detector transforms (optional)
@@ -288,10 +306,12 @@ If both origin_cm and rotation_deg are approximately zero, the transform is skip
 Each entry adjusts hit coordinates for a single detector element (bar,
 tile, module) before the global frame transform is applied.
 
+```toml
 [[detectors.geometry.detectors]]
 id           = 0
 origin_cm    = [0.0, 20.0, 0.0]
 rotation_deg = [0.0, 90.0, 0.0]
+``` 
 
 Transform order:
 
@@ -318,22 +338,24 @@ hit coordinates are used as-is.
 
 The imaging plane is specified in world coordinates:
 
-    [plane]
-    origin = [0.0, 15.0, 0.0]   # point on the plane (cm)
-    normal = [0.0, 1.0, 0.0]    # plane normal (unit-ish vector)
+```toml
+[plane]
+origin = [0.0, 15.0, 0.0]   # point on the plane (cm)
+normal = [0.0, 1.0, 0.0]    # plane normal (unit-ish vector)
 
-    # In-plane axes (u and v). Must be linearly independent of each other and of the normal.
-    u_axis = [1.0, 0.0, 0.0]
-    v_axis = [0.0, 0.0, 1.0]
+# In-plane axes (u and v). Must be linearly independent of each other and of the normal.
+u_axis = [1.0, 0.0, 0.0]
+v_axis = [0.0, 0.0, 1.0]
 
-    # u / v extents and sampling (cm)
-    u_min = -20.0
-    u_max =  20.0
-    du    =   0.1
+# u / v extents and sampling (cm)
+u_min = -20.0
+u_max =  20.0
+du    =   0.1
 
-    v_min = -20.0
-    v_max =  20.0
-    dv    =   0.1
+v_min = -20.0
+v_max =  20.0
+dv    =   0.1
+```
 
 Notes:
 
@@ -349,7 +371,7 @@ Filters are split into three conceptual levels, with neutron/gamma-specific over
 - `[filters.hits]` and `[filters.hits.neutron]` / `[filters.hits.gamma]`
 - `[filters.events]` and `[filters.events.neutron]` / `[filters.events.gamma]`
 - `[filters.cones]` and `[filters.cones.neutron]` / `[filters.cones.gamma]`
-- `[filters.fast]` – optional fast-mode overrides
+- `[fast]` – optional fast-mode overrides
 
 The guiding principle is:
 
@@ -358,55 +380,60 @@ The guiding principle is:
 
 ### 7.1. Hit-Level Filters
 
-    [filters.hits]
-    # Universal hit cuts applied before event shaping
-    min_light_MeVee = 0.0
-    max_light_MeVee = 200.0
+```toml
+[filters.hits]
+# Universal hit cuts applied before event shaping
+min_light_MeVee = 0.0
+max_light_MeVee = 200.0
 
-    # Optional bar / material inclusion / exclusion
-    bars_include       = []    # e.g. [200, 210, 220]
-    bars_exclude       = []    # e.g. [230]
-    materials_include  = []    # e.g. ["M600", "OGS"]
-    materials_exclude  = []    # e.g. ["DEAD_BAR_MATERIAL"]
+# Optional bar / material inclusion / exclusion
+bars_include       = []    # e.g. [200, 210, 220]
+bars_exclude       = []    # e.g. [230]
+materials_include  = []    # e.g. ["M600", "OGS"]
+materials_exclude  = []    # e.g. ["DEAD_BAR_MATERIAL"]
 
-    # Optional PSD window (applied only when hits carry a PSD value,
-    # e.g. ROOT NOVO DDAQ data). If psd_min / psd_max are omitted, no
-    # PSD-based cut is applied at this level. Typical NOVO PSD values
-    # lie in [0, 1].
-    # psd_min = 0.0
-    # psd_max = 1.0
+# Optional PSD window (applied only when hits carry a PSD value,
+# e.g. ROOT NOVO DDAQ data). If psd_min / psd_max are omitted, no
+# PSD-based cut is applied at this level. Typical NOVO PSD values
+# lie in [0, 1].
+# psd_min = 0.0
+# psd_max = 1.0
 
-    [filters.hits.neutron]
-    # optional overrides / additions for neutron hits
-    # Any field set here (including psd_min / psd_max) overrides the
-    # corresponding [filters.hits] value for neutron hits only.
-    # psd_min = 0.2
-    # psd_max = 0.6
+[filters.hits.neutron]
+# optional overrides / additions for neutron hits
+# Any field set here (including psd_min / psd_max) overrides the
+# corresponding [filters.hits] value for neutron hits only.
+# min_light_MeVee = 2.0
+# psd_min = 0.2
+# psd_max = 0.6
 
-    [filters.hits.gamma]
-    # optional overrides / additions for gamma hits
-    # Optional overrides / additions for gamma hits.
-    # psd_min = 0.0
-    # psd_max = 0.2
+[filters.hits.gamma]
+# optional overrides / additions for gamma hits
+# Optional overrides / additions for gamma hits.
+# psd_min = 0.0
+# psd_max = 0.2
+``` 
 
 The hit filters are applied uniformly to all hits in a raw event before any event-level shaping or typing occurs.  If a hit carries no PSD value (e.g. PHITS-generated data), the PSD-related settings are silently ignored.
 
 ### 7.2. Event-Level Filters
 
-    [filters.events]
-    # Universal event cuts (applied after shaping into typed NeutronEvent/GammaEvent)
-    tof_window_ns = [0.0, 30.0]
+```toml
+[filters.events]
+# Universal event cuts (applied after shaping into typed NeutronEvent/GammaEvent)
+tof_window_ns = [0.0, 30.0]
 
-    [filters.events.neutron]
-    # Override only what you need; unspecified keys fall back to [filters.events]
-    tof_window_ns = [0.0, 30.0]
-    min_L1_MeVee  = 0.1   # minimum first-scatter light for neutron events
-    min_L2_MeVee  = 0.1   # minimum second-scatter light for neutron events
+[filters.events.neutron]
+# Override only what you need; unspecified keys fall back to [filters.events]
+tof_window_ns = [0.0, 30.0]
+min_L1_MeVee  = 0.1   # minimum first-scatter light for neutron events
+min_L2_MeVee  = 0.1   # minimum second-scatter light for neutron events
 
-    [filters.events.gamma]
-    tof_window_ns = [0.0, 10.0]
-    min_L_any_MeVee = 0.05  # minimum light on any of the gamma hits
-
+[filters.events.gamma]
+tof_window_ns = [0.0, 5.0]
+min_L_any_MeVee = 0.05  # minimum light on any of the gamma hits
+```
+    
 Typical uses:
 
 - Narrow `tof_window_ns` for neutron/gamma separately.
@@ -417,20 +444,22 @@ Event filters operate on **typed events** (NeutronEvent / GammaEvent) and feed i
 
 ### 7.3. Cone-Level Filters
 
-    [filters.cones]
-    # Universal cone cuts
-    max_delta_theta_deg     = 90.0   # Δθ = |φ - θ|, prior-consistency limit
-    max_incident_energy_MeV = 250.0  # reject events with unphysically high incident energy
+```toml
+[filters.cones]
+# Universal cone cuts
+max_delta_theta_deg     = 90.0   # Δθ = |φ - θ|, prior-consistency limit
+max_incident_energy_MeV = 250.0  # reject events with unphysically high incident energy
 
-    [filters.cones.neutron]
-    # e.g., neutron-specific overrides (empty in the example)
-    # max_delta_theta_deg     = 5.0
-    # max_incident_energy_MeV = 30.0
+[filters.cones.neutron]
+# e.g., neutron-specific overrides (empty in the example)
+# max_delta_theta_deg     = 5.0
+# max_incident_energy_MeV = 30.0
 
-    [filters.cones.gamma]
-    # e.g., gamma-specific overrides (empty in the example)
-    # max_delta_theta_deg     = 8.0
-    # max_incident_energy_MeV = 10.0
+[filters.cones.gamma]
+# e.g., gamma-specific overrides (empty in the example)
+# max_delta_theta_deg     = 8.0
+# max_incident_energy_MeV = 10.0
+```
 
 The cone filters operate on:
 
@@ -444,23 +473,25 @@ The cone filters operate on:
 
 Fast mode (`run.fast = true`) activates a small set of more aggressive defaults. The exact details depend on the code, but conceptually:
 
-    [fast]
-    # More aggressive light thresholds
-    min_L1_MeVee   = 0.8   # MeVee, first neutron scatter
-    min_L2_MeVee   = 0.4   # MeVee, second neutron scatter
-    min_L_any_MeVee = 0.2  # MeVee, any gamma deposit considered
-    
-    # Stop after this many cones have been built and imaged
-    max_cones = 20000
-    
-    # Coarsen the imaging plane by this integer factor:
-    # du' = du * plane_downsample, dv' = dv * plane_downsample
-    plane_downsample = 2
+```toml
+[fast]
+# More aggressive light thresholds
+min_L1_MeVee   = 0.8   # MeVee, first neutron scatter
+min_L2_MeVee   = 0.4   # MeVee, second neutron scatter
+min_L_any_MeVee = 0.2  # MeVee, any gamma deposit considered
 
-    # SBP imaging engine:
-    #   "scan" – matrix scan across pixel-centered lines (continuous arcs)
-    #   "poly" – perimeter sampling (faster, but may show dotted arcs)
-    sbp_engine = "poly"
+# Stop after this many cones have been built and imaged
+max_cones = 20000
+
+# Coarsen the imaging plane by this integer factor:
+# du' = du * plane_downsample, dv' = dv * plane_downsample
+plane_downsample = 2
+
+# SBP imaging engine:
+#   "scan" – matrix scan across pixel-centered lines (continuous arcs)
+#   "poly" – perimeter sampling (faster, but may show dotted arcs)
+sbp_engine = "poly"
+```
 
 Any fast-mode cut that is defined will override the corresponding normal cut when `run.fast = true`. The exact field names and behavior are kept intentionally minimal so that the fast-mode logic does not diverge too far from the main configuration.
 
@@ -468,24 +499,26 @@ Any fast-mode cut that is defined will override the corresponding normal cut whe
 
 ## 8. [energy] – Energy Strategy
 
-    [energy]
-    # One of: "ELUT" | "ToF" | "FixedEn" | "Edep"
-    strategy = "Edep"
+```toml
+[energy]
+# One of: "ELUT" | "ToF" | "FixedEn" | "Edep"
+strategy = "Edep"
 
-    # If strategy = "FixedEn", this specifies the fixed incident neutron energy:
-    fixed_En_MeV = 14.1
+# If strategy = "FixedEn", this specifies the fixed incident neutron energy:
+fixed_En_MeV = 14.1
 
-    # Inversion LUTs for light → energy (used when strategy = "ELUT")
-    [energy.lut_paths.OGS]
-    proton = "data/lut/OGS/lut_OGS_proton_Birks.npz"
-    carbon = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
+# For neutrons, assume recoils are always protons (true) or consider also carbon recoils (false)
+force_proton_recoils = false
 
-    [energy.lut_paths.M600]
-    proton = "data/lut/M600/lut_M600_proton_Birks.npz"
-    carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
+# Inversion LUTs for light → energy (used when strategy = "ELUT")
+[energy.lut_paths.OGS]
+proton = "data/lut/OGS/lut_OGS_proton_Birks.npz"
+carbon = "data/lut/OGS/lut_OGS_carbon_Birks.npz"
 
-    # When true, neutron cone construction forces proton recoils for kinematics
-    force_proton_recoils = false
+[energy.lut_paths.M600]
+proton = "data/lut/M600/lut_M600_proton_Birks.npz"
+carbon = "data/lut/M600/lut_M600_carbon_Birks.npz"
+``` 
 
 Strategies:
 
@@ -532,20 +565,22 @@ You only need to touch [energy.lut_paths.*] if you want to:
 
 ## 9. [prior] – Spatial Priors
 
-    [prior]
-    # One of: "point" | "line"
-    type = "point"
+```toml
+[prior]
+# One of: "point" | "line"
+type = "point"
 
-    # For point prior:
-    point = [0.0, 0.0, -500.0]
+# For point prior:
+point = [0.0, 0.0, -109.6]
 
-    # For line prior (example):
-    # [prior.line]
-    # p0 = [x0, y0, z0]
-    # p1 = [x1, y1, z1]
+# For line prior (example):
+# [prior.line]
+# p0 = [x0, y0, z0]
+# p1 = [x1, y1, z1]
 
-    # Prior strength (dimensionless weighting)
-    strength = 1.0
+# Prior strength (dimensionless weighting)
+strength = 1.0
+``` 
 
 The prior is used for:
 
@@ -559,13 +594,15 @@ When no explicit prior is given, the imaging plane center is used as an implicit
 
 ## 10. [uncertainty] – Smearing and Uncertainties
 
-    [uncertainty]
-    enabled = false
-    smearing = "thicken"          # "thicken" | "weighted"
-    sigma_doi_cm        = 0.35
-    sigma_transverse_cm = 0.346
-    sigma_time_ns       = 0.5
-    use_lut_bands       = false   # if true, use LUT-provided bands where available
+```toml
+[uncertainty]
+enabled = false
+smearing = "thicken"          # "thicken" | "weighted"
+sigma_doi_cm        = 0.35
+sigma_transverse_cm = 0.346
+sigma_time_ns       = 0.5
+use_lut_bands       = false   # if true, use LUT-provided bands where available
+``` 
 
 This block is currently mostly reserved for future work. In the current code, the SBP reconstruction runs in a nominal, non-smeared mode unless uncertainty support is explicitly wired in.
 
@@ -573,18 +610,20 @@ This block is currently mostly reserved for future work. In the current code, th
 
 ## 11. [vis] – Visualization
 
-    [vis]
-    export_png_on_write    = true
-    species                = ["n", "g", "all"]
-    center_on_plane_center = true
-    flip_vertical          = true
-    axis_units             = "cm"          # "cm" or "mm"
-    cmap                   = "cividis"
-    filename_pattern       = "{species}_{stem}.{ext}"
-    extra_formats          = []
+```toml
+[vis]
+export_png_on_write    = true
+species                = ["n", "g", "all"]
+center_on_plane_center = true
+axis_units             = "cm"          # "cm" or "mm"
+cmap                   = "cividis"
+filename_pattern       = "{species}_{stem}.{ext}"
+extra_formats          = ["pdf"]
+# flip_vertical          = false
 
-    # Advanced / legacy option:
-    # summed_dataset       = "/images/summed/n"
+# Advanced / legacy option:
+# summed_dataset       = "/images/summed/n"
+``` 
 
 Fields:
 
@@ -599,8 +638,6 @@ Fields:
 
 - `center_on_plane_center` – if true, the u–v axes are shifted so that `(0, 0)` is at the imaging plane center. If false, the axes use the raw `grid.u_min` / `grid.v_min` coordinates stored in the HDF5 metadata.
 
-- `flip_vertical` – flips the plotted image vertically relative to the natural v-axis orientation. This is mainly useful for visual comparison with legacy images.
-
 - `axis_units` – units used for axis labels: `"cm"` (native) or `"mm"`. The underlying HDF5 metadata always stores geometry in centimeters; `"mm"` simply rescales labels by a factor of 10.
 
 - `cmap` – Matplotlib colormap name to use for the image (e.g. `"cividis"`).
@@ -612,6 +649,8 @@ Fields:
   - `{ext}` – the file extension (`"png"`, `"pdf"`, …)
 
 - `extra_formats` – list of additional output formats to write alongside PNG (for example `["pdf"]` to also write vector PDF figures with rasterized image data).
+
+- `flip_vertical` – flips the plotted image vertically relative to the natural v-axis orientation. This is mainly useful for visual comparison with legacy images.
 
 The older `summed_dataset` field is kept for backward compatibility with earlier versions and with the `ng-viz h5-to-png` command. For standard summed images you usually do not need to set it.
 
@@ -625,11 +664,11 @@ Optional configuration for 1D u/v projections of the summed images.
 export_png_on_write   = true
 species               = ["n", "g", "all"]
 center_on_plane_center = true
-flip_vertical          = true
 axis_units             = "cm"
 cmap                   = "cividis"
 filename_pattern       = "{species}_{stem}.{ext}"
 # extra_formats        = ["pdf"]
+# flip_vertical        = false
 
 [vis.projections]
 # Enable computation of 1D u/v projections and include them in the
@@ -637,9 +676,9 @@ filename_pattern       = "{species}_{stem}.{ext}"
 # the projections into /images/summed/projections in the HDF5 file.
 enabled = true
 
-# Optional rectangular ROI in imaging-plane coordinates (cm).
-# When provided, ROI-limited projections are computed by summing only
-# pixels whose centers fall inside this window.
+# Optional rectangular region-of-interest ROI in imaging-plane
+# coordinates (cm). When provided, ROI-limited projections are computed 
+# by summing only pixels whose centers fall inside this window.
 roi_u_min_cm = -5.0
 roi_u_max_cm =  5.0
 roi_v_min_cm = -5.0
@@ -664,29 +703,29 @@ projection curves.
 
 Enable metrics via:
 
-    ```toml
-    [vis.projections.metrics]
-    enabled = true         # master toggle
+```toml
+[vis.projections.metrics]
+enabled = true         # master toggle
 
-    [vis.projections.metrics.u]
-    compute_summary = true
-    compute_peak    = true
-    compute_edges   = false
-    edge_low_frac   = 0.2
-    edge_high_frac  = 0.8
-    min_counts      = 100.0
+[vis.projections.metrics.u]
+compute_summary = true
+compute_peak    = true
+compute_edges   = false
+edge_low_frac   = 0.2
+edge_high_frac  = 0.8
+min_counts      = 100.0
 
-    [vis.projections.metrics.v]
-    compute_summary = true
-    compute_peak    = true
-    compute_edges   = true
-    edge_low_frac   = 0.2
-    edge_high_frac  = 0.8
-    min_counts      = 100.0
+[vis.projections.metrics.v]
+compute_summary = true
+compute_peak    = true
+compute_edges   = true
+edge_low_frac   = 0.2
+edge_high_frac  = 0.8
+min_counts      = 100.0
 
-    # optional centroid of the full 2D image
-    compute_centroid = false
-    ```
+# optional centroid of the full 2D image
+compute_centroid = false
+```
 
 #### Summary statistics (`compute_summary`)
 
@@ -704,8 +743,7 @@ coordinate-valued metrics are present but set to NaN.
 
 #### Peak metrics (`compute_peak`)
 
-Peak metrics are *currently* based on the **maximum bin** of each
-projection (no Gaussian fit yet):
+Peak metrics are based on the **maximum bin** of each projection:
 
 - `peak_pos_cm`   – coordinate of the maximum bin (cm)
 - `peak_value`    – value of the maximum bin (counts)
@@ -719,8 +757,10 @@ These are only considered valid when the total counts exceed
 Fractional edges are derived from the normalized cumulative integral of
 the projection:
 
-    edge_low_frac  = 0.2
-    edge_high_frac = 0.8
+```toml
+edge_low_frac  = 0.2
+edge_high_frac = 0.8
+```
 
 Saved values:
 
@@ -754,34 +794,34 @@ These describe the centroid of the full 2D reconstructed image.
 Visualization of the derived projection metrics is controlled separately:
 
 ```toml
-    [vis.projections.plot]
-    # Basic visual toggles
-    show_peak_markers = true    # vertical / horizontal lines at peak_pos_cm
-    show_edge_markers = true    # lines at edge_low_cm / edge_high_cm
-    show_centroid_2d  = false   # crosshair at 2D centroid (if computed)
+[vis.projections.plot]
+# Basic visual toggles
+show_peak_markers = true    # vertical / horizontal lines at peak_pos_cm
+show_edge_markers = true    # lines at edge_low_cm / edge_high_cm
+show_centroid_2d  = false   # crosshair at 2D centroid (if computed)
 
-    # Which metrics to use when both "all" and ROI curves exist:
-    #   "auto" : prefer ROI metrics when ROI projections are available,
-    #            otherwise fall back to the all-pixels metrics
-    #   "all"  : always use metrics from the all-pixels projections
-    #   "roi"  : always use metrics from the ROI-limited projections
-    #   "both" : expose both all and ROI metrics (styling handled in vis/hdf.py)
-    metrics_source    = "auto"     # "auto" | "all" | "roi" | "both"
+# Which metrics to use when both "all" and ROI curves exist:
+#   "auto" : prefer ROI metrics when ROI projections are available,
+#            otherwise fall back to the all-pixels metrics
+#   "all"  : always use metrics from the all-pixels projections
+#   "roi"  : always use metrics from the ROI-limited projections
+#   "both" : expose both all and ROI metrics (styling handled in vis/hdf.py)
+metrics_source    = "auto"     # "auto" | "all" | "roi" | "both"
 
-    # Which projection curves to draw:
-    #   "all+roi"  : show both all-pixels and ROI curves
-    #   "all_only" : show only the all-pixels projection
-    #   "roi_only" : show only the ROI-limited projection (if present)
-    curve_mode        = "all+roi"  # "all+roi" | "all_only" | "roi_only"
+# Which projection curves to draw:
+#   "all+roi"  : show both all-pixels and ROI curves
+#   "all_only" : show only the all-pixels projection
+#   "roi_only" : show only the ROI-limited projection (if present)
+curve_mode        = "all+roi"  # "all+roi" | "all_only" | "roi_only"
 
-    # Numeric summaries on the projections:
-    #   "off"     : no numeric text
-    #   "compact" : minimal, high-level summary (default)
-    #   "full"    : more detailed summary (e.g. including edges)
-    annotate_summary  = "compact"  # "off" | "compact" | "full"
+# Numeric summaries on the projections:
+#   "off"     : no numeric text
+#   "compact" : minimal, high-level summary (default)
+#   "full"    : more detailed summary (e.g. including edges)
+annotate_summary  = "compact"  # "off" | "compact" | "full"
 
-    # Optional extra panel with a table of metrics (future)
-    show_metrics_panel = false
+# Optional extra panel with a table of metrics (future)
+show_metrics_panel = false
 ```
 
 These affect **only** the visualization overlay behavior inside
