@@ -116,14 +116,16 @@ the config, all of its key–value pairs are mirrored into:
 Each key in `[run.meta]` becomes a string attribute on this group. For
 example, with:
 
-    [run]
-    plot_label = "175 MeV p, target B, det config 3"
+```toml
+[run]
+plot_label = "175 MeV p, target B, det config 3"
 
-    [run.meta]
-    beam      = "175 MeV proton"
-    target    = "Geometry B"
-    det_setup = "Arrangement 3"
-    facility  = "PTB"
+[run.meta]
+beam      = "175 MeV proton"
+target    = "Geometry B"
+det_setup = "Arrangement 3"
+facility  = "OncoRay"
+``` 
 
 the HDF5 file will contain:
 
@@ -131,7 +133,7 @@ the HDF5 file will contain:
     - `beam      = "175 MeV proton"`
     - `target    = "Geometry B"`
     - `det_setup = "Arrangement 3"`
-    - `facility  = "PTB"`
+    - `facility  = "OncoRay"`
 
 If `[run].plot_label` is set, its value is also stored as the
 `plot_label` attribute on `/meta/run_meta`. Visualization tools
@@ -188,7 +190,7 @@ When `[vis.projections].enabled = true` in the TOML config, the pipeline writes 
 
 Layout:
 
-```text
+```
 /images/summed/projections/n/u       # [nu] float32, sum over v (rows)
 /images/summed/projections/n/v       # [nv] float32, sum over u (cols)
 /images/summed/projections/n/u_roi   # [nu] float32, ROI-limited (optional)
@@ -438,7 +440,7 @@ makes it easy to map:
 
 Each row is:
 
-```text
+```
 (cone_id, flat_pixel_index)
 ```
 
@@ -472,7 +474,7 @@ Columns:
 
 Together, the mapping looks like:
 
-```text
+```
 hit (lm/hit_*)   ← event_index ← event_survival[:, 0]
                                ↘ first_cone_index      → cones/*
                                 ↘ first_imaged_cone_index → cone_pixel_indices
