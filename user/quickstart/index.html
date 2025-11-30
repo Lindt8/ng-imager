@@ -790,8 +790,8 @@ user-defined tally output and inspecting the results.</p>
 <p>In practice:</p>
 <ul>
 <li>
-<p>You clone the project from:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>https://github.com/Lindt8/ng-imager
+<p>Install it from PyPI with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>ngimager
 </code></pre></div>
 </li>
 <li>
@@ -800,8 +800,10 @@ user-defined tally output and inspecting the results.</p>
 </code></pre></div>
 </li>
 <li>
-<p>Once the project is published to PyPI, you will install it with:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>ngimager
+<p>Run it with a config TOML file (and optional CLI options):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ng-run<span class="w"> </span>--help<span class="w"> </span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ng-run<span class="w"> </span>my_config.toml<span class="w"> </span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>ng-run<span class="w"> </span>my_config.toml<span class="w"> </span>-i<span class="w"> </span>data/input.root<span class="w"> </span>-o<span class="w"> </span>results/output.h5
 </code></pre></div>
 </li>
 </ul>
@@ -925,6 +927,15 @@ successfully.</p>
 <a id="__codelineno-12-53" name="__codelineno-12-53" href="#__codelineno-12-53"></a><span class="n">type</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;point&quot;</span>
 <a id="__codelineno-12-54" name="__codelineno-12-54" href="#__codelineno-12-54"></a><span class="n">point</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">]</span>
 <a id="__codelineno-12-55" name="__codelineno-12-55" href="#__codelineno-12-55"></a><span class="n">strength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span>
+<a id="__codelineno-12-56" name="__codelineno-12-56" href="#__codelineno-12-56"></a>
+<a id="__codelineno-12-57" name="__codelineno-12-57" href="#__codelineno-12-57"></a><span class="k">[vis]</span>
+<a id="__codelineno-12-58" name="__codelineno-12-58" href="#__codelineno-12-58"></a><span class="n">export_png_on_write</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-12-59" name="__codelineno-12-59" href="#__codelineno-12-59"></a>
+<a id="__codelineno-12-60" name="__codelineno-12-60" href="#__codelineno-12-60"></a><span class="k">[vis.projections]</span>
+<a id="__codelineno-12-61" name="__codelineno-12-61" href="#__codelineno-12-61"></a><span class="n">enabled</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-12-62" name="__codelineno-12-62" href="#__codelineno-12-62"></a>
+<a id="__codelineno-12-63" name="__codelineno-12-63" href="#__codelineno-12-63"></a><span class="k">[vis.projections.metrics]</span>
+<a id="__codelineno-12-64" name="__codelineno-12-64" href="#__codelineno-12-64"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span>
 </code></pre></div>
 <h3 id="21-using-elut-with-packaged-m600ogs-luts">2.1 Using ELUT with packaged M600/OGS LUTs<a class="headerlink" href="#21-using-elut-with-packaged-m600ogs-luts" title="Permanent link">&para;</a></h3>
 <p>If your detectors are standard NOVO M600 / OGS scintillators and you
@@ -951,9 +962,9 @@ these defaults or add LUTs for new materials.</p>
 <div class="highlight"><pre><span></span><code>configs/my_config.toml
 </code></pre></div>
 <p>and you write:</p>
-<div class="highlight"><pre><span></span><code>[io]
-input_path  = &quot;../data/usrdef.out&quot;
-output_path = &quot;../results/example.h5&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">[io]</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">input_path</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;../data/usrdef.out&quot;</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="n">output_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;../results/example.h5&quot;</span>
 </code></pre></div>
 <p>then both paths are resolved relative to <code>configs/</code>, no matter where
 you run <code>ng-run</code> from.</p>
@@ -969,7 +980,7 @@ relative to your current shell working directory.</p>
 <h3 id="31-recommended-via-cli-ng-run">3.1 Recommended: via CLI (<code>ng-run</code>)<a class="headerlink" href="#31-recommended-via-cli-ng-run" title="Permanent link">&para;</a></h3>
 <p>From the project root (or any directory, as long as <code>ngimager</code> is
 installed in your environment):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>ng-run<span class="w"> </span>my_config.toml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>ng-run<span class="w"> </span>my_config.toml
 </code></pre></div>
 <p>You should see log messages for each stage:</p>
 <ul>
@@ -1013,45 +1024,45 @@ installed in your environment):</p>
 </li>
 </ul>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>ng-run<span class="w"> </span>my_config.toml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span>--fast<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span>--list<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span>--no-gammas<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span>--input-path<span class="w"> </span>/data/phits/usrdef.out<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">  </span>--output-path<span class="w"> </span>results/quicklook.h5<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">  </span>--plot-label<span class="w"> </span><span class="s2">&quot;DT beam, quicklook&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>ng-run<span class="w"> </span>my_config.toml<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span>--fast<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span>--list<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">  </span>--no-gammas<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">  </span>--input-path<span class="w"> </span>/data/phits/usrdef.out<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">  </span>--output-path<span class="w"> </span>results/quicklook.h5<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">  </span>--plot-label<span class="w"> </span><span class="s2">&quot;DT beam, quicklook&quot;</span>
 </code></pre></div>
 <h3 id="32-alternative-python-m-module-runner">3.2 Alternative: <code>python -m</code> (module runner)<a class="headerlink" href="#32-alternative-python-m-module-runner" title="Permanent link">&para;</a></h3>
 <p>If you prefer not to use the console script, you can run the same
 pipeline via the module entry point:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>python<span class="w"> </span>-m<span class="w"> </span>ngimager.pipelines.core<span class="w"> </span>my_config.toml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>python<span class="w"> </span>-m<span class="w"> </span>ngimager.pipelines.core<span class="w"> </span>my_config.toml
 </code></pre></div>
 <p>The same flags are available:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>python<span class="w"> </span>-m<span class="w"> </span>ngimager.pipelines.core<span class="w"> </span>my_config.toml<span class="w"> </span>--fast<span class="w"> </span>--list<span class="w"> </span>--no-gammas
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>python<span class="w"> </span>-m<span class="w"> </span>ngimager.pipelines.core<span class="w"> </span>my_config.toml<span class="w"> </span>--fast<span class="w"> </span>--list<span class="w"> </span>--no-gammas
 </code></pre></div>
 <hr />
 <h2 id="4-inspect-the-hdf5-output">4. Inspect the HDF5 output<a class="headerlink" href="#4-inspect-the-hdf5-output" title="Permanent link">&para;</a></h2>
 <p>You can inspect the file with:</p>
 <ul>
-<li><strong>HDFView</strong> — a GUI browser, nice for sanity checks on groups and datasets.</li>
+<li><a href="https://github.com/HDFGroup/hdfview/releases/tag/v3.3.2"><strong>HDFView</strong></a> — a GUI browser, nice for sanity checks on groups and datasets.</li>
 <li><strong>Python + h5py</strong> — for scripting and analysis.</li>
 </ul>
 <p>Example Python session:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
-<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;results/example.h5&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>    <span class="n">img_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">][</span><span class="s2">&quot;summed&quot;</span><span class="p">][</span><span class="s2">&quot;n&quot;</span><span class="p">])</span>
-<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;neutron image shape:&quot;</span><span class="p">,</span> <span class="n">img_n</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
-<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>    <span class="n">cones</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;cones&quot;</span><span class="p">]</span>
-<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cones</span><span class="p">[</span><span class="s2">&quot;theta_rad&quot;</span><span class="p">])</span>
-<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>    <span class="n">species</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cones</span><span class="p">[</span><span class="s2">&quot;species&quot;</span><span class="p">])</span>
-<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;n cones:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">species</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="s2">&quot;g cones:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">species</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
-<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>
-<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>    <span class="c1"># Run-level metadata from [run.meta]</span>
-<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>    <span class="k">if</span> <span class="s2">&quot;run_meta&quot;</span> <span class="ow">in</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]:</span>
-<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;run_meta keys:&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;run_meta&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;results/example.h5&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>    <span class="n">img_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;images&quot;</span><span class="p">][</span><span class="s2">&quot;summed&quot;</span><span class="p">][</span><span class="s2">&quot;n&quot;</span><span class="p">])</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;neutron image shape:&quot;</span><span class="p">,</span> <span class="n">img_n</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>    <span class="n">cones</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;cones&quot;</span><span class="p">]</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cones</span><span class="p">[</span><span class="s2">&quot;theta_rad&quot;</span><span class="p">])</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>    <span class="n">species</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cones</span><span class="p">[</span><span class="s2">&quot;species&quot;</span><span class="p">])</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;n cones:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">species</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="s2">&quot;g cones:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">species</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>    <span class="c1"># Run-level metadata from [run.meta]</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>    <span class="k">if</span> <span class="s2">&quot;run_meta&quot;</span> <span class="ow">in</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]:</span>
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;run_meta keys:&quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;run_meta&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
 </code></pre></div>
 <p>See the <a href="../hdf5/">HDF5 Output Format</a> page for a full description of the
 groups and how to map pixels ↔ cones ↔ events ↔ hits.</p>
@@ -1061,7 +1072,7 @@ groups and how to map pixels ↔ cones ↔ events ↔ hits.</p>
 run), you can use the visualization CLI to re-render images with
 different visualization settings.</p>
 <p>The main entry point is:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>ng-viz<span class="w"> </span>summed<span class="w"> </span>results/example.h5
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>ng-viz<span class="w"> </span>summed<span class="w"> </span>results/example.h5
 </code></pre></div>
 <p>By default this:</p>
 <ul>
@@ -1069,9 +1080,9 @@ different visualization settings.</p>
 <li>Uses the imaging plane metadata under <code>/meta</code>,</li>
 <li>
 <p>Writes PNG files alongside the input HDF5 file, with names like:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>n_example.png
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>g_example.png
-<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>all_example.png
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>n_example.png
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>g_example.png
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>all_example.png
 </code></pre></div>
 </li>
 </ul>
@@ -1087,11 +1098,11 @@ different visualization settings.</p>
   of using any value stored in <code>/meta</code>.</li>
 </ul>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>ng-viz<span class="w"> </span>summed<span class="w"> </span>results/example.h5<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span>--species<span class="w"> </span>n<span class="w"> </span>g<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">  </span>--axis-units<span class="w"> </span>mm<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="w">  </span>--cmap<span class="w"> </span>viridis<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="w">  </span>--plot-label<span class="w"> </span><span class="s2">&quot;175 MeV p, target B, det config 3&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>ng-viz<span class="w"> </span>summed<span class="w"> </span>results/example.h5<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span>--species<span class="w"> </span>n<span class="w"> </span>g<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">  </span>--axis-units<span class="w"> </span>mm<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">  </span>--cmap<span class="w"> </span>viridis<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">  </span>--plot-label<span class="w"> </span><span class="s2">&quot;175 MeV p, target B, det config 3&quot;</span>
 </code></pre></div>
 <p>This is intended to mirror the visualization automatically produced by
 the core pipeline, while letting you re-style or re-label the plots
