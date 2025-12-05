@@ -328,6 +328,24 @@ The same flags are available:
 python -m ngimager.pipelines.core my_config.toml --fast --list --no-gammas
 ```
 
+### 3.3 Optional: convert HDF5 output to ROOT
+
+If you or your collaborators prefer working in ROOT, you can convert the
+ngimager HDF5 output into a ROOT file using the `ng-hdf2root` helper:
+
+    ng-hdf2root my_run.h5
+
+This will produce `my_run.root` in the same directory. You can then open this
+file in ROOT (C++ or PyROOT) and build histograms from:
+
+- per-hit list-mode data (`lm` tree),
+- reconstructed cones (`cones` tree), and
+- list-mode imaging information (`cone_pixels` and `images_summed` trees).
+
+For details of the ROOT layout and more examples, see the dedicated
+[`HDF5 → ROOT conversion` page](hdf2root.md).
+
+
 ---
 
 ## 4. Inspect the HDF5 output

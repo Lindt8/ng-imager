@@ -66,6 +66,8 @@ ng-run = "ngimager.pipelines.core:app"
 ng-viz = "ngimager.cli.viz:app"
 # Cone/event inspection helper
 ng-inspect = "ngimager.tools.inspect_cone:main"
+# Convert HDF5 output to ROOT format
+ng-hdf2root = "ngimager.tools.hdf5_to_root:main"
 
 [tool.hatch.build]
 # Only include the actual package, its data, and top-level metadata.
