@@ -67,12 +67,14 @@ The converter exits with a non-zero status code and a short error message if:
 
 You can also call the converter from Python:
 
-    from pathlib import Path
-    from ngimager.tools.hdf5_to_root import convert_hdf5_to_root
+```python
+from pathlib import Path
+from ngimager.tools.hdf5_to_root import convert_hdf5_to_root
 
-    hdf_path = Path("my_run.h5")
-    root_path = Path("my_run.root")
-    convert_hdf5_to_root(hdf_path, root_path, overwrite=True)
+hdf_path = Path("my_run.h5")
+root_path = Path("my_run.root")
+convert_hdf5_to_root(hdf_path, root_path, overwrite=True)
+``` 
 
 This is useful if you want to script batches of conversions.
 
@@ -125,25 +127,46 @@ This makes it natural to build 1D/2D histograms like “incident neutron energy
 for all imaged events” or “time difference between two neutron scatters” in
 ROOT using standard cuts on the event-level columns.
 
-#### Example: basic histogram in ROOT (C++)
+In many experimental analyses, you may also want spectra of deposited
+light/energy at individual scatters. The `hit_L_mevee` branch is the
+per-hit calibrated light (in MeVee for real data, or `Edep` in MeV for
+PHITS-style sources) and is often used as a proxy for deposited energy.
 
-    TFile *f = TFile::Open("my_run.root");
-    TTree *lm = (TTree*)f->Get("lm");
 
-    // Histogram of hit light for neutron events only
-    lm->Draw("hit_L_mevee>>hL(100,0,10)", "event_type == 0");
+#### Example: basic histograms in ROOT (C++)
+
+```cpp
+TFile *f = TFile::Open("my_run.root");
+TTree *lm = (TTree*)f->Get("lm");
+
+// Histogram of hit light for neutron events only
+lm->Draw("hit_L_mevee>>hL(200,0,10)", "event_type == 0");
+
+// Compare light at first vs second scatters in neutron events
+lm->Draw(
+    "hit_L_mevee>>hL1(200,0,10)",
+    "event_type == 0 && hit_index == 0"
+);
+lm->Draw(
+    "hit_L_mevee>>hL2(200,0,10)",
+    "event_type == 0 && hit_index == 1",
+    "same"
+);
+```
 
 #### Example: time difference between first and second neutron scatters
 
-    // For neutron events, hits typically occupy slots 0 and 1.
-    // Define Δt = t(slot 1) - t(slot 0) by combining lm rows.
+```cpp
+// For neutron events, hits typically occupy slots 0 and 1.
+// Define Δt = t(slot 1) - t(slot 0) by combining lm rows.
 
-    TTree *lm = (TTree*)f->Get("lm");
-    lm->Draw(
-        "hit_t_ns - hit_t_ns",
-        "event_type == 0 && hit_index == 1",
-        ""
-    );
+TTree *lm = (TTree*)f->Get("lm");
+lm->Draw(
+    "hit_t_ns - hit_t_ns",
+    "event_type == 0 && hit_index == 1",
+    ""
+);
+```
 
 In practice you might instead build a friend tree or use RDataFrame to do a
 join-style operation over `event_index` and `hit_index`. The important part is
@@ -169,10 +192,13 @@ Branches:
       `1 = proton`, `2 = carbon`.
 
 - Kinematics and geometry:
-    - `incident_energy_MeV` (float32) – inferred incident energy.
+    - `incident_energy_MeV` (float32) – **kinematically inferred incident
+      neutron or gamma energy** for this cone. For neutrons this comes from
+      ToF + deposited energy at the first scatter; for gammas from Compton
+      kinematics (as documented in the HDF5 format and architecture docs).
     - `apex_x_cm`, `apex_y_cm`, `apex_z_cm` (float32) – cone apex position.
     - `axis_x`, `axis_y`, `axis_z` (float32) – unit direction vector.
-    - `theta_rad`           (float32) – cone half-angle in radians.
+    - `theta_rad` (float32) – cone half-angle in radians.
 
 - Gamma hit ordering:
     - `gamma_hit_order_0/1/2` (int8) – hit slot indices used in the Compton
@@ -180,13 +206,15 @@ Branches:
 
 Typical use in ROOT:
 
-    TTree *cones = (TTree*)f->Get("cones");
+```cpp
+TTree *cones = (TTree*)f->Get("cones");
 
-    // Spectrum of incident neutron energies for imaged cones only
-    cones->Draw(
-        "incident_energy_MeV>>hEn(200,0,20)",
-        "species == 0"
-    );
+// Spectrum of incident neutron energies for imaged cones only
+cones->Draw(
+    "incident_energy_MeV>>hEn(200,0,20)",
+    "species == 0"
+);
+```
 
 You can correlate cones with hits via `event_index`, or via `cone_id` and the
 cone-pixel tree described below.
@@ -232,8 +260,10 @@ Branches:
 
 Reconstruction example in ROOT (C++):
 
-    TTree *img = (TTree*)f->Get("images_summed");
-    img->Draw("counts", "species == \"n\"");
+```cpp
+TTree *img = (TTree*)f->Get("images_summed");
+img->Draw("counts", "species == \"n\"");
+```
 
 To turn this back into a 2D histogram you can either:
 
@@ -268,36 +298,59 @@ Here are a few common analysis patterns you might follow.
 
 ### 4.1 1D spectra from list-mode hits
 
-    TFile *f = TFile::Open("my_run.root");
-    TTree *lm = (TTree*)f->Get("lm");
+```cpp
+TFile *f = TFile::Open("my_run.root");
+TTree *lm = (TTree*)f->Get("lm");
 
-    // Incident neutron energy proxy from hit_L_mevee for first neutron scatters
-    lm->Draw(
-        "hit_L_mevee>>hL(200,0,10)",
-        "event_type == 0 && hit_index == 0"
-    );
+// Incident neutron energy proxy from hit_L_mevee for first neutron scatters
+lm->Draw(
+    "hit_L_mevee>>hL(200,0,10)",
+    "event_type == 0 && hit_index == 0"
+);
+```
 
 ### 4.2 2D correlations from cones
 
-    TTree *cones = (TTree*)f->Get("cones");
+```cpp
+TTree *cones = (TTree*)f->Get("cones");
 
-    // Incident energy vs cone angle for neutron cones
-    cones->Draw(
-        "theta_rad:incident_energy_MeV>>h(200,0,20, 180,0,3.2)",
-        "species == 0",
-        "colz"
-    );
+// Incident energy vs cone angle for neutron cones
+cones->Draw(
+    "theta_rad:incident_energy_MeV>>h(200,0,20, 180,0,3.2)",
+    "species == 0",
+    "colz"
+);
+```
+
+#### Example: incident energy spectrum from cone kinematics
+
+```cpp
+TTree *cones = (TTree*)f->Get("cones");
+
+// 1D spectrum of kinematic incident energy (neutrons only)
+cones->Draw(
+    "incident_energy_MeV>>hEn(200,0,20)",
+    "species == 0"
+);
+```
+
+You can adjust the species selection (`species == 0` for neutrons,
+`species == 1` for gammas) or apply additional cuts on `recoil_code`,
+`theta_rad`, or anything else carried by the `cones` tree.
+
 
 ### 4.3 List-mode imaging
 
-    TTree *cp = (TTree*)f->Get("cone_pixels");
+```cpp
+TTree *cp = (TTree*)f->Get("cone_pixels");
 
-    // Simple list-mode image in (u, v) with counts per pixel
-    cp->Draw(
-        "v_index:u_index>>hUV(200,0,200, 200,0,200)",
-        "",
-        "colz"
-    );
+// Simple list-mode image in (u, v) with counts per pixel
+cp->Draw(
+    "v_index:u_index>>hUV(200,0,200, 200,0,200)",
+    "",
+    "colz"
+);
+```
 
 You can combine this with cuts on the `cones` or `lm` trees (via `cone_id` or
 `event_index`) using friend trees or RDataFrame to build more sophisticated

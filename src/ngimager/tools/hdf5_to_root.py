@@ -1,3 +1,63 @@
+"""
+ngimager.tools.hdf5_to_root
+===========================
+
+This module provides a standalone HDF5 → ROOT converter for ngimager output
+files.  Although it is distributed as part of the ngimager package, the module
+is intentionally self-contained and can be used independently — for example by
+downloading *just this file* from GitHub without installing ngimager.
+
+Dependencies
+------------
+Only two Python packages are required:
+
+    - h5py     (for reading the ngimager HDF5 file)
+    - uproot   (for writing the output ROOT file)
+
+No part of ngimager's internal codebase is imported here; the converter makes
+no assumptions beyond the documented HDF5 file structure.
+
+Standalone Usage (Command Line)
+-------------------------------
+If you have Python along with `h5py` and `uproot` installed, you can run:
+
+    python hdf5_to_root.py my_run.h5
+    python hdf5_to_root.py my_run.h5 -o output.root
+    python hdf5_to_root.py my_run.h5 --overwrite
+
+The script will write `my_run.root` (or the specified output path) containing
+ROOT TTrees for list-mode hits, cones, list-mode imaging pixel mappings,
+summed SBP images, and file/run metadata.
+
+Standalone Usage (Python API)
+-----------------------------
+You may also import and call the converter from a standalone script:
+
+    from pathlib import Path
+    from hdf5_to_root import convert_hdf5_to_root
+
+    convert_hdf5_to_root(Path("my_run.h5"), Path("my_run.root"), overwrite=True)
+
+Running Under ngimager (Installed Package)
+------------------------------------------
+When installed as part of ngimager, the `ng-hdf2root` console entry point is
+registered automatically and can be invoked as:
+
+    ng-hdf2root my_run.h5
+
+The behavior is identical to running `main()` from this module.
+
+Purpose
+-------
+The converter is designed for ROOT-centric analysis workflows.  It flattens the
+HDF5 list-mode representation into ROOT-friendly TTrees that preserve all
+linkages between events, hits, cones, and (when present) list-mode imaging
+pixels.  This enables fast, flexible histogramming and correlation analysis in
+ROOT with minimal dependence on the rest of ngimager.
+
+"""
+
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -52,7 +112,7 @@ def _build_lm_tree(f: h5py.File) -> Dict[str, np.ndarray]:
     event_type = np.asarray(lm["event_type"][:], dtype=np.uint8)
     n_events = int(event_type.shape[0])
 
-    # Optional provenance and survival datasets
+    # Optional provenance datasets
     event_meta_run_id = _read_dataset_optional(
         lm, "event_meta_run_id", n_events, np.int32, 0
     )
@@ -60,28 +120,32 @@ def _build_lm_tree(f: h5py.File) -> Dict[str, np.ndarray]:
         lm, "event_meta_file_ix", n_events, np.int32, 0
     )
 
-    # Survival table: [N_events, 3] (we tolerate absence)
-    if "event_survival" in lm:
-        surv = np.asarray(lm["event_survival"][:], dtype=np.int32)
-        if surv.shape[0] != n_events or surv.shape[1] != 3:
-            raise ValueError(
-                f"'/lm/event_survival' has shape {surv.shape}, expected (N_events, 3)."
-            )
-        event_surv0 = surv[:, 0]
-        event_surv1 = surv[:, 1]
-        event_surv2 = surv[:, 2]
-    else:
-        event_surv0 = np.full(n_events, 0, dtype=np.int32)
-        event_surv1 = np.full(n_events, 0, dtype=np.int32)
-        event_surv2 = np.full(n_events, 0, dtype=np.int32)
-
-    # Cone linkage: per-event best cone and best imaged cone (if present)
+    # Optional event→cone linkage datasets (from write_event_cone_survival)
     event_cone_id = _read_dataset_optional(
         lm, "event_cone_id", n_events, np.int32, -1
     )
     event_imaged_cone_id = _read_dataset_optional(
         lm, "event_imaged_cone_id", n_events, np.int32, -1
     )
+
+    # Optional survival table (mapping style)
+    # /lm/event_survival : [N_events, 3] columns:
+    #   0: event_index
+    #   1: first_cone_index
+    #   2: first_imaged_cone_index
+    if "event_survival" in lm:
+        surv = np.asarray(lm["event_survival"][:], dtype=np.int32)
+        if surv.shape[0] != n_events or surv.shape[1] != 3:
+            raise ValueError(
+                f"'/lm/event_survival' has shape {surv.shape}, expected (N_events, 3)."
+            )
+        ev_surv_event_index = surv[:, 0]
+        ev_surv_first_cone = surv[:, 1]
+        ev_surv_first_imaged_cone = surv[:, 2]
+    else:
+        ev_surv_event_index = np.full(n_events, -1, dtype=np.int32)
+        ev_surv_first_cone = np.full(n_events, -1, dtype=np.int32)
+        ev_surv_first_imaged_cone = np.full(n_events, -1, dtype=np.int32)
 
     # Hit slots: [N_events, 3, 3] for positions, etc.
     hit_pos = np.asarray(lm["hit_pos_cm"][:], dtype=np.float32)      # (N, 3, 3)
@@ -121,22 +185,26 @@ def _build_lm_tree(f: h5py.File) -> Dict[str, np.ndarray]:
     event_type_flat = event_type[event_index_flat]
     event_meta_run_id_flat = event_meta_run_id[event_index_flat]
     event_meta_file_ix_flat = event_meta_file_ix[event_index_flat]
-    event_surv0_flat = event_surv0[event_index_flat]
-    event_surv1_flat = event_surv1[event_index_flat]
-    event_surv2_flat = event_surv2[event_index_flat]
     event_cone_id_flat = event_cone_id[event_index_flat]
     event_imaged_cone_id_flat = event_imaged_cone_id[event_index_flat]
+    ev_surv_event_index_flat = ev_surv_event_index[event_index_flat]
+    ev_surv_first_cone_flat = ev_surv_first_cone[event_index_flat]
+    ev_surv_first_imaged_cone_flat = ev_surv_first_imaged_cone[event_index_flat]
 
     arrays: Dict[str, Any] = {
+        # Event context
         "event_index": event_index_flat.astype(np.int32),
         "event_type": event_type_flat.astype(np.uint8),
         "event_meta_run_id": event_meta_run_id_flat.astype(np.int32),
         "event_meta_file_ix": event_meta_file_ix_flat.astype(np.int32),
-        "event_surv_stage0": event_surv0_flat.astype(np.int32),
-        "event_surv_stage1": event_surv1_flat.astype(np.int32),
-        "event_surv_stage2": event_surv2_flat.astype(np.int32),
         "event_cone_id": event_cone_id_flat.astype(np.int32),
         "event_imaged_cone_id": event_imaged_cone_id_flat.astype(np.int32),
+        "event_survival_event_index": ev_surv_event_index_flat.astype(np.int32),
+        "event_survival_first_cone_index": ev_surv_first_cone_flat.astype(np.int32),
+        "event_survival_first_imaged_cone_index": ev_surv_first_imaged_cone_flat.astype(
+            np.int32
+        ),
+        # Hit information
         "hit_index": hit_index_flat.astype(np.int8),
         "hit_pos_x_cm": pos_flat[:, 0].astype(np.float32),
         "hit_pos_y_cm": pos_flat[:, 1].astype(np.float32),
@@ -173,10 +241,15 @@ def _build_cones_tree(f: h5py.File) -> Dict[str, np.ndarray] | None:
 
     if "gamma_hit_order" in cones:
         gamma_hit_order = np.asarray(cones["gamma_hit_order"][:], dtype=np.int8)
-        if gamma_hit_order.shape[1] != 3:
+        if gamma_hit_order.ndim != 2 or gamma_hit_order.shape[1] != 3:
             raise ValueError(
                 f"'/cones/gamma_hit_order' has unexpected shape "
                 f"{gamma_hit_order.shape}."
+            )
+        if gamma_hit_order.shape[0] != n_cones:
+            raise ValueError(
+                "gamma_hit_order length must match number of cones: "
+                f"{gamma_hit_order.shape[0]} vs {n_cones}"
             )
         gh0 = gamma_hit_order[:, 0]
         gh1 = gamma_hit_order[:, 1]
@@ -191,7 +264,9 @@ def _build_cones_tree(f: h5py.File) -> Dict[str, np.ndarray] | None:
         "event_index": event_index.astype(np.int32),
         "species": species.astype(np.uint8),
         "recoil_code": recoil_code.astype(np.uint8),
+        # Kinematics: this is the key incident energy spectrum per cone.
         "incident_energy_MeV": inc_E.astype(np.float32),
+        # Geometry
         "apex_x_cm": apex[:, 0].astype(np.float32),
         "apex_y_cm": apex[:, 1].astype(np.float32),
         "apex_z_cm": apex[:, 2].astype(np.float32),
@@ -199,6 +274,7 @@ def _build_cones_tree(f: h5py.File) -> Dict[str, np.ndarray] | None:
         "axis_y": axis[:, 1].astype(np.float32),
         "axis_z": axis[:, 2].astype(np.float32),
         "theta_rad": theta.astype(np.float32),
+        # Gamma hit ordering
         "gamma_hit_order_0": gh0.astype(np.int8),
         "gamma_hit_order_1": gh1.astype(np.int8),
         "gamma_hit_order_2": gh2.astype(np.int8),
@@ -326,7 +402,11 @@ def _build_file_meta_tree(f: h5py.File) -> Dict[str, np.ndarray]:
 
 def _build_run_meta_tree(f: h5py.File) -> Dict[str, np.ndarray] | None:
     """
-    Build a key/value TTree from /meta/run_meta attributes, if present.
+    Build a key/value TTree from /meta/run_meta, if present.
+
+    Supports both layouts:
+      - attributes on /meta/run_meta (older design)
+      - string datasets under /meta/run_meta (current implementation)
     """
     if "meta" not in f:
         return None
@@ -335,11 +415,28 @@ def _build_run_meta_tree(f: h5py.File) -> Dict[str, np.ndarray] | None:
         return None
     run_meta = meta["run_meta"]
 
-    keys = list(run_meta.attrs.keys())
+    keys: list[str] = []
+    vals: list[str] = []
+
+    # Prefer attributes if present (matches older docs).
+    attr_keys = list(run_meta.attrs.keys())
+    if attr_keys:
+        keys.extend(attr_keys)
+        vals.extend([str(run_meta.attrs[k]) for k in attr_keys])
+    else:
+        # Current implementation stores one dataset per key.
+        for ds_name in run_meta.keys():
+            ds = run_meta[ds_name]
+            try:
+                value = ds[()].decode("utf-8") if isinstance(ds[()], (bytes, bytearray)) else str(ds[()])
+            except Exception:
+                value = str(ds[()])
+            keys.append(ds_name)
+            vals.append(value)
+
     if not keys:
         return None
 
-    vals = [str(run_meta.attrs[k]) for k in keys]
     arrays: Dict[str, Any] = {
         "key": np.array(keys, dtype=object),
         "value": np.array(vals, dtype=object),
@@ -377,7 +474,7 @@ def convert_hdf5_to_root(
         lm_arrays = _build_lm_tree(f)
         root_file["lm"] = lm_arrays
 
-        # Cones
+        # Cones (including incident_energy_MeV)
         cones_arrays = _build_cones_tree(f)
         if cones_arrays is not None:
             root_file["cones"] = cones_arrays
