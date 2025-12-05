@@ -476,6 +476,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#33-optional-convert-hdf5-output-to-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Optional: convert HDF5 output to ROOT
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1040,6 +1051,20 @@ pipeline via the module entry point:</p>
 <p>The same flags are available:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>python<span class="w"> </span>-m<span class="w"> </span>ngimager.pipelines.core<span class="w"> </span>my_config.toml<span class="w"> </span>--fast<span class="w"> </span>--list<span class="w"> </span>--no-gammas
 </code></pre></div>
+<h3 id="33-optional-convert-hdf5-output-to-root">3.3 Optional: convert HDF5 output to ROOT<a class="headerlink" href="#33-optional-convert-hdf5-output-to-root" title="Permanent link">&para;</a></h3>
+<p>If you or your collaborators prefer working in ROOT, you can convert the
+ngimager HDF5 output into a ROOT file using the <code>ng-hdf2root</code> helper:</p>
+<div class="highlight"><pre><span></span><code>ng-hdf2root my_run.h5
+</code></pre></div>
+<p>This will produce <code>my_run.root</code> in the same directory. You can then open this
+file in ROOT (C++ or PyROOT) and build histograms from:</p>
+<ul>
+<li>per-hit list-mode data (<code>lm</code> tree),</li>
+<li>reconstructed cones (<code>cones</code> tree), and</li>
+<li>list-mode imaging information (<code>cone_pixels</code> and <code>images_summed</code> trees).</li>
+</ul>
+<p>For details of the ROOT layout and more examples, see the dedicated
+<a href="../hdf2root/"><code>HDF5 → ROOT conversion</code> page</a>.</p>
 <hr />
 <h2 id="4-inspect-the-hdf5-output">4. Inspect the HDF5 output<a class="headerlink" href="#4-inspect-the-hdf5-output" title="Permanent link">&para;</a></h2>
 <p>You can inspect the file with:</p>
