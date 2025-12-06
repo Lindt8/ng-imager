@@ -30,6 +30,7 @@ nav:
       - Quickstart: user/quickstart.md
       - Config: user/config.md
       - HDF5 Format: user/hdf5.md
+      - HDF5-to-ROOT: user/hdf2root.md
   - Developer:
       - Architecture: dev/architecture.md
       - API: api/index.md

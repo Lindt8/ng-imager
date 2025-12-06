@@ -7,6 +7,7 @@ For more detail, see:
 
 - [Configuration](config.md)
 - [HDF5 Output Format](hdf5.md)
+    - [Conversion of HDF5 output to ROOT format](hdf2root.md)
 - [Architecture](../dev/architecture.md)
 
 ---
