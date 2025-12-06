@@ -9,6 +9,10 @@
       
       
       
+        <link rel="prev" href="../hdf5/">
+      
+      
+        <link rel="next" href="../../dev/architecture/">
       
       
         
@@ -19,7 +23,7 @@
     
     
       
-        <title>HDF5 → ROOT conversion (ng-hdf2root) - ng-imager</title>
+        <title>HDF5-to-ROOT - ng-imager</title>
       
     
     
@@ -108,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              HDF5 → ROOT conversion (ng-hdf2root)
+              HDF5-to-ROOT
             
           </span>
         </div>
@@ -216,8 +220,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -228,13 +234,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
@@ -255,7 +259,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -345,6 +349,309 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDF5-to-ROOT
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDF5-to-ROOT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Basic usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Basic usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-command-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Command line
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-as-a-python-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 As a Python module
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-root-file-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. ROOT file structure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. ROOT file structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-per-hit-list-mode-tree-lm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Per-hit list-mode tree: lm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.1 Per-hit list-mode tree: lm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-basic-histograms-in-root-c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: basic histograms in ROOT (C++)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-time-difference-between-first-and-second-neutron-scatters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: time difference between first and second neutron scatters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-per-cone-tree-cones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Per-cone tree: cones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-conepixel-mappings-cone_pixels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Cone→pixel mappings: cone_pixels
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-summed-images-images_summed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Summed images: images_summed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-run-metadata-file_meta-and-run_meta" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Run metadata: file_meta and run_meta
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-typical-workflows-in-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Typical workflows in ROOT
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Typical workflows in ROOT">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-1d-spectra-from-list-mode-hits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 1D spectra from list-mode hits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-2d-correlations-from-cones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 2D correlations from cones
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.2 2D correlations from cones">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-incident-energy-spectrum-from-cone-kinematics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: incident energy spectrum from cone kinematics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-list-mode-imaging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 List-mode imaging
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-notes-and-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Notes and limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
