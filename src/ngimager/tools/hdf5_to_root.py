@@ -472,31 +472,31 @@ def convert_hdf5_to_root(
     with h5py.File(hdf_path, "r") as f, uproot.recreate(root_path) as root_file:
         # Per-hit/per-event list-mode tree
         lm_arrays = _build_lm_tree(f)
-        root_file["lm"] = lm_arrays
+        root_file.mktree("lm", lm_arrays)
 
         # Cones (including incident_energy_MeV)
         cones_arrays = _build_cones_tree(f)
         if cones_arrays is not None:
-            root_file["cones"] = cones_arrays
+            root_file.mktree("cones", cones_arrays)
 
         # Cone→pixel mappings (list-mode imaging)
         cone_pix_arrays = _build_cone_pixels_tree(f)
         if cone_pix_arrays is not None:
-            root_file["cone_pixels"] = cone_pix_arrays
+            root_file.mktree("cone_pixels", cone_pix_arrays)
 
         # Summed images (optional)
         images_arrays = _build_images_summed_tree(f)
         if images_arrays is not None:
-            root_file["images_summed"] = images_arrays
+            root_file.mktree("images_summed", images_arrays)
 
         # File-level metadata
         meta_arrays = _build_file_meta_tree(f)
-        root_file["file_meta"] = meta_arrays
+        root_file.mktree("file_meta", meta_arrays)
 
         # Free-form run metadata (optional)
         run_meta_arrays = _build_run_meta_tree(f)
         if run_meta_arrays is not None:
-            root_file["run_meta"] = run_meta_arrays
+            root_file.mktree("run_meta", run_meta_arrays)
 
 
 def _default_output_path(hdf_path: Path) -> Path:
