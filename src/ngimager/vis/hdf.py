@@ -11,10 +11,10 @@ from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
 
 # Centralized styles for projections and metric overlays
-_PROJ_STYLE_ALL = {"color": "C0", "linestyle": "-"}
-_PROJ_STYLE_ROI = {"color": "C1", "linestyle": "--"}
-_METRIC_STYLE_PEAK = {"color": "C2", "linestyle": "-."}
-_METRIC_STYLE_EDGE = {"color": "C3", "linestyle": ":"}
+_PROJ_STYLE_ALL = {"color": "black", "linestyle": "-"}
+_PROJ_STYLE_ROI = {"color": "darkorange", "linestyle": "--"}
+_METRIC_STYLE_PEAK = {"color": "mediumblue", "linestyle": "-."}
+_METRIC_STYLE_EDGE = {"color": "darkslategrey", "linestyle": ":"}
 
 def _count_cones_for_species(f: h5py.File, species: str) -> Optional[int]:
     """
@@ -1039,7 +1039,7 @@ def render_summed_images(
                     # Annotation (top-left inside image)
                     ax_img.text(
                         0.02, 0.98,
-                        f"centroid = ({u_centroid_plot:.2f}, {v_centroid_plot:.2f}) {axis_units}",
+                        f"+  centroid = ({u_centroid_plot:.2f}, {v_centroid_plot:.2f}) {axis_units}",
                         transform=ax_img.transAxes,
                         ha="left",
                         va="top",
