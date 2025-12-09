@@ -793,7 +793,7 @@ def _flatten_hits_for_ragged(phits_events: Sequence[Dict[str, Any]]
     x = np.empty(M, dtype=np.float32)
     y = np.empty(M, dtype=np.float32)
     z = np.empty(M, dtype=np.float32)
-    t = np.empty(M, dtype=np.float32)
+    t = np.empty(M, dtype=np.float64)
     e = np.empty(M, dtype=np.float32)
     reg = np.empty(M, dtype=np.int32)
 
@@ -820,7 +820,7 @@ def _flatten_hits_for_ragged(phits_events: Sequence[Dict[str, Any]]
             if hasattr(h, "r"):  # Hit object
                 # r is cm; L is light-like; Edep_MeV may be in extras
                 x[w], y[w], z[w] = float(h.r[0]), float(h.r[1]), float(h.r[2])
-                t[w] = float(getattr(h, "t_ns"))
+                t[w] = np.float64(getattr(h, "t_ns"))
                 # Prefer Edep_MeV if available in extras; else fall back to L
                 e[w] = float(getattr(h, "extras", {}).get("Edep_MeV", getattr(h, "L", 0.0)))
                 reg[w] = int(getattr(h, "det_id", 0))
@@ -828,7 +828,7 @@ def _flatten_hits_for_ragged(phits_events: Sequence[Dict[str, Any]]
                 x[w]   = float(h.get("x_cm", 0.0))
                 y[w]   = float(h.get("y_cm", 0.0))
                 z[w]   = float(h.get("z_cm", 0.0))
-                t[w]   = float(h.get("t_ns", 0.0))
+                t[w]   = np.float64(h.get("t_ns", 0.0))
                 e[w]   = float(h.get("Edep_MeV", 0.0))
                 reg[w] = int(h.get("reg", h.get("det_id", 0)))
             w += 1
@@ -887,7 +887,7 @@ def write_events_hits(
       /lm/event_meta_run_id   : [N]  int32 (optional meta)
       /lm/event_meta_file_ix  : [N]  int32 (optional meta)
       /lm/hit_pos_cm          : [N,3,3] float32 (event, hit_index, xyz)
-      /lm/hit_t_ns            : [N,3]   float32
+      /lm/hit_t_ns            : [N,3]   float64
       /lm/hit_L_mevee         : [N,3]   float32
       /lm/hit_det_id          : [N,3]   int32
       /lm/hit_material_id     : [N,3]   int16
@@ -931,7 +931,7 @@ def write_events_hits(
 
     # Allocate arrays
     hit_pos = np.full((N, 3, 3), np.nan, dtype=np.float32)
-    hit_t = np.full((N, 3), np.nan, dtype=np.float32)
+    hit_t = np.full((N, 3), np.nan, dtype=np.float64)
     hit_L = np.full((N, 3), np.nan, dtype=np.float32)
     hit_det = np.full((N, 3), -1, dtype=np.int32)
     hit_mat = np.full((N, 3), -1, dtype=np.int16)
@@ -962,7 +962,7 @@ def write_events_hits(
         for j, h in enumerate(hits[:3]):
             r = np.asarray(h.r, dtype=float).reshape(3)
             hit_pos[i, j, :] = r
-            hit_t[i, j] = float(h.t_ns)
+            hit_t[i, j] = np.float64(h.t_ns)
             hit_L[i, j] = float(h.L)
             hit_det[i, j] = int(h.det_id) if h.det_id is not None else -1
             hit_mat[i, j] = mat_id(getattr(h, "material", None))

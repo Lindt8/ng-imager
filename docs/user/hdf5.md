@@ -404,7 +404,7 @@ survived hit-level and event-level filters (Stage 1–2).
 Hits are stored in fixed slots per event:
 
 - `/lm/hit_pos_cm`      : `[N_events, 3, 3]` float32
-- `/lm/hit_t_ns`        : `[N_events, 3]` float32
+- `/lm/hit_t_ns`        : `[N_events, 3]` float64
 - `/lm/hit_L_mevee`     : `[N_events, 3]` float32
 - `/lm/hit_det_id`      : `[N_events, 3]` int32
 - `/lm/hit_material_id` : `[N_events, 3]` int16
