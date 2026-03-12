@@ -3,6 +3,7 @@
 [![Docs](https://github.com/Lindt8/ng-imager/actions/workflows/docs.yml/badge.svg)](https://Lindt8.github.io/ng-imager/)
 [![GitHub Pages](https://img.shields.io/badge/docs-online-brightgreen?style=flat&logo=readthedocs)](https://Lindt8.github.io/ng-imager/)
 [![PyPI](https://img.shields.io/pypi/v/ngimager.svg)](https://pypi.org/project/ngimager/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18979708.svg)](https://doi.org/10.5281/zenodo.18979708)
 
 **ng-imager** is a modular Python toolkit for imaging **neutrons** and **gamma rays** in the NOVO detector system.
 
