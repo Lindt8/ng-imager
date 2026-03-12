@@ -124,7 +124,9 @@ ng-viz summed results/example.h5
 
 ## Documentation
 
-Full documentation is hosted at:
+### Usage
+
+Full **usage** documentation is hosted at:
 
 - https://Lindt8.github.io/ng-imager/
 
@@ -135,6 +137,10 @@ Key sections:
 - **HDF5 Layout** – how to interpret the output file (`docs/hdf5.md`).  
 - **Architecture** – design overview and long-term roadmap (`docs/architecture.md`).  
 - **API Reference** – auto-generated documentation from Python docstrings (`docs/api/index.md`).  
+
+### Methodology
+
+The **methodology** behind neutron and gamma-ray cone construction, selection, and filtering along with the "scan" simple back projection is separately documented at: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18979385.svg)](https://doi.org/10.5281/zenodo.18979385)
 
 ---
 
